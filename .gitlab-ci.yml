@@ -1,0 +1,78 @@
+stages:          # List of stages for jobs, and their order of execution
+  - ticket
+  - build
+  - docker-build
+  - deploy
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false" # Memastikan daemon tidak digunakan dalam CI untuk menghemat memori
+
+ticket-job:
+  stage: ticket
+  script:
+    - echo "Starting Ticketing...."
+    - echo "$CI_COMMIT_SHA"
+    - |
+      curl -k --data "{\"message\":\"$CI_COMMIT_SHA\", \"id_project\":\"$CI_PROJECT_ID\"}" -H 'Content-Type: application/json' -X POST $HOST_TICKET_API
+    - echo "Ticket Submitted."
+
+# build-job:
+#   stage: build
+#   script:
+#     - export PATH=/usr/local/lib/nodejs/node-v21.7.3-linux-x64/bin:$PATH
+#     - npm install
+#     - npm run build
+#     - pwd
+#   artifacts:
+#     paths:
+#       - .next
+#       - package.json
+#       - package-lock.json
+#     expire_in: 5 minutes
+  # rules:
+  #   - if: '$CI_COMMIT_BRANCH == "production" && $CI_PIPELINE_SOURCE == "push"'
+  #     when: always
+
+docker-build-job:
+  stage: docker-build
+  script:
+    - echo "Building Docker Image..."
+    - docker login $DOCKER_REGISTRY -u $REGISTRY_USER -p $REGISTRY_TOKEN  # Login ke Docker registry
+    - docker build -t $DOCKER_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest .  # Membangun Docker image
+    - docker push $DOCKER_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest  # Push image ke Docker registry
+    - docker rmi $DOCKER_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest  # Hapus image setelah push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "production" && $CI_PIPELINE_SOURCE == "push"'
+      when: always
+
+deploy-job:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest # Menggunakan image kubectl
+    entrypoint: [""]
+  tags:
+    - docker-runner
+  script:
+    - pwd
+    - echo "Deploying to Kubernetes..."
+    - mkdir -p $CI_PROJECT_DIR/.kube
+    - echo "$KUBECONFIG_BASE64" | base64 --decode > $CI_PROJECT_DIR/.kube/config
+    - chmod 644 $CI_PROJECT_DIR/.kube/config
+    - export KUBECONFIG=$CI_PROJECT_DIR/.kube/config
+    # - cat $CI_PROJECT_DIR/.kube/config
+    # - kubectl config get-contexts
+    - kubectl config use-context kubernetes-admin@production # Menggunakan konteks Kubernetes
+    # - echo "$DOCKER_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_SHA"
+    - kubectl apply -f k8s/service.yaml # Terapkan Service
+    - envsubst < k8s/deployment.yaml | kubectl apply -f -
+    - kubectl apply -f k8s/hpa.yaml # Terapkan Horizontal Pod Autoscaler (Jika ada)
+    - kubectl apply -f k8s/ingress.yaml # Terapkan Ingress (Jika ada)
+    - kubectl rollout restart deployment/mechanical-completion-frontend
+    - kubectl rollout status deployment/mechanical-completion-frontend # Pastikan deployment sukses
+    - echo "Deployment completed."
+  environment:
+    name: production
+    url: http://10.5.255.18 # Ganti dengan URL atau IP akses aplikasi di Kubernetes1
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "production" && $CI_PIPELINE_SOURCE == "push"'
+      when: always
