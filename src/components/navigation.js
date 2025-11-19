@@ -1,18 +1,12 @@
 import useCollapseStore from "@/store/useLayout";
-import { ActionIcon, Button, Collapse, Menu, NavLink } from "@mantine/core";
+import { ActionIcon, Collapse, Menu, NavLink } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
-  IconHome2,
   IconMenu2,
   IconHomeFilled,
-  IconChecklist,
   IconLayoutGrid,
-  IconBriefcase,
-  IconBrandGithub,
-  IconDatabaseCog,
-  IconNote,
   IconCaretRight,
-  IconDeviceImacSearch,
+  IconDatabase,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,18 +20,38 @@ const navigation = [
     icon: <IconHomeFilled size={20} />,
     permission: 1,
   },
-  // {
-  //   name: "Example",
-  //   url: "/example",
-  //   icon: <IconBrandGithub size={20} />,
-  //   permission: 1,
-  // },
-  // Template, Workpack, Checklist
   {
     name: "Employee",
-    url: "/employee/employee_list",
+    url: "/employee/list",
     icon: <IconLayoutGrid size={20} />,
     permission: 1,
+  },
+  {
+    name: "Master Data",
+    icon: <IconDatabase size={20} />,
+    permission: 1,
+    child: [
+      {
+        title: "Master Departement",
+        url: "/master_departement/list_departement",
+        icon: <IconDatabase size={18} />,
+      },
+      {
+        title: "Master Project",
+        url: "/master_project/list_project",
+        icon: <IconDatabase size={18} />,
+      },
+      {
+        title: "Master Role",
+        url: "/master_role/list_role",
+        icon: <IconDatabase size={18} />,
+      },
+      {
+        title: "Master Leave Type",
+        url: "/master_leave/list_leave",
+        icon: <IconDatabase size={18} />,
+      },
+    ],
   },
 ];
 
@@ -47,123 +61,101 @@ export default function Navigation() {
   const { toggleCollapse } = useCollapseStore();
   const path = usePathname();
 
-  const items = navigation.map((link, index) => {
-    const menuItems = link.child?.map((item, indexItem) => (
-      <Menu.Item key={indexItem} leftSection={<IconCaretRight size={20} />}>
-        {item.name}
-      </Menu.Item>
-    ));
-
-    if (menuItems) {
+  // Render desktop menu
+  const desktopItems = navigation.map((link, index) => {
+    if (link.child) {
+      // Parent menu with dropdown
       return (
         <Menu key={index} shadow="md" position="bottom-start">
           <Menu.Target>
-            <div className="w-fit text-white">
-              <Link
-                href={link.url}
-                className={`p-2 ${
-                  (link.url === "/" && router.asPath === "/") ||
-                  (link.url !== "/" && router.asPath.startsWith(link.url))
-                    ? "bg-white bg-opacity-25 text-white"
-                    : ""
-                } hover:bg-white hover:text-black rounded-md text-sm flex`}
-                data-active={true}
-              >
-                <div className="mr-2">{link.icon}</div>
-                {link.name}
-              </Link>
+            <div className="w-fit text-white p-2 flex items-center cursor-pointer hover:bg-white hover:text-black rounded-md text-sm">
+              <div className="mr-2">{link.icon}</div>
+              {link.name}
             </div>
           </Menu.Target>
-
-          <Menu.Dropdown>{menuItems}</Menu.Dropdown>
+          <Menu.Dropdown>
+            {link.child.map((item, idx) => (
+              <Menu.Item key={idx} icon={item.icon}>
+                <Link href={item.url}>{item.title}</Link>
+              </Menu.Item>
+            ))}
+          </Menu.Dropdown>
         </Menu>
       );
     }
 
+    // Normal single link
     return (
-      <div key={index} className="w-fit text-white">
-        <Link
-          href={link.url}
-          className={`p-2 ${
-            (link.url === "/" && router.asPath === "/") ||
-            (link.url !== "/" && router.asPath.startsWith(link.url))
-              ? "bg-white bg-opacity-25 text-white"
-              : ""
-          } hover:bg-white hover:text-black rounded-md text-sm flex`}
-          data-active={true}
-        >
-          <div className="mr-2">{link.icon}</div>
-          {link.name}
-        </Link>
-      </div>
+      <Link
+        key={index}
+        href={link.url}
+        className={`w-fit text-white p-2 rounded-md text-sm flex items-center hover:bg-white hover:text-black ${
+          path === link.url ? "bg-white bg-opacity-25 text-white" : ""
+        }`}
+      >
+        <div className="mr-2">{link.icon}</div>
+        {link.name}
+      </Link>
     );
   });
 
+  // Render mobile menu
+  const mobileItems = navigation.map((link, index) => (
+    <div key={index} className="text-white">
+      {link.child ? (
+        <NavLink
+          label={link.name}
+          leftSection={link.icon}
+          variant="subtle"
+          childrenOffset={40}
+        >
+          {link.child.map((child, idx) => (
+            <NavLink
+              key={idx}
+              component={Link}
+              href={child.url}
+              label={child.title}
+              variant="subtle"
+            />
+          ))}
+        </NavLink>
+      ) : (
+        <NavLink
+          component={Link}
+          href={link.url}
+          label={link.name}
+          leftSection={link.icon}
+          variant="subtle"
+        />
+      )}
+    </div>
+  ));
+
   return (
     <>
-      <nav className="w-full sticky md:relative top-0 z-50 md:z-1 flex items-center justify-between bg-blue-600 px-4 ">
-        <div className="flex">
-          <ActionIcon
-            variant="subtle"
-            size="xl"
-            className="mr-2"
-            onClick={toggleCollapse}
-          >
+      {/* Desktop & tablet navbar */}
+      <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-blue-600 px-4 py-2 hidden md:flex">
+        <div className="flex items-center gap-2">
+          <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
             <IconMenu2 color="white" />
           </ActionIcon>
-
-          <div className="hidden md:flex relative md:gap-1 md:items-center">
-            {items}
-          </div>
-        </div>
-
-        <div className="md:hidden">
-          <ActionIcon
-            variant="subtle"
-            size="xl"
-            className="mr-2"
-            onClick={toggle}
-          >
-            <IconMenu2 color="white" />
-          </ActionIcon>
+          <div className="flex gap-1 items-center">{desktopItems}</div>
         </div>
       </nav>
 
-      <Collapse in={opened} className="md:hidden sticky top-10 z-50">
-        <nav className="w-full flex flex-col bg-blue-600 px-4 py-1">
-          {navigation.map((item, index) => (
-            <div key={index} className="text-white">
-              <NavLink
-                component={Link}
-                href={item.url}
-                // onClick={() => (item.child ? item.url : router.push(item.url))}
-                label={item.name}
-                leftSection={item.icon}
-                variant="subtle"
-                childrenOffset={40}
-                onClick={(event) =>
-                  (event.currentTarget.style.backgroundColor = "#2563eb")
-                }
-              >
-                {item.child &&
-                  item.child.length > 0 &&
-                  item.child.map((child, index) => (
-                    <NavLink
-                      key={index}
-                      component={Link}
-                      href={child.url}
-                      // onClick={() => router.push(child.url)}
-                      label={child.name}
-                      variant="subtle"
-                      onClick={(event) =>
-                        (event.currentTarget.style.backgroundColor = "#2563eb")
-                      }
-                    />
-                  ))}
-              </NavLink>
-            </div>
-          ))}
-        </nav>
+      {/* Mobile Navbar */}
+      <nav className="md:hidden w-full flex items-center justify-between bg-blue-600 px-4 py-2 sticky top-0 z-50">
+        <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
+          <IconMenu2 color="white" />
+        </ActionIcon>
+        <ActionIcon variant="subtle" size="xl" onClick={toggle}>
+          <IconMenu2 color="white" />
+        </ActionIcon>
+      </nav>
+
+      {/* Mobile menu collapse */}
+      <Collapse in={opened} className="md:hidden w-full bg-blue-600">
+        <nav className="flex flex-col px-4 py-2">{mobileItems}</nav>
       </Collapse>
     </>
   );

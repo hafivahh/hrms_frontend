@@ -8,6 +8,7 @@ import axios from 'axios'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { useState } from 'react'
+import { master_data } from "@/data/sidebar/master_data";
 
 Add_employee.title = "Add Employee"
 export default function Add_employee() {
@@ -35,6 +36,7 @@ export default function Add_employee() {
 
   const handleSubmit = async (values) => {
     try {
+      
       const {data} = await axios.post(`${API_URL}/api/testing/create_employee`, values, {
         headers: {
           Authorization : "Bearer "+user.token
@@ -54,7 +56,7 @@ export default function Add_employee() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout sidebarList={master_data}>
       <div className='py-6'>
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" style={{ position: 'relative' }} withBorder>

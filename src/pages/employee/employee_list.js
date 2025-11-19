@@ -1,5 +1,6 @@
 import Datatables from '@/components/custom/Datatables'
 import AuthLayout from '@/components/layout/authLayout'
+import { employee } from '@/data/sidebar/employee'
 import useApi from '@/hooks/useApi'
 import useUser from '@/store/useUser'
 import { Button, Paper, Table } from '@mantine/core'
@@ -35,49 +36,42 @@ export default function Employee_list() {
   });
   const [totalPages, setTotalPages] = useState(1);
 
-  const columns = useMemo(() => [
+ const columns = useMemo(() => [
+  {
+    accessorKey: "badge_number",
+    id: "badge",
+    header: "Badge",
+  },
+  {
+    accessorKey: "full_name",
+    id: "name",
+    header: "Name",
+  },
+  {
+    accessorKey: "id_departement",
+    id: "departemen",
+    header: "Departemen",
+  },
+  {
+    accessorKey: "id_project",
+    id: "project",
+    header: "Project",
+  },
+  {
+    accessorKey: "id",
+    id: "id",
+    header: "Action",
+    cell: (info) => {
+      const id = info.getValue();
+      return (
+        <Button onClick={() => router.push('/employee/edit_employee/' + id)} leftSection={<IconEdit />} color='orange'>
+          Edit
+        </Button>
+      );
+    }
+  }
+], []);
 
-    {
-      accessorFn: (row) => row.nama,
-      id: "nama",
-      header: "Nama",
-      enableColumnFilter: true,
-      enableSorting: true,
-      cell: (info) => info.getValue(),
-    },
-
-    {
-      accessorFn: (row) => row.nomor_karyawan,
-      id: "nomor_karyawan",
-      header: "Nomor Karyawan",
-      enableColumnFilter: true,
-      enableSorting: true,
-      cell: (info) => info.getValue(),
-    },
- {
-      accessorFn: (row) => row.nama,
-      id: "departemen",
-      header: "Departemen",
-      enableColumnFilter: true,
-      enableSorting: true,
-      cell: (info) => info.getValue(),
-    },
-    {
-      accessorFn: (row) => row.id,
-      id: "id",
-      header: "Action",
-      enableColumnFilter: true,
-      enableSorting: true,
-      cell: (info) => {
-        let value = info.getValue()
-        return (
-          <div className='align-middle items-center'>
-            <Button onClick={() => router.push('/employee/edit_employee/' + value)} leftSection={<IconEdit />} color='orange'> Edit</Button>
-          </div>
-        )
-      },
-    },
-  ])
   const table = useReactTable({
     data,
     columns,
@@ -140,54 +134,77 @@ export default function Employee_list() {
     }
   }
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    // const getData = async () => {
-    //   const filterParams = columnFilters
-    //     .map((filter) => filter.value != null ? `${filter.id}=${filter.value}` : "")
-    //     .join("&");
+  //   // const getData = async () => {
+  //   //   const filterParams = columnFilters
+  //   //     .map((filter) => filter.value != null ? `${filter.id}=${filter.value}` : "")
+  //   //     .join("&");
 
-    //   const sort =
-    //     sorting && sorting.length > 0
-    //       ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
-    //       : "";
+  //   //   const sort =
+  //   //     sorting && sorting.length > 0
+  //   //       ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
+  //   //       : "";
 
-    //   const { data } = await axios.post(
-    //     `${API_URL}/api/testing/serverside_employee_list?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
-    //     savedFilter,
-    //     {
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: `Bearer ${user.token}`,
-    //       },
-    //     }
-    //   );
-
-
-    //   setData(data.content);
-    //   setTotalPages(data.totalPages);
-    //   if (loadingData) {
-    //     setLoadingData(false)
-    //   }
-    //   setLoadingOpt(false)
-    // };
+  //   //   const { data } = await axios.post(
+  //   //     `${API_URL}/api/testing/serverside_employee_list?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
+  //   //     savedFilter,
+  //   //     {
+  //   //       headers: {
+  //   //         "Content-Type": "application/json",
+  //   //         Authorization: `Bearer ${user.token}`,
+  //   //       },
+  //   //     }
+  //   //   );
 
 
-    // getData();
-  }, [
-    user.token,
-    columnFilters,
-    pagination.pageIndex,
-    pagination.pageSize,
-    sorting,
-    loadingData,
-    savedFilter,
-    API_URL
+  //   //   setData(data.content);
+  //   //   setTotalPages(data.totalPages);
+  //   //   if (loadingData) {
+  //   //     setLoadingData(false)
+  //   //   }
+  //   //   setLoadingOpt(false)
+  //   // };
 
-  ]);
+
+  //   // getData();
+  // }, [
+  //   user.token,
+  //   columnFilters,
+  //   pagination.pageIndex,
+  //   pagination.pageSize,
+  //   sorting,
+  //   loadingData,
+  //   savedFilter,
+  //   API_URL
+
+  // ]);
+useEffect(() => {
+  const getData = async () => {
+    try {
+
+      const response = await axios.get(`${API_URL}/api/employee/test`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      });
+
+      console.log("API Response:", response.data);
+      setData(response.data);
+      setTotalPages(1);
+      setLoadingData(false);
+
+    } catch (err) {
+      console.error("API ERROR:", err);
+    }
+  };
+
+  getData();
+}, [API_URL, user.token]);
+
 
   return (
-    <AuthLayout>
+    <AuthLayout sidebarList={employee}>
       <div className='py-6'>
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" style={{ position: 'relative' }} withBorder>
@@ -197,11 +214,23 @@ export default function Employee_list() {
               <Button onClick={downloadPdf}> Download PDF</Button>
               <Button onClick={() => router.push("/employee/upload_sftp")}> Upload SFTP</Button>
             </div>
-            <div className="p-4 overflow-x-auto">
+            {
+              <>
+              {data.map((row) => (
+                <div key={row.id}>
+                  <p>{row.full_name} - {row.badge_number}</p>
+                </div>
+              ))}
+              {/* <p className="p-4"> Total Data : {data.length} </p> */}
+
+              <p className="p-4"> Total Data : {data.length} </p>
+              </>
+            }
+            {/* <div className="p-4 overflow-x-auto">
               {
                 <Datatables table={table} totalPages={totalPages} />
               }
-            </div>
+            </div> */}
           </Paper>
         </div>
       </div>
