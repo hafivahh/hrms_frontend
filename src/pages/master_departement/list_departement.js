@@ -5,17 +5,18 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { Button, Paper } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconTrash } from "@tabler/icons-react";
-import {IconPencil } from "@tabler/icons-react";
+import { IconTrash, IconDatabase, IconPencil } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { use, useCallback, useEffect, useMemo, useState } from "react";
-
+import useEncrypt from "@/hooks/useEncrypt";
 
 export default function List() {
   const router = useRouter();
   const { user } = useUser();
+
+  const { encrypt } = useEncrypt();
 
   const API = useApi();
   const API_URL = API.API_URL;
@@ -32,6 +33,15 @@ export default function List() {
   const columns = useMemo(
     () => [
       {
+        id: "no",
+        header: "No",
+        cell: ({ row }) =>
+          pagination.pageIndex * pagination.pageSize + row.index + 1,
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 50,
+      },
+      {
         accessorFn: (row) => row.departement_name,
         id: "departement_name",
         header: "Nama Departement",
@@ -42,34 +52,38 @@ export default function List() {
       {
         id: "actions",
         header: "Actions",
-        cell: ({ row }) => (
-          <Button.Group>
-            <Button
-                            size="xs"
-                            color="blue"
-                            onClick={() => {
-                                setEditOpened(true);
-                            }}
-                            leftSection={<IconPencil size={16} />}
-                        >
-                            Edit
-                        </Button>
-            <Button
-              size="xs"
-              color="red"
-              onClick={() => {
-                handleDelete(encrypt(row.original.id.toString()));
-              }}
-              leftSection={<IconTrash size={16} />}
-            >
-              Delete
-            </Button>
-            
-          </Button.Group>
-        ),
+        cell: ({ row }) => {
+          const encryptedId = encrypt(String(row.original.id));
+
+          return (
+            <Button.Group>
+              <Button
+                size="xs"
+                color="blue"
+                onClick={() =>
+                  router.push(
+                    `/master_departement/edit_departement/${encryptedId}`
+                  )
+                }
+                leftSection={<IconPencil size={16} />}
+              >
+                Edit
+              </Button>
+
+              <Button
+                size="xs"
+                color="red"
+                onClick={() => handleDelete(encryptedId)}
+                leftSection={<IconTrash size={16} />}
+              >
+                Delete
+              </Button>
+            </Button.Group>
+          );
+        },
       },
     ],
-    []
+    [encrypt]
   );
 
   const table = useReactTable({
@@ -127,13 +141,13 @@ export default function List() {
     fetchData();
   }, [fetchData]);
 
-  const downloadExcel = () => {
-    console.log("Download Excel");
-  };
+  // const downloadExcel = () => {
+  //   console.log("Download Excel");
+  // };
 
-  const downloadPdf = () => {
-    console.log("Download PDF");
-  };
+  // const downloadPdf = () => {
+  //   console.log("Download PDF");
+  // };
 
   return (
     <AuthLayout sidebarList={master_data}>
@@ -145,15 +159,22 @@ export default function List() {
             style={{ position: "relative" }}
             withBorder
           >
-            <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/master_departement/create")}>
-                {" "}
-                Add Departement
-              </Button>
-              <Button onClick={downloadExcel}> Download Excel</Button>
-              <Button onClick={downloadPdf}> Download PDF</Button>
+            {/* JUDUL + ICON */}
+            <div className="px-4 py-3 border-b flex items-center gap-2">
+              <IconDatabase size={20} />
+              <h2 className="text-lg font-semibold">Master Departement</h2>
             </div>
 
+            {/* Tombol di kanan */}
+            <div className="px-4 py-2 text-right space-x-2">
+              <Button onClick={() => router.push("/master_departement/create")}>
+                Add Departement
+              </Button>
+              {/* <Button onClick={downloadExcel}>Download Excel</Button>
+              <Button onClick={downloadPdf}>Download PDF</Button> */}
+            </div>
+
+            {/* Tabel */}
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} />
             </div>

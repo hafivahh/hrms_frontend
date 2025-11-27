@@ -3,17 +3,19 @@ import AuthLayout from "@/components/layout/authLayout";
 import { master_data } from "@/data/sidebar/master_data";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
-import { Button } from "@mantine/core";
+import { Button, Paper } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconTrash } from "@tabler/icons-react";
+import { IconTrash, IconDatabase, IconPencil } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { use, useCallback, useEffect, useMemo, useState } from "react";
+import useEncrypt from "@/hooks/useEncrypt";
 
 export default function List() {
   const router = useRouter();
   const { user } = useUser();
+  const { encrypt } = useEncrypt();
 
   const API = useApi();
   const API_URL = API.API_URL;
@@ -30,12 +32,13 @@ export default function List() {
   const columns = useMemo(
     () => [
       {
-        accessorFn: (row) => row.id_role,
-        id: "id_role",
+        id: "no",
         header: "No",
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => info.getValue(),
+        cell: ({ row }) =>
+          pagination.pageIndex * pagination.pageSize + row.index + 1,
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 50,
       },
       {
         accessorFn: (row) => row.role_name,
@@ -45,27 +48,42 @@ export default function List() {
         enableSorting: true,
         cell: (info) => info.getValue(),
       },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <Button.Group>
-            <Button
-              size="xs"
-              color="red"
-              onClick={() => {
-                handleDelete(row.original.id_role); // atau encrypt kalau perlu
-              }}
-              leftSection={<IconTrash size={16} />}
-            >
-              Delete
-            </Button>
-          </Button.Group>
-        ),
-      },
-    ],
-    []
-  );
+          {
+              id: "actions",
+              header: "Actions",
+              cell: ({ row }) => {
+                const encryptedId = encrypt(String(row.original.id_role));
+      
+                return (
+                  <Button.Group>
+                    <Button
+                      size="xs"
+                      color="blue"
+                      onClick={() =>
+                        router.push(
+                          `/master_role/edit_role/${encryptedId}`
+                        )
+                      }
+                      leftSection={<IconPencil size={16} />}
+                    >
+                      Edit
+                    </Button>
+      
+                    <Button
+                      size="xs"
+                      color="red"
+                      onClick={() => handleDelete(encryptedId)}
+                      leftSection={<IconTrash size={16} />}
+                    >
+                      Delete
+                    </Button>
+                  </Button.Group>
+                );
+              },
+            },
+          ],
+          [encrypt]
+        );
 
   const table = useReactTable({
     data,
@@ -100,7 +118,7 @@ export default function List() {
 
     const sort =
       sorting && sorting.length > 0
-        ? `${sorting[0].id},${sorting[0].desc ? "asc" : "desc"}`
+        ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
         : "";
 
     const { data } = await axios.post(
@@ -122,10 +140,45 @@ export default function List() {
     fetchData();
   }, [fetchData]);
 
+  const downloadExcel = () => {
+    console.log("Download Excel");
+  };
+
+  const downloadPdf = () => {
+    console.log("Download PDF");
+  };
+
   return (
     <AuthLayout sidebarList={master_data}>
-      <div style={{ padding: "0 40px" }}>
-        <Datatables table={table} totalPages={totalPages} />
+      <div className="py-6">
+        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+          <Paper
+            radius="sm"
+            mt="md"
+            style={{ position: "relative" }}
+            withBorder
+          >
+            {/* JUDUL + ICON */}
+            <div className="px-4 py-3 border-b flex items-center gap-2">
+              <IconDatabase size={20} />
+              <h2 className="text-lg font-semibold">Master Role</h2>
+            </div>
+
+            {/* Tombol di kanan */}
+            <div className="px-4 py-2 text-right space-x-2">
+              <Button onClick={() => router.push("/master_role/create")}>
+                Add Role
+              </Button>
+              <Button onClick={downloadExcel}>Download Excel</Button>
+              <Button onClick={downloadPdf}>Download PDF</Button>
+            </div>
+
+            {/* Tabel */}
+            <div className="p-4 overflow-x-auto">
+              <Datatables table={table} totalPages={totalPages} />
+            </div>
+          </Paper>
+        </div>
       </div>
     </AuthLayout>
   );
