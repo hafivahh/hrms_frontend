@@ -9,9 +9,9 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { master_data } from "@/data/sidebar/master_data";
 
-export default function Create_Role() {
-  Create_Role.title = "Add Role";
+Create_Departement.title = "Add Departement";
 
+export default function Create_Departement() {
   const router = useRouter();
   const { user } = useUser();
   const API = useApi();
@@ -20,11 +20,11 @@ export default function Create_Role() {
 
   const form = useForm({
     initialValues: {
-      role_name: "",
+      departement_name: "",
     },
     validate: {
-      role_name: (value) =>
-        value.trim().length > 0 ? null : "Role Name is required",
+      departement_name: (value) =>
+        value.trim().length > 0 ? null : "Department Name is required",
     },
   });
 
@@ -32,7 +32,7 @@ export default function Create_Role() {
     const confirm = await showAlert(
       "Are you sure?",
       "warning",
-      "Do you want to submit this role?",
+      "Do you want to submit this departement?",
       true
     );
 
@@ -42,7 +42,7 @@ export default function Create_Role() {
 
     try {
       const { data } = await axios.post(
-        `${API_URL}/api/master_role/create`,
+        `${API_URL}/api/master/departement/create`,
         values,
         {
           headers: {
@@ -53,7 +53,7 @@ export default function Create_Role() {
 
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
-        router.push("/master_role/list_role");
+        router.push("/master/departement/list");
       }
       
     } catch (error) {
@@ -71,16 +71,16 @@ export default function Create_Role() {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
             <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Add Role</Text>
+              <Text fw={500}>Add Departement</Text>
             </div>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <div className="px-4 py-2">
                 <TextInput
-                  label="Role Name"
+                  label="Departement Name"
                   withAsterisk
-                  placeholder="Input Role Name"
-                  {...form.getInputProps("role_name")}
+                  placeholder="Input Department Name"
+                  {...form.getInputProps("departement_name")}
                 />
               </div>
               <div className="px-4 py-2 flex justify-end space-x-2">
@@ -89,7 +89,9 @@ export default function Create_Role() {
                   color="gray"
                   variant="filled"
                   leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/master_role/list_role")}
+                  onClick={() =>
+                    router.push("master/departement/list")
+                  }
                 >
                   Back
                 </Button>

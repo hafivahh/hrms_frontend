@@ -9,8 +9,8 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { master_data } from "@/data/sidebar/master_data";
 
-export default function Create_Leave_Type() {
-  Create_Leave_Type.title = "Add Leave Type";
+export default function Create_Project() {
+Create_Project.title = "Add Project";
 
   const router = useRouter();
   const { user } = useUser();
@@ -20,11 +20,11 @@ export default function Create_Leave_Type() {
 
   const form = useForm({
     initialValues: {
-      type_name: "",
+      project_name: "",
     },
     validate: {
-      type_name: (value) =>
-        value.trim().length > 0 ? null : "Leave Type Name is required",
+      project_name: (value) =>
+        value.trim().length > 0 ? null : "Project Name is required",
     },
   });
 
@@ -32,15 +32,17 @@ export default function Create_Leave_Type() {
     const confirm = await showAlert(
       "Are you sure?",
       "warning",
-      "Do you want to submit this leave type?",
+      "Do you want to submit this project?",
       true
     );
 
-    if (!confirm) return;
+    if (!confirm) {
+      return;
+    }
 
     try {
       const { data } = await axios.post(
-        `${API_URL}/api/master_leave/create`,
+        `${API_URL}/api/master/project/create`,
         values,
         {
           headers: {
@@ -49,11 +51,10 @@ export default function Create_Leave_Type() {
         }
       );
 
-      if (data.success) {
+     if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
-        router.push("/master_leave/list_leave");
+        router.push("/master/project/list");
       }
-
     } catch (error) {
       const data_error = error.response?.data || {
         message: "Error",
@@ -69,26 +70,27 @@ export default function Create_Leave_Type() {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
             <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Add Leave Type</Text>
+              <Text fw={500}>Add Project</Text>
             </div>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <div className="px-4 py-2">
                 <TextInput
-                  label="Leave Type Name"
+                  label="Project Name"
                   withAsterisk
-                  placeholder="Input Leave Type Name"
-                  {...form.getInputProps("type_name")}
+                  placeholder="Input Project Name"
+                  {...form.getInputProps("project_name")}
                 />
               </div>
-
               <div className="px-4 py-2 flex justify-end space-x-2">
                 <Button
                   size="md"
                   color="gray"
                   variant="filled"
                   leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/master_leave/list_leave")}
+                  onClick={() =>
+                    router.push("/master/project/list")
+                  }
                 >
                   Back
                 </Button>

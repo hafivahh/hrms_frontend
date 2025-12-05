@@ -1,4 +1,4 @@
-import {IconListLetters, IconDatabase } from "@tabler/icons-react";
+import { IconListLetters, IconDatabase } from "@tabler/icons-react";
 export const master_data = [
   {
     title: "Master Data",
@@ -8,46 +8,52 @@ export const master_data = [
     child: [
       {
         title: "Master Departement",
-        href: "/master_departement/list_departement",
+        href: "/master/departement/list",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Create Master",
-        href: "/master_departement/create",
+        href: "/master/departement/create",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Master Project",
-        href: "/master_project/list_project",
+        href: "/master/project/list",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
-       {
+      {
         title: "Create Master",
-        href: "/master_project/create",
+        href: "/master/project/create",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Master Role",
-        href: "/master_role/list_role",
+        href: "/master/role/list",
+        active: "Form",
+        icon: <IconDatabase size={18} />,
+      },
+      {
+        title: "Create Master",
+        href: "/master/role/create",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Master Leave Type",
-        href: "/master_leave/list_leave",
+        href: "/master/leave/list",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Create Leave Type",
-        href: "/master_leave/create",
+        href: "/master/leave/create",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
     ],
   },
-]
+];

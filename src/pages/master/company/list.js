@@ -9,7 +9,7 @@ import { IconTrash, IconDatabase, IconPencil } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
-import React, { use, useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import useEncrypt from "@/hooks/useEncrypt";
 
 export default function List() {
@@ -21,7 +21,7 @@ export default function List() {
   const API_URL = API.API_URL;
 
   const [data, setData] = useState([]);
-  const [sorting, setSorting] = useState([{ id: "id_role", desc: true }]);
+  const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -41,49 +41,47 @@ export default function List() {
         size: 50,
       },
       {
-        accessorFn: (row) => row.role_name,
-        id: "role_name",
-        header: "Name Role",
+        accessorFn: (row) => row.company_name,
+        id: "company_name",
+        header: "Company Name",
         enableColumnFilter: true,
         enableSorting: true,
         cell: (info) => info.getValue(),
       },
-          {
-              id: "actions",
-              header: "Actions",
-              cell: ({ row }) => {
-                const encryptedId = encrypt(String(row.original.id_role));
-      
-                return (
-                  <Button.Group>
-                    <Button
-                      size="xs"
-                      color="blue"
-                      onClick={() =>
-                        router.push(
-                          `/master_role/edit_role/${encryptedId}`
-                        )
-                      }
-                      leftSection={<IconPencil size={16} />}
-                    >
-                      Edit
-                    </Button>
-      
-                    <Button
-                      size="xs"
-                      color="red"
-                      onClick={() => handleDelete(encryptedId)}
-                      leftSection={<IconTrash size={16} />}
-                    >
-                      Delete
-                    </Button>
-                  </Button.Group>
-                );
-              },
-            },
-          ],
-          [encrypt]
-        );
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const encryptedId = encrypt(String(row.original.id));
+
+          return (
+            <Button.Group>
+              <Button
+                size="xs"
+                color="blue"
+                onClick={() =>
+                  router.push(`/master/company/edit/${encryptedId}`)
+                }
+                leftSection={<IconPencil size={16} />}
+              >
+                Edit
+              </Button>
+
+              <Button
+                size="xs"
+                color="red"
+                onClick={() => handleDelete(encryptedId)}
+                leftSection={<IconTrash size={16} />}
+              >
+                Delete
+              </Button>
+            </Button.Group>
+          );
+        },
+      },
+    ],
+    [encrypt]
+  );
 
   const table = useReactTable({
     data,
@@ -106,29 +104,27 @@ export default function List() {
   const fetchData = useCallback(async () => {
     const searchQuery = {};
     columnFilters.forEach((filter) => {
-      if (filter.value != null && filter.value !== "") {
+      if (filter.value) {
         searchQuery[filter.id] = filter.value;
       }
     });
 
     const filterParams =
-      searchQuery && Object.keys(searchQuery).length > 0
+      Object.keys(searchQuery).length > 0
         ? `search=${encodeURIComponent(JSON.stringify(searchQuery))}`
         : "";
 
     const sort =
-      sorting && sorting.length > 0
+      sorting.length > 0
         ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
         : "";
 
     const { data } = await axios.post(
       API_URL +
-        `/api/master_role/serverside?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
+        `/api/master/company/serverside?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
       {},
       {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
+        headers: { Authorization: `Bearer ${user.token}` },
       }
     );
 
@@ -140,14 +136,6 @@ export default function List() {
     fetchData();
   }, [fetchData]);
 
-  const downloadExcel = () => {
-    console.log("Download Excel");
-  };
-
-  const downloadPdf = () => {
-    console.log("Download PDF");
-  };
-
   return (
     <AuthLayout sidebarList={master_data}>
       <div className="py-6">
@@ -158,22 +146,17 @@ export default function List() {
             style={{ position: "relative" }}
             withBorder
           >
-            {/* JUDUL + ICON */}
             <div className="px-4 py-3 border-b flex items-center gap-2">
               <IconDatabase size={20} />
-              <h2 className="text-lg font-semibold">Master Role</h2>
+              <h2 className="text-lg font-semibold">Master Company</h2>
             </div>
 
-            {/* Tombol di kanan */}
             <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/master_role/create")}>
-                Add Role
+              <Button onClick={() => router.push("/master/company/create")}>
+                Add Company
               </Button>
-              <Button onClick={downloadExcel}>Download Excel</Button>
-              <Button onClick={downloadPdf}>Download PDF</Button>
             </div>
 
-            {/* Tabel */}
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} />
             </div>

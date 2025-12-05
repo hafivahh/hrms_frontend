@@ -15,9 +15,7 @@ import useEncrypt from "@/hooks/useEncrypt";
 export default function List() {
   const router = useRouter();
   const { user } = useUser();
-  
   const { encrypt } = useEncrypt();
-
   const API = useApi();
   const API_URL = API.API_URL;
 
@@ -42,9 +40,9 @@ export default function List() {
         size: 50,
       },
       {
-        accessorFn: (row) => row.type_name,
-        id: "type_name",
-        header: "Type Leave",
+        accessorFn: (row) => row.project_name,
+        id: "project_name",
+        header: "Name Project",
         enableColumnFilter: true,
         enableSorting: true,
         cell: (info) => info.getValue(),
@@ -61,7 +59,7 @@ export default function List() {
                 size="xs"
                 color="blue"
                 onClick={() =>
-                  router.push(`/master_leave/edit_leave/${encryptedId}`)
+                  router.push(`/master/project/edit/${encryptedId}`)
                 }
                 leftSection={<IconPencil size={16} />}
               >
@@ -122,7 +120,7 @@ export default function List() {
 
     const { data } = await axios.post(
       API_URL +
-        `/api/master_leave_type/serverside?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
+        `/api/master/project/serverside?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
       {},
       {
         headers: {
@@ -160,13 +158,13 @@ export default function List() {
             {/* JUDUL + ICON */}
             <div className="px-4 py-3 border-b flex items-center gap-2">
               <IconDatabase size={20} />
-              <h2 className="text-lg font-semibold">Master Leave Type</h2>
+              <h2 className="text-lg font-semibold">Master Project</h2>
             </div>
 
             {/* Tombol di kanan */}
             <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/master_leave/create")}>
-                Add Leave Type
+              <Button onClick={() => router.push("/master/project/create")}>
+                Add Project
               </Button>
               <Button onClick={downloadExcel}>Download Excel</Button>
               <Button onClick={downloadPdf}>Download PDF</Button>

@@ -10,11 +10,11 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { master_data } from "@/data/sidebar/master_data";
 
-Edit_Role.title = "Edit Role";
+Edit_Leave.title = "Edit Leave";
 
-export default function Edit_Role() {
+export default function Edit_Leave() {
   const router = useRouter();
-  const { id_role } = router.query;
+  const { id_project } = router.query;
 
   const { user } = useUser();
   const API = useApi();
@@ -25,29 +25,29 @@ export default function Edit_Role() {
 
   const form = useForm({
     initialValues: {
-      role_name: "",
+      project_name: "",
     },
     validate: {
-      role_name: (value) =>
-        value.trim().length > 0 ? null : "Role Name is required",
+      project_name: (value) =>
+        value.trim().length > 0 ? null : "Project Name is required",
     },
   });
 
   // FETCH DATA AWAL
   useEffect(() => {
-    if (!id_role) return;
+    if (!id_project) return;
 
     const fetchData = async () => {
       try {
         const { data } = await axios.get(
-          `${API_URL}/api/master_role/${id_role}`,
+          `${API_URL}/api/master/project/${id_project}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }
         );
 
         form.setValues({
-          role_name: data?.role_name || "",
+          project_name: data?.project_name || "",
         });
       } catch (error) {
         showAlert("Error", "error", "Failed to load data");
@@ -57,14 +57,14 @@ export default function Edit_Role() {
     };
 
     fetchData();
-  }, [id_role]);
+  }, [id_project]);
 
   // SUBMIT UPDATE
   const handleSubmit = async (values) => {
     const confirm = await showAlert(
       "Are You Sure?",
       "warning",
-      "Do You Want To Update This Role?",
+      "Do You Want To Update This Project?",
       true
     );
 
@@ -72,7 +72,7 @@ export default function Edit_Role() {
 
     try {
       const { data } = await axios.put(
-        `${API_URL}/api/master_role/${id_role}`,
+        `${API_URL}/api/master/project/${id_project}`,
         values,
         {
           headers: { Authorization: "Bearer " + user.token },
@@ -82,7 +82,7 @@ export default function Edit_Role() {
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
 
-        router.push("/master_role/list_role");
+        router.push("/master/project/list");
       }
     } catch (error) {
       const data_error = error.response?.data || {
@@ -102,16 +102,16 @@ export default function Edit_Role() {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
             <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Edit Role</Text>
+              <Text fw={500}>Edit Project</Text>
             </div>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <div className="px-4 py-2">
                 <TextInput
-                  label="Role Name"
+                  label="Project Name"
                   withAsterisk
-                  placeholder="Input Role Name"
-                  {...form.getInputProps("role_name")}
+                  placeholder="Input Project Name"
+                  {...form.getInputProps("project_name")}
                 />
               </div>
 
@@ -120,7 +120,7 @@ export default function Edit_Role() {
                   size="md"
                   color="gray"
                   leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/master_role/list_role")}
+                  onClick={() => router.push("/master/project/list")}
                 >
                   Back
                 </Button>

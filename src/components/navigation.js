@@ -5,7 +5,7 @@ import {
   IconMenu2,
   IconHomeFilled,
   IconLayoutGrid,
-  IconCaretRight,
+  IconLogout2 ,
   IconDatabase,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -26,6 +26,12 @@ const navigation = [
     icon: <IconLayoutGrid size={20} />,
     permission: 1,
   },
+   {
+    name: "Leave",
+    url: "/leave/list",
+    icon: <IconLogout2  size={20} />,
+    permission: 1,
+  },
   {
     name: "Master Data",
     icon: <IconDatabase size={20} />,
@@ -33,22 +39,32 @@ const navigation = [
     child: [
       {
         title: "Master Departement",
-        url: "/master_departement/list_departement",
+        url: "/master/departement/list",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Master Project",
-        url: "/master_project/list_project",
+        url: "/master/project/list",
+        icon: <IconDatabase size={18} />,
+      },
+      {
+        title: "Master Company",
+        url: "/master/company/list",
+        icon: <IconDatabase size={18} />,
+      },
+      {
+        title: "Master Position",
+        url: "/master/position/list",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Master Role",
-        url: "/master_role/list_role",
+        url: "/master/role/list",
         icon: <IconDatabase size={18} />,
       },
       {
         title: "Master Leave Type",
-        url: "/master_leave/list_leave",
+        url: "/master/leave/list",
         icon: <IconDatabase size={18} />,
       },
     ],

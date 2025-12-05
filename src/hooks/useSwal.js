@@ -6,22 +6,24 @@ export default function useSwal() {
     icon,
     text = "",
     showCancel = false,
-    timer = null
+    timer = null,
+    confirmText = "Submit",   
+    cancelText = "Cancel"     
   ) => {
     const showButtons = timer ? false : true;
 
     return Swal.fire({
       title,
-      text: timer ? "" : text, 
+      text: timer ? "" : text,
       icon,
       showCancelButton: showCancel && showButtons,
       showConfirmButton: showButtons,
-      confirmButtonText: "Submit",
-      cancelButtonText: "Cancel",
+      confirmButtonText: confirmText,  
+      cancelButtonText: cancelText,   
       reverseButtons: true,
       confirmButtonColor: "#3085d6",
       timer: timer || undefined,
-      timerProgressBar: timer ? true : false,
+      timerProgressBar: !!timer,
     }).then((result) => {
       return result.isConfirmed;
     });

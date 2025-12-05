@@ -10,11 +10,11 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { master_data } from "@/data/sidebar/master_data";
 
-Edit_Leave.title = "Edit Leave";
+Edit_Company.title = "Edit Company";
 
-export default function Edit_Leave() {
+export default function Edit_Company() {
   const router = useRouter();
-  const { id_project } = router.query;
+  const { id_company } = router.query;
 
   const { user } = useUser();
   const API = useApi();
@@ -25,29 +25,29 @@ export default function Edit_Leave() {
 
   const form = useForm({
     initialValues: {
-      project_name: "",
+      company_name: "",
     },
     validate: {
-      project_name: (value) =>
-        value.trim().length > 0 ? null : "Project Name is required",
+      company_name: (value) =>
+        value.trim().length > 0 ? null : "Company Name is required",
     },
   });
 
   // FETCH DATA AWAL
   useEffect(() => {
-    if (!id_project) return;
+    if (!id_company) return;
 
     const fetchData = async () => {
       try {
         const { data } = await axios.get(
-          `${API_URL}/api/master_project/${id_project}`,
+          `${API_URL}/api/master/company/${id_company}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }
         );
 
         form.setValues({
-          project_name: data?.project_name || "",
+          company_name: data?.company_name || "",
         });
       } catch (error) {
         showAlert("Error", "error", "Failed to load data");
@@ -57,14 +57,14 @@ export default function Edit_Leave() {
     };
 
     fetchData();
-  }, [id_project]);
+  }, [id_company]);
 
   // SUBMIT UPDATE
   const handleSubmit = async (values) => {
     const confirm = await showAlert(
-      "Are You Sure?",
+      "Are you sure?",
       "warning",
-      "Do You Want To Update This Project?",
+      "Do you want to update this company?",
       true
     );
 
@@ -72,7 +72,7 @@ export default function Edit_Leave() {
 
     try {
       const { data } = await axios.put(
-        `${API_URL}/api/master_project/${id_project}`,
+        `${API_URL}/api/master/company/${id_company}`,
         values,
         {
           headers: { Authorization: "Bearer " + user.token },
@@ -82,7 +82,7 @@ export default function Edit_Leave() {
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
 
-        router.push("/master_project/list_project");
+        router.push("/master/company/list");
       }
     } catch (error) {
       const data_error = error.response?.data || {
@@ -102,16 +102,16 @@ export default function Edit_Leave() {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
             <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Edit Project</Text>
+              <Text fw={500}>Edit Company</Text>
             </div>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <div className="px-4 py-2">
                 <TextInput
-                  label="Project Name"
+                  label="Company Name"
                   withAsterisk
-                  placeholder="Input Project Name"
-                  {...form.getInputProps("project_name")}
+                  placeholder="Input Company Name"
+                  {...form.getInputProps("company_name")}
                 />
               </div>
 
@@ -120,7 +120,7 @@ export default function Edit_Leave() {
                   size="md"
                   color="gray"
                   leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/master_project/list_project")}
+                  onClick={() => router.push("/master/company/list")}
                 >
                   Back
                 </Button>
