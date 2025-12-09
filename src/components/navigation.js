@@ -28,7 +28,7 @@ const navigation = [
   },
    {
     name: "Leave",
-    url: "/leave/list",
+    url: "/leave_manage/list",
     icon: <IconLogout2  size={20} />,
     permission: 1,
   },
