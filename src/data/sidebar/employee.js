@@ -1,29 +1,54 @@
-import { IconList,IconListLetters, IconDoorExit, IconFileLambda, IconDatabase  } from "@tabler/icons-react";
-export const employee= [
+import {
+  IconList,
+  IconListLetters,
+  IconDoorExit,
+  IconFileLambda,
+  IconDatabase,
+} from "@tabler/icons-react";
+export const employee = [
   {
     title: "Employee",
     href: "",
-    active: "Form",
     icon: <IconListLetters size={18} />,
     child: [
-      {
-        title: "List",
-        href: "/employee/employee_list",
-        active: "Form",
-        icon: <IconList size={18} />,
-      },
-      {
-        title: "Leave",
-        href: "/employee/leave_list",
-        active: "Form",
-        icon: <IconDoorExit  size={18} />,
-      },
+      { title: "List", href: "/employee/list", icon: <IconList size={18} /> },
       {
         title: "Worker Documents",
         href: "/employee/document_worker",
-        active: "Form",
-        icon: <IconFileLambda   size={18} />,
+        icon: <IconFileLambda size={18} />,
       },
     ],
   },
-]
+  {
+    title: "Leave",
+    href: "",
+    icon: <IconListLetters size={18} />,
+    child: [
+      // {
+      //   title: "List",
+      //   href: "/leave_manage/list/list",
+      //   icon: <IconDoorExit size={18} />,
+      // },
+      {
+        title: "Draft",
+        href: "/leave_manage/list/draft",
+        icon: <IconDoorExit size={18} />,
+      },
+      {
+        title: "Pending Approval",
+        href: "/leave_manage/list/pending_approval",
+        icon: <IconDoorExit size={18} />,
+      },
+      {
+        title: "Completed",
+        href: "/leave_manage/list/completed",
+        icon: <IconDoorExit size={18} />,
+      },
+      {
+        title: "Rejected",
+        href: "/leave_manage/list/rejected",
+        icon: <IconDoorExit size={18} />,
+      },
+    ],
+  },
+];

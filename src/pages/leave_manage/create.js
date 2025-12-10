@@ -10,9 +10,9 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { employee } from "@/data/sidebar/employee";
 
-Add_employee.title = "Add Employee";
+Add_leave.title = "Add Leave";
 
-export default function Add_employee() {
+export default function Add_leave() {
   const router = useRouter();
   const { user } = useUser();
   const API = useApi();
@@ -36,7 +36,7 @@ export default function Add_employee() {
     },
     validate: {
       full_name: (value) =>
-        value.trim().length > 0 ? null : "Employee Name is required",
+        value.trim().length > 0 ? null : "Leave Name is required",
       badge_number: (value) =>
         value.trim().length > 0 ? null : "Badge Number is required",
       gender: (value) => (value ? null : "Gender is required"),
@@ -50,7 +50,7 @@ export default function Add_employee() {
   // FETCH DATA DROPDOWN
   const fetchDropdown = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/api/employee/dropdowns`, {
+      const { data } = await axios.get(`${API_URL}/api/leave/dropdowns`, {
         headers: { Authorization: "Bearer " + user.token },
       });
 
@@ -94,7 +94,7 @@ export default function Add_employee() {
     const confirm = await showAlert(
       "Are you sure?",
       "warning",
-      "Do you want to submit this employee?",
+      "Do you want to submit this leave?",
       true,
       null,
       "Submit",
@@ -115,11 +115,11 @@ export default function Add_employee() {
     try {
       console.log("SUBMIT payload:", payload);
 
-      const res = await axios.post(`${API_URL}/api/employee/create`, payload, {
+      const res = await axios.post(`${API_URL}/api/leave/create`, payload, {
         headers: { Authorization: "Bearer " + user.token },
       });
 
-      console.log("RESPONSE (create employee):", res);
+      console.log("RESPONSE (create leave):", res);
 
       const data = res.data;
       const isSuccess = !!(
@@ -128,9 +128,9 @@ export default function Add_employee() {
       );
 
       if (isSuccess) {
-        const message = data?.message || "Employee created successfully";
+        const message = data?.message || "leave created successfully";
         await showAlert("Success", "success", message, false, 1500);
-        router.push("/employee/list");
+        router.push("/leave/list");
         return;
       }
 
@@ -138,7 +138,7 @@ export default function Add_employee() {
       const errMsg = data?.message || "Unexpected response from server";
       showAlert("Error", "error", errMsg);
     } catch (error) {
-      console.error("CREATE employee error:", error);
+      console.error("CREATE leave error:", error);
       const data_error = error.response?.data || null;
 
       if (data_error) {
@@ -163,7 +163,7 @@ export default function Add_employee() {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
             <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Add Employee</Text>
+              <Text fw={500}>Add Leave</Text>
             </div>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -172,7 +172,7 @@ export default function Add_employee() {
                 <TextInput
                   label="Full Name"
                   withAsterisk
-                  placeholder="Input Employee Name"
+                  placeholder="Input leave Name"
                   {...form.getInputProps("full_name")}
                 />
               </div>
@@ -259,7 +259,7 @@ export default function Add_employee() {
                   variant="filled"
                   className="w-32"
                   leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/employee/list")}
+                  onClick={() => router.push("/leave/list")}
                 >
                   Back
                 </Button>

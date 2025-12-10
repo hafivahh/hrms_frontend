@@ -23,7 +23,11 @@ export default function Sidebar({ className, sidebarList }) {
         : sidebarList.map((item, index) => (
             <NavLink
               key={index}
-              onClick={() => router.push(item.child && item.child.length > 0 ? '#' : item.href)}
+              onClick={() =>
+                router.push(
+                  item.child && item.child.length > 0 ? "#" : item.href
+                )
+              }
               label={item.title}
               leftSection={item.icon}
               variant="filled"

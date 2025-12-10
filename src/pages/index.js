@@ -25,7 +25,7 @@ export default function Index() {
         <div className="max-w mx-auto sm:px-6 lg:px-8">
           <div className="bg-white overflow-hidden shadow-lg border sm:rounded-lg">
             <div className="p-6 text-gray-900 justify-center text-center">
-              Mechanical Completion
+              Human Resources Management System
             </div>
           </div>
         </div>

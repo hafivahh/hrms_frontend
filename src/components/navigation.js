@@ -4,9 +4,11 @@ import { useDisclosure } from "@mantine/hooks";
 import {
   IconMenu2,
   IconHomeFilled,
-  IconLayoutGrid,
-  IconLogout2 ,
+  IconUserCog,
+  IconAccessible,
   IconDatabase,
+  IconUsers,
+  IconList,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,16 +23,55 @@ const navigation = [
     permission: 1,
   },
   {
-    name: "Employee",
-    url: "/employee/list",
-    icon: <IconLayoutGrid size={20} />,
+    name: "ISS",
+    icon: <IconUserCog size={20} />,
     permission: 1,
+    child: [
+      {
+        title: "Employee",
+        url: "/employee/list",
+        icon: <IconUserCog size={18} />,
+      },
+      {
+        title: "Leave",
+        url: "/leave_manage/list/draft",
+        icon: <IconList size={18} />,
+      },
+    ],
   },
-   {
-    name: "Leave",
-    url: "/leave_manage/list",
-    icon: <IconLogout2  size={20} />,
+  {
+    name: "ESS",
+    icon: <IconUsers size={20} />,
     permission: 1,
+    child: [
+      {
+        title: "My Profile",
+        url: "/ess/profile",
+        icon: <IconUsers size={18} />,
+      },
+      {
+        title: "My Leave Request",
+        url: "/ess/leave",
+        icon: <IconList size={18} />,
+      },
+    ],
+  },
+  {
+    name: "PSS",
+    icon: <IconAccessible size={20} />,
+    permission: 1,
+    child: [
+      {
+        title: "Payroll List",
+        url: "/pss/payroll",
+        icon: <IconAccessible size={18} />,
+      },
+      {
+        title: "Attendance",
+        url: "/pss/attendance",
+        icon: <IconAccessible size={18} />,
+      },
+    ],
   },
   {
     name: "Master Data",
