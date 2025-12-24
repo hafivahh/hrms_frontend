@@ -249,6 +249,7 @@ export default function Add_leave() {
                   {...form.getInputProps("id_position")}
                 />
               </div>
+              
 
               {/* SUBMIT BUTTONS */}
               {/* SUBMIT BUTTONS */}
@@ -259,7 +260,7 @@ export default function Add_leave() {
                   variant="filled"
                   className="w-32"
                   leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/leave/list")}
+                  onClick={() => router.push("/leave_manage/list/all")}
                 >
                   Back
                 </Button>

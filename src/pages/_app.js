@@ -70,6 +70,7 @@ export default function App({ Component, pageProps }) {
           setUser({
             id: encryptUserId,
             name: isValidUser.user.full_name,
+            badge_number: isValidUser.user.badge_number,
             token: isValidUser.token,
           });
 
@@ -97,6 +98,7 @@ export default function App({ Component, pageProps }) {
           setUser({
             id: idUser,
             name: isValidUser.user.full_name,
+            badge_number: isValidUser.user.badge_number,
             token: isValidUser.token,
           });
           setIsAuthenticated(true);

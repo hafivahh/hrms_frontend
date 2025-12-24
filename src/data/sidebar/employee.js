@@ -24,11 +24,11 @@ export const employee = [
     href: "",
     icon: <IconListLetters size={18} />,
     child: [
-      // {
-      //   title: "List",
-      //   href: "/leave_manage/list/list",
-      //   icon: <IconDoorExit size={18} />,
-      // },
+      {
+        title: "List",
+        href: "/leave_manage/list/all",
+        icon: <IconDoorExit size={18} />,
+      },
       {
         title: "Draft",
         href: "/leave_manage/list/draft",

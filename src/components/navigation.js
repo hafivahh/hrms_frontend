@@ -34,7 +34,7 @@ const navigation = [
       },
       {
         title: "Leave",
-        url: "/leave_manage/list/draft",
+        url: "/leave_manage/list/all",
         icon: <IconList size={18} />,
       },
     ],
@@ -46,12 +46,12 @@ const navigation = [
     child: [
       {
         title: "My Profile",
-        url: "/ess/profile",
+        url: "/ess_profile/index",
         icon: <IconUsers size={18} />,
       },
       {
         title: "My Leave Request",
-        url: "/ess/leave",
+        url: "/ess_leave/list",
         icon: <IconList size={18} />,
       },
     ],

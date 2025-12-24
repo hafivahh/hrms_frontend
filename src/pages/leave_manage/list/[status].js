@@ -13,21 +13,22 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
 import useSwal from "@/hooks/useSwal";
+import { formatDateTime } from "@/lib/utils";
 
 export async function getStaticPaths() {
-  const statuses = ["draft", "pending_approval", "completed", "rejected"];
-
-  const paths = statuses.map((status) => ({
-    params: { status },
-  }));
-
+  const statuses = [
+    "draft",
+    "pending_approval",
+    "completed",
+    "rejected",
+    "all",
+  ];
+  const paths = statuses.map((status) => ({ params: { status } }));
   return { paths, fallback: false };
 }
 
 export async function getStaticProps(context) {
-  return {
-    props: { status: context.params.status },
-  };
+  return { props: { status: context.params.status } };
 }
 
 export default function ListLeaveByStatus({ status }) {
@@ -38,7 +39,6 @@ export default function ListLeaveByStatus({ status }) {
   const API_URL = API.API_URL;
   const { showAlert } = useSwal();
 
-  // mapping status string → integer DB
   const statusStringMap = {
     draft: 0,
     pending_approval: 1,
@@ -46,7 +46,7 @@ export default function ListLeaveByStatus({ status }) {
     rejected: 3,
   };
 
-  const allowedStatus = Object.keys(statusStringMap);
+  const allowedStatus = [...Object.keys(statusStringMap), "all"];
 
   // VALIDASI STATUS
   useEffect(() => {
@@ -117,6 +117,9 @@ export default function ListLeaveByStatus({ status }) {
         accessorFn: (row) => row.created_date,
         id: "created_date",
         header: "Request Date",
+        enableColumnFilter: true,
+        enableSorting: true,
+        cell: (info) => formatDateTime(info.getValue()),
       },
       {
         accessorFn: (row) => row.leave_in,
@@ -127,8 +130,7 @@ export default function ListLeaveByStatus({ status }) {
         accessorFn: (row) => row.leave_out,
         id: "leave_out",
         header: "End Date",
-      },
-
+      }, 
       {
         accessorFn: (row) => row.leave_status,
         id: "leave_status",
@@ -138,8 +140,7 @@ export default function ListLeaveByStatus({ status }) {
           const s = statusMap[val];
           return <Badge color={s.color}>{s.label}</Badge>;
         },
-      },
-
+      }, 
       {
         id: "actions",
         header: "Actions",
@@ -156,13 +157,12 @@ export default function ListLeaveByStatus({ status }) {
                   color="blue"
                   leftSection={<IconList size={16} />}
                   onClick={() =>
-                    router.push(`/leave_manage/action/detail/${encryptedId}`)
+                    router.push(`/leave_manage/detail/${encryptedId}`)
                   }
                 >
                   Detail
                 </Button>
-              )}
-
+              )} 
               {actions.includes("update") && (
                 <Button
                   size="xs"
@@ -174,8 +174,7 @@ export default function ListLeaveByStatus({ status }) {
                 >
                   Update
                 </Button>
-              )}
-
+              )} 
               {actions.includes("delete") && (
                 <Button
                   size="xs"
@@ -207,29 +206,27 @@ export default function ListLeaveByStatus({ status }) {
     manualPagination: true,
   });
 
-  // FETCH
+  // FETCH DATA
   const fetchData = useCallback(async () => {
-    const statusId = statusStringMap[status];
-    if (statusId === undefined) return;
+    const isAll = status === "all";
 
     const searchQuery = {};
     columnFilters.forEach((f) => {
       if (f.value) searchQuery[f.id] = f.value;
     });
 
-    const filterParams =
-      Object.keys(searchQuery).length > 0
-        ? `search=${encodeURIComponent(JSON.stringify(searchQuery))}`
-        : "";
-
-    const sort =
+    const sort = 
       sorting.length > 0
         ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
         : "";
 
     try {
       const { data } = await axios.post(
-        `${API_URL}/api/leave/serverside?status=${statusId}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
+        `${API_URL}/api/leave/serverside?${
+          isAll ? "allStatus=true" : `status=${statusStringMap[status]}`
+        }&page=${pagination.pageIndex}&size=${
+          pagination.pageSize
+        }&sort=${sort}`,
         {},
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
@@ -253,15 +250,17 @@ export default function ListLeaveByStatus({ status }) {
             <div className="px-4 py-3 border-b flex items-center gap-2">
               <IconList size={20} />
               <h2 className="text-lg font-semibold uppercase">
-                {status.replace(/_/g, " ")} Leave List
+                {status === "all"
+                  ? "Leave List"
+                  : `${status.replace(/_/g, " ")} Leave List`}
               </h2>
             </div>
-
+            {/* 
             <div className="px-4 py-2 text-right">
               <Button onClick={() => router.push("/leave_manage/create")}>
                 Add Leave
               </Button>
-            </div>
+            </div> */}
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} />
             </div>
