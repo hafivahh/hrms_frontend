@@ -7,12 +7,11 @@ import useUser from "@/store/useUser";
 
 import { Button, Paper, Badge } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconList, IconPencil, IconTrash, IconPlus } from "@tabler/icons-react";
+import { IconList, IconPlus, IconCalendar } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-// import { formatDateTime } from "@/lib/utils";
 
 export default function ESSLeaveList() {
   const router = useRouter();
@@ -22,6 +21,7 @@ export default function ESSLeaveList() {
   const API_URL = API.API_URL;
 
   const [data, setData] = useState([]);
+  const [leaveBalance, setLeaveBalance] = useState(0);
   const [sorting, setSorting] = useState([{ id: "created_date", desc: true }]);
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
   const [pagination, setPagination] = useState({
@@ -54,7 +54,11 @@ export default function ESSLeaveList() {
             <span>Date</span>
           </span>
         ),
-        cell: (info) => info.getValue() || "-",
+        cell: (info) => {
+          const val = info.getValue();
+          if (!val) return "-";
+          return new Date(val).toISOString().split("T")[0];
+        },
       },
       {
         accessorFn: (row) => row.leave_out,
@@ -65,17 +69,19 @@ export default function ESSLeaveList() {
             <span>Date</span>
           </span>
         ),
-        cell: (info) => info.getValue() || "-",
+        cell: (info) => {
+          const val = info.getValue();
+          if (!val) return "-";
+          return new Date(val).toISOString().split("T")[0];
+        },
       },
-
       {
         accessorFn: (row) => row.leave_status,
         id: "leave_status",
         header: "Status",
         cell: (info) => {
           const val = Number(info.getValue());
-          const s = statusMap[val];
-          // eslint-disable-next-line react/jsx-no-undef
+          const s = statusMap[val] || { label: "-", color: "gray" };
           return <Badge color={s.color}>{s.label}</Badge>;
         },
       },
@@ -83,46 +89,17 @@ export default function ESSLeaveList() {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
-          const id = row.original?.id; // pastikan id ada
-          const leaveStatus = row.original?.leave_status;
-
-          // jika mau encrypt: aktifkan ini
-          // const encryptedId = encrypt(String(id));
-
+          const id = row.original?.id;
           return (
             <Button.Group>
-              {actions.includes("detail") && (
-                <Button
-                  size="xs"
-                  color="blue"
-                  leftSection={<IconList size={16} />}
-                  onClick={() => router.push(`/ess_leave/detail/${id}`)}
-                >
-                  Detail
-                </Button>
-              )}
-
-              {/* {actions.includes("update") && (
               <Button
                 size="xs"
-                color="yellow"
-                leftSection={<IconPencil size={16} />}
-                onClick={() => router.push(`/ess_leave/update/${id}`)}
+                color="blue"
+                leftSection={<IconList size={16} />}
+                onClick={() => router.push(`/ess_leave/detail/${id}`)}
               >
-                Update
+                Detail
               </Button>
-            )} */}
-
-              {/* {actions.includes("delete") && (
-              <Button
-                size="xs"
-                color="red"
-                leftSection={<IconTrash size={16} />}
-                onClick={() => onDelete(id)}
-              >
-                Delete
-              </Button>
-            )} */}
             </Button.Group>
           );
         },
@@ -185,6 +162,10 @@ export default function ESSLeaveList() {
 
     setData(data.data);
     setTotalPages(data.total_pages);
+
+ 
+  setLeaveBalance(data.current_balance ?? 0);
+
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
   useEffect(() => {
@@ -196,6 +177,7 @@ export default function ESSLeaveList() {
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
+            {/* Header - Hanya Title dan Button Add Leave */}
             <div className="px-4 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <IconList size={20} />
@@ -210,6 +192,22 @@ export default function ESSLeaveList() {
               </Button>
             </div>
 
+            {/*Saldo Cuti - Di atas tabel, sebelum kolom Start Date */}
+            <div className="px-4 pt-4 pb-2">
+              <div className="flex items-center gap-2">
+                <IconCalendar size={16} className="text-gray-600" />
+                <span className="text-sm text-gray-600">Annual Leave Balance:</span>
+                <Badge
+                  color={leaveBalance > 5 ? "green" : leaveBalance > 0 ? "yellow" : "red"}
+                  variant="filled"
+                  size="md"
+                >
+                  {leaveBalance} days
+                </Badge>
+              </div>
+            </div>
+
+            {/* Tabel */}
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} />
             </div>
@@ -218,4 +216,4 @@ export default function ESSLeaveList() {
       </div>
     </AuthLayout>
   );
-}
+} 

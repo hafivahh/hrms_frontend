@@ -99,6 +99,11 @@ const navigation = [
         icon: <IconDatabase size={18} />,
       },
       {
+        title: "Master Job Title",
+        url: "/master/job_title/list",
+        icon: <IconDatabase size={18} />,
+      },
+      {
         title: "Master Role",
         url: "/master/role/list",
         icon: <IconDatabase size={18} />,

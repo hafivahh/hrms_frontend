@@ -3,6 +3,7 @@ import useApi from "@/hooks/useApi";
 import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
 import { Button, Paper, Text, TextInput, Select } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 import axios from "axios";
@@ -33,17 +34,19 @@ export default function Add_employee() {
       id_project: "",
       id_company: "",
       id_position: "",
+      join_date: "",
     },
     validate: {
       full_name: (value) =>
-        value.trim().length > 0 ? null : "Employee Name is required",
+      value.trim().length > 0 ? null : "Employee Name is required",
       badge_number: (value) =>
-        value.trim().length > 0 ? null : "Badge Number is required",
+      value.trim().length > 0 ? null : "Badge Number is required",
       gender: (value) => (value ? null : "Gender is required"),
       id_departement: (value) => (value ? null : "Department is required"),
       id_project: (value) => (value ? null : "Project is required"),
       id_company: (value) => (value ? null : "Company is required"),
       id_position: (value) => (value ? null : "Position is required"),
+      join_date: (value) => (value ? null : "Join Date is required"),
     },
   });
 
@@ -81,6 +84,12 @@ export default function Add_employee() {
           label: item.position_name,
         }))
       );
+      setJoinDates(
+        data.join_dates.map((item) => ({
+          value: item.id.toString(),
+          label: item.join_date,
+        }))
+      );
     } catch (err) {
       console.log(err);
     }
@@ -110,6 +119,7 @@ export default function Add_employee() {
       id_company: Number(values.id_company),
       id_position: Number(values.id_position),
       gender: values.gender === "male" ? 1 : 2,
+      join_date: values.join_date ? values.join_date.toISOString() : null, 
     };
 
     try {
@@ -249,8 +259,15 @@ export default function Add_employee() {
                   {...form.getInputProps("id_position")}
                 />
               </div>
-
-              {/* SUBMIT BUTTONS */}
+              {/* JOIN DATE */}
+              <div className="px-4 py-2">
+                <DateInput
+                  label="Join Date"
+                  placeholder="Select join date"
+                  withAsterisk
+                  {...form.getInputProps("join_date")}
+                />
+              </div>
               {/* SUBMIT BUTTONS */}
               <div className="px-4 py-2 text-right flex justify-end gap-3">
                 <Button
@@ -262,8 +279,7 @@ export default function Add_employee() {
                   onClick={() => router.push("/employee/list")}
                 >
                   Back
-                </Button>
-
+                </Button> 
                 <Button
                   size="md"
                   color="blue"

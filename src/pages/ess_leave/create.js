@@ -227,7 +227,7 @@ export default function ESSLeaveCreate() {
         {
           headers: {
             Authorization: "Bearer " + user.token,
-            "Content-Type": "multipart/form-data",
+            // "Content-Type": "multipart/form-data",
           },
         }
       );

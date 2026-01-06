@@ -30,7 +30,7 @@ export const master_data = [
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
-       {
+      {
         title: "Master Company",
         href: "/master/company/list",
         active: "Form",
@@ -48,9 +48,15 @@ export const master_data = [
         active: "Form",
         icon: <IconDatabase size={18} />,
       },
-       {
+      {
         title: "Create Master",
         href: "/master/position/create",
+        active: "Form",
+        icon: <IconDatabase size={18} />,
+      },
+      {
+        title: "Create Master",
+        href: "/master/job_title/create",
         active: "Form",
         icon: <IconDatabase size={18} />,
       },

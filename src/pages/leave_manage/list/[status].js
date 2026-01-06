@@ -70,6 +70,13 @@ export default function ListLeaveByStatus({ status }) {
     2: { label: "Completed", color: "green" },
     3: { label: "Rejected", color: "red" },
   };
+  const leaveTypeMap = {
+    // "Annual Leave": "green",
+    // "Sick Leave": "red",
+    // "Unpaid Leave": "gray",
+    // "Maternity Leave": "pink",
+    // "Permission": "yellow",
+  };
 
   const getActionsByStatus = (statusId) => {
     if (statusId === 0) return ["detail", "update"];
@@ -104,22 +111,28 @@ export default function ListLeaveByStatus({ status }) {
         header: "Project",
       },
       {
-        accessorFn: (row) => row.appoval_by,
-        id: "approval_by",
+        accessorFn: (row) => row.supervisor_name,
+        id: "supervisor_id",
         header: "Supervisor",
       },
       {
         accessorFn: (row) => row.leave_type,
         id: "leave_type",
         header: "Leave Type",
+        cell: (info) => {
+          const value = info.getValue();
+          const color = leaveTypeMap[value] || "blue";
+
+          return <Badge color={color}>{value || "-"}</Badge>;
+        },
       },
       {
-        accessorFn: (row) => row.created_date,
-        id: "created_date",
+        accessorFn: (row) => row.request_date,
+        id: "request_date",
         header: "Request Date",
         enableColumnFilter: true,
         enableSorting: true,
-        cell: (info) => formatDateTime(info.getValue()),
+        cell: (info) => info.getValue(),
       },
       {
         accessorFn: (row) => row.leave_in,
@@ -130,7 +143,7 @@ export default function ListLeaveByStatus({ status }) {
         accessorFn: (row) => row.leave_out,
         id: "leave_out",
         header: "End Date",
-      }, 
+      },
       {
         accessorFn: (row) => row.leave_status,
         id: "leave_status",
@@ -140,7 +153,7 @@ export default function ListLeaveByStatus({ status }) {
           const s = statusMap[val];
           return <Badge color={s.color}>{s.label}</Badge>;
         },
-      }, 
+      },
       {
         id: "actions",
         header: "Actions",
@@ -152,17 +165,32 @@ export default function ListLeaveByStatus({ status }) {
           return (
             <Button.Group>
               {actions.includes("detail") && (
-                <Button
-                  size="xs"
-                  color="blue"
-                  leftSection={<IconList size={16} />}
-                  onClick={() =>
-                    router.push(`/leave_manage/detail/${encryptedId}`)
-                  }
-                >
-                  Detail
-                </Button>
-              )} 
+                <Button.Group>
+                  {actions.includes("detail") && (
+                    <Button
+                      size="xs"
+                      color="blue"
+                      leftSection={<IconList size={16} />}
+                      onClick={() => {
+                        // Ambil ID dari row data
+                        const plainId = row.original.header_id; // atau row.header_id, tergantung struktur data
+
+                        console.log("Navigating to detail with ID:", plainId);
+
+                        // TEMPORARY: Pakai plain ID dulu
+                        router.push(`/leave_manage/detail/${plainId}`);
+
+                        // ATAU jika mau tetap pakai encryption:
+                        // const encrypted = aes.encryptBase64Url(String(plainId));
+                        // console.log('Encrypted ID:', encrypted);
+                        // router.push(`/leave_manage/detail/${encrypted}`);
+                      }}
+                    >
+                      Detail
+                    </Button>
+                  )}
+                </Button.Group>
+              )}
               {actions.includes("update") && (
                 <Button
                   size="xs"
@@ -174,7 +202,7 @@ export default function ListLeaveByStatus({ status }) {
                 >
                   Update
                 </Button>
-              )} 
+              )}
               {actions.includes("delete") && (
                 <Button
                   size="xs"
@@ -215,7 +243,7 @@ export default function ListLeaveByStatus({ status }) {
       if (f.value) searchQuery[f.id] = f.value;
     });
 
-    const sort = 
+    const sort =
       sorting.length > 0
         ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
         : "";
