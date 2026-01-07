@@ -6,6 +6,8 @@ import { employee as sidebarData } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
+import Swal from "sweetalert2";
+import axios from "axios";
 
 export default function LeaveDetailPage() {
   const router = useRouter();
@@ -108,6 +110,34 @@ export default function LeaveDetailPage() {
       setActionLoading(false);
     }
   };
+
+  const handleApproval = async (id, payload) => {
+    try {
+      const res = await axios.post(`${API_URL}/api/leave-record-detail/${id}/update`, payload, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+
+      showAlert("success", res.data.message)
+    } catch (err) {
+      showAlert("error", err.message);
+    }
+  };
+
+  const handleAlert = (id, payload) => {
+    Swal.fire({
+      icon: 'question',
+      title: 'Are you sure?',
+      text: 'you are about to update this leave item status.',
+      confirmButtonText: 'Yes, proceed',
+      confirmButtonColor: '#3085d6',
+      showCancelButton: true,
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleApproval(id, payload);
+      }
+    });
+  }
 
   if (loading)
     return (
@@ -245,7 +275,9 @@ export default function LeaveDetailPage() {
                                 <Button
                                   size="xs"
                                   color="green"
-                                  onClick={() => handleApproveItem(item.id)}
+                                  onClick={() => handleAlert(item.id,{
+                                    leave_status: 2
+                                  })}
                                   loading={actionLoading}
                                 >
                                   Approve
@@ -254,7 +286,9 @@ export default function LeaveDetailPage() {
                                 <Button
                                   size="xs"
                                   color="red"
-                                  onClick={() => handleRejectItem(item.id)}
+                                  onClick={() => handleAlert(item.id,{
+                                    leave_status: 3
+                                  })}
                                   loading={actionLoading}
                                 >
                                   Reject

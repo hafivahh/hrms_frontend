@@ -229,7 +229,7 @@ export default function ListLeaveByStatus({ status }) {
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    manualSorting: true,
+    manualSorting: true, 
     manualFiltering: true,
     manualPagination: true,
   });
