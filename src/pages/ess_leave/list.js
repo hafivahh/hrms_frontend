@@ -100,7 +100,16 @@ export default function ESSLeaveList() {
               >
                 Detail
               </Button>
+              <Button
+                size="xs"
+                color="blue"
+                leftSection={<IconList size={16} />}
+                onClick={() => router.push(`/ess_leave/edit/${id}`)}
+              >
+                Edit
+              </Button>
             </Button.Group>
+            
           );
         },
       },
