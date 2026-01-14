@@ -277,13 +277,11 @@ export default function ESSLeaveCreate() {
             <IconArrowLeft
               size={18}
               onClick={() => router.back()}
-              style={{ cursor: "pointer" }}
+              className="cursor-pointer"
             />
-            <Text fw={600} size="lg">
-              Create Leave Request
-            </Text>
-          </div>
 
+            <h2 className="text-lg font-semibold">Create Leave Request</h2>
+          </div>
           {/* DATE RANGE */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <DateInput

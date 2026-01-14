@@ -4,7 +4,7 @@ import { employee } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
-
+import useEncrypt from "@/hooks/useEncrypt";
 import { Button, Paper, Badge } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
 import { IconList, IconPlus, IconCalendar } from "@tabler/icons-react";
@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 export default function ESSLeaveList() {
   const router = useRouter();
   const { user } = useUser();
-
+  const { encrypt } = useEncrypt();
   const API = useApi();
   const API_URL = API.API_URL;
 
@@ -36,8 +36,9 @@ export default function ESSLeaveList() {
   const statusMap = {
     0: { label: "Draft", color: "gray" },
     1: { label: "Pending Approval", color: "yellow" },
-    2: { label: "Completed", color: "green" },
+    2: { label: "Approved", color: "blue" }, // Status antara (per-item)
     3: { label: "Rejected", color: "red" },
+    4: { label: "Completed", color: "green" }, // Status akhir (semua selesai)
   };
 
   // ======================
@@ -75,46 +76,54 @@ export default function ESSLeaveList() {
           return new Date(val).toISOString().split("T")[0];
         },
       },
-      {
-        accessorFn: (row) => row.leave_status,
-        id: "leave_status",
-        header: "Status",
-        cell: (info) => {
-          const val = Number(info.getValue());
-          const s = statusMap[val] || { label: "-", color: "gray" };
-          return <Badge color={s.color}>{s.label}</Badge>;
-        },
-      },
-      {
+     {
+  accessorFn: (row) => row.leave_status,
+  id: "leave_status",
+  header: "Status",
+  cell: (info) => {
+    const val = Number(info.getValue());
+    
+    // Mengambil label dan color dari statusMap
+    const s = statusMap[val] || { label: "Unknown", color: "gray" };
+
+    return (
+      <Badge color={s.color} variant="filled" size="sm">
+        {s.label}
+      </Badge>
+    );
+  },
+},
+     {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
           const id = row.original?.id;
+          const encryptedId = encrypt(String(id));
+
           return (
             <Button.Group>
               <Button
                 size="xs"
                 color="blue"
                 leftSection={<IconList size={16} />}
-                onClick={() => router.push(`/ess_leave/detail/${id}`)}
+                onClick={() => router.push(`/ess_leave/detail/${encryptedId}`)}
               >
                 Detail
               </Button>
               <Button
                 size="xs"
-                color="blue"
+                color="yellow"
                 leftSection={<IconList size={16} />}
-                onClick={() => router.push(`/ess_leave/edit/${id}`)}
+                onClick={() => router.push(`/ess_leave/edit/${encryptedId}`)}
               >
                 Edit
               </Button>
             </Button.Group>
-            
           );
         },
       },
     ],
-    []
+    [encrypt, router] 
   );
 
   // ======================

@@ -29,11 +29,11 @@ export const employee = [
         href: "/leave_manage/list/all",
         icon: <IconDoorExit size={18} />,
       },
-      {
-        title: "Draft",
-        href: "/leave_manage/list/draft",
-        icon: <IconDoorExit size={18} />,
-      },
+      // {
+      //   title: "Draft",
+      //   href: "/leave_manage/list/draft",
+      //   icon: <IconDoorExit size={18} />,
+      // },
       {
         title: "Pending Approval",
         href: "/leave_manage/list/pending_approval",
@@ -44,11 +44,11 @@ export const employee = [
         href: "/leave_manage/list/completed",
         icon: <IconDoorExit size={18} />,
       },
-      {
-        title: "Rejected",
-        href: "/leave_manage/list/rejected",
-        icon: <IconDoorExit size={18} />,
-      },
+      // {
+      //   title: "Rejected",
+      //   href: "/leave_manage/list/rejected",
+      //   icon: <IconDoorExit size={18} />,
+      // },
     ],
   },
 ];

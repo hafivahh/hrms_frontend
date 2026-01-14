@@ -6,6 +6,7 @@ import { employee as sidebarData } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
+import { IconArrowLeft, IconSend } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import axios from "axios";
 
@@ -24,12 +25,15 @@ export default function LeaveDetailPage() {
 
   const sidebarList = sidebarData;
 
+  // Tambahkan status 4 ke dalam statusMap
   const statusMap = {
     0: { label: "Draft", color: "gray" },
     1: { label: "Pending Approval", color: "yellow" },
-    2: { label: "Completed", color: "green" },
-    3: { label: "Rejected", color: "red" },
+    2: { label: "Approved", color: "blue" }, // Untuk level item
+    3: { label: "Rejected", color: "red" }, // Untuk level item
+    4: { label: "Completed", color: "green" }, // Untuk level header
   };
+  
 
   const fetchLeaveDetail = async () => {
     if (!id) return;
@@ -111,33 +115,61 @@ export default function LeaveDetailPage() {
     }
   };
 
-  const handleApproval = async (id, payload) => {
+  const handleApproval = async (itemId, payload) => {
+    setActionLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/api/leave-record-detail/${id}/update`, payload, {
+      // 1. Update status item ke database
+      await axios.post(
+        `${API_URL}/api/leave-record-detail/${itemId}/update`,
+        payload,
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+
+      await showAlert(
+        "Success",
+        "success",
+        "Item processed successfully",
+        false,
+        1000
+      );
+
+      // 2. REFRESH DATA (Crucial!)
+      // Ini akan memicu findOne di backend kembali dan menghitung ulang leave_status kolektif
+      const res = await fetch(`${API_URL}/api/leave/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
+      const latestData = await res.json();
 
-      showAlert("success", res.data.message)
+      setLeave(latestData);
+
+      // 3. Jika hasil perhitungan status adalah 4 (Completed), baru pindah halaman
+      if (Number(latestData.leave_status) === 4) {
+        setTimeout(() => {
+          router.push("/leave_manage/list/completed");
+        }, 1500);
+      }
     } catch (err) {
-      showAlert("error", err.message);
+      showAlert("Error", "error", err.message);
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleAlert = (id, payload) => {
-    Swal.fire({
-      icon: 'question',
-      title: 'Are you sure?',
-      text: 'you are about to update this leave item status.',
-      confirmButtonText: 'Yes, proceed',
-      confirmButtonColor: '#3085d6',
-      showCancelButton: true,
-      reverseButtons: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
+    showAlert(
+      "Are you sure?",
+      "question",
+      "You are about to update this leave item status.",
+      true,
+      null,
+      "Yes, proceed",
+      "Cancel"
+    ).then((confirmed) => {
+      if (confirmed) {
         handleApproval(id, payload);
       }
     });
-  }
+  };
 
   if (loading)
     return (
@@ -175,12 +207,17 @@ export default function LeaveDetailPage() {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="md" withBorder shadow="xs">
             {/* HEADER */}
-            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md">
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center gap-2">
+              <IconArrowLeft
+                size={18}
+                onClick={() => router.back()}
+                className="cursor-pointer"
+              />
+
               <h2 className="text-lg font-semibold uppercase tracking-wide">
                 Leave Request Detail
               </h2>
             </div>
-
             {/* FORM INFO USER */}
             <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Name" value={leave.full_name} />
@@ -190,23 +227,21 @@ export default function LeaveDetailPage() {
               <Field label="Position" value={leave.position_name} />
 
               <Field label="Project" value={leave.project_name} />
-
               <div>
                 <label className="text-sm font-semibold text-gray-600 mb-1 block">
                   Status
                 </label>
+                {/* Ini akan otomatis menampilkan "Completed" jika leave.leave_status bernilai 4 */}
                 <Badge color={statusMap[leave.leave_status]?.color} size="lg">
                   {statusMap[leave.leave_status]?.label}
                 </Badge>
               </div>
             </div>
-
             {/* ATTACHMENT */}
             <div className="px-6 pb-4">
               <label className="text-sm font-semibold text-gray-600 mb-1 block">
                 Attachment
               </label>
-
               {leave.attachment ? (
                 <a
                   href={leave.attachment}
@@ -222,13 +257,11 @@ export default function LeaveDetailPage() {
                 </div>
               )}
             </div>
-
             {/* REMARK */}
             <div className="px-6 pb-6">
               <label className="text-sm font-semibold text-gray-600 mb-1 block">
                 Leave Remark
               </label>
-
               <textarea
                 value={leave.leave_remarks || ""}
                 disabled
@@ -236,7 +269,6 @@ export default function LeaveDetailPage() {
                 rows={4}
               />
             </div>
-
             {/* TABLE DATE DETAIL */}
             <div className="px-6 pb-6">
               <table className="w-full border-collapse">
@@ -268,16 +300,17 @@ export default function LeaveDetailPage() {
 
                       <td className="p-3 text-center">
                         <div className="flex justify-center space-x-2">
-                          {Number(leave?.leave_status) === 1 &&
-                            String(leave?.supervisor_badge) ==
+                          {/* 1. Tampilkan Tombol jika status masih Pending (1) */}
+                          {Number(item.leave_status) === 1 &&
+                            String(leave?.supervisor_badge) ===
                               String(user?.badge_number) && (
                               <>
                                 <Button
                                   size="xs"
                                   color="green"
-                                  onClick={() => handleAlert(item.id,{
-                                    leave_status: 2
-                                  })}
+                                  onClick={() =>
+                                    handleAlert(item.id, { leave_status: 2 })
+                                  }
                                   loading={actionLoading}
                                 >
                                   Approve
@@ -286,15 +319,25 @@ export default function LeaveDetailPage() {
                                 <Button
                                   size="xs"
                                   color="red"
-                                  onClick={() => handleAlert(item.id,{
-                                    leave_status: 3
-                                  })}
+                                  onClick={() =>
+                                    handleAlert(item.id, { leave_status: 3 })
+                                  }
                                   loading={actionLoading}
                                 >
                                   Reject
                                 </Button>
                               </>
                             )}
+
+                          {/* 2. Tampilkan Badge jika status SUDAH BUKAN Pending (bukan 1) */}
+                          {Number(item.leave_status) !== 1 && (
+                            <Badge
+                              color={statusMap[item.leave_status]?.color}
+                              variant="filled"
+                            >
+                              {statusMap[item.leave_status]?.label}
+                            </Badge>
+                          )}
                         </div>
                       </td>
                     </tr>

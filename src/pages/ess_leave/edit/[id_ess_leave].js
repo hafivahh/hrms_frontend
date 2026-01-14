@@ -230,7 +230,7 @@ export default function ESSLeaveEdit() {
 
           <div className="space-y-4">
             <Autocomplete
-              label="Supervisor (Approver)"
+              label="Supervisor"
               placeholder="Search..."
               value={supervisorQuery}
               data={supervisorOptions.map(o => o.label)}
@@ -243,7 +243,7 @@ export default function ESSLeaveEdit() {
             />
 
             <FileInput
-              label="New Attachment (Optional)"
+              label="Attachment"
               placeholder="Upload to change file"
               value={file}
               onChange={setFile}

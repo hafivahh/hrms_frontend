@@ -13,11 +13,10 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
 import useSwal from "@/hooks/useSwal";
-import { formatDateTime } from "@/lib/utils";
+// import { formatDateTime } from "@/lib/utils";
 
 export async function getStaticPaths() {
   const statuses = [
-    "draft",
     "pending_approval",
     "completed",
     "rejected",
@@ -40,10 +39,8 @@ export default function ListLeaveByStatus({ status }) {
   const { showAlert } = useSwal();
 
   const statusStringMap = {
-    draft: 0,
     pending_approval: 1,
-    completed: 2,
-    rejected: 3,
+    completed: 4,
   };
 
   const allowedStatus = [...Object.keys(statusStringMap), "all"];
@@ -67,19 +64,18 @@ export default function ListLeaveByStatus({ status }) {
   const statusMap = {
     0: { label: "Draft", color: "gray" },
     1: { label: "Pending Approval", color: "yellow" },
-    2: { label: "Completed", color: "green" },
+    2: { label: "Approved", color: "blue" }, 
     3: { label: "Rejected", color: "red" },
-  };
-  const leaveTypeMap = {
-    // "Annual Leave": "green",
-    // "Sick Leave": "red",
-    // "Unpaid Leave": "gray",
-    // "Maternity Leave": "pink",
-    // "Permission": "yellow",
+    4: { label: "Completed", color: "green" }, 
   };
 
   const getActionsByStatus = (statusId) => {
-    if (statusId === 0) return ["detail", "update"];
+    const sId = Number(statusId);
+
+    if (sId === 0) {
+      return ["detail", "delete"];
+    }
+
     return ["detail", "delete"];
   };
 
@@ -116,17 +112,6 @@ export default function ListLeaveByStatus({ status }) {
         header: "Supervisor",
       },
       {
-        accessorFn: (row) => row.leave_type,
-        id: "leave_type",
-        header: "Leave Type",
-        cell: (info) => {
-          const value = info.getValue();
-          const color = leaveTypeMap[value] || "blue";
-
-          return <Badge color={color}>{value || "-"}</Badge>;
-        },
-      },
-      {
         accessorFn: (row) => row.request_date,
         id: "request_date",
         header: "Request Date",
@@ -150,8 +135,13 @@ export default function ListLeaveByStatus({ status }) {
         header: "Status",
         cell: (info) => {
           const val = Number(info.getValue());
-          const s = statusMap[val];
-          return <Badge color={s.color}>{s.label}</Badge>;
+          const s = statusMap[val] || { label: "Unknown", color: "gray" };
+
+          return (
+            <Badge color={s.color} variant="filled">
+              {s.label}
+            </Badge>
+          );
         },
       },
       {
@@ -160,7 +150,9 @@ export default function ListLeaveByStatus({ status }) {
         cell: ({ row }) => {
           const statusId = Number(row.original.leave_status);
           const actions = getActionsByStatus(statusId);
-          const encryptedId = encrypt(String(row.original.id));
+          // 1. ENKRIPSI ID
+          const rawId = String(row.original.header_id || row.original.id);
+          const encryptedId = encrypt(rawId);
 
           return (
             <Button.Group>
@@ -172,36 +164,14 @@ export default function ListLeaveByStatus({ status }) {
                       color="blue"
                       leftSection={<IconList size={16} />}
                       onClick={() => {
-                        // Ambil ID dari row data
-                        const plainId = row.original.header_id; // atau row.header_id, tergantung struktur data
-
-                        console.log("Navigating to detail with ID:", plainId);
-
-                        // TEMPORARY: Pakai plain ID dulu
-                        router.push(`/leave_manage/detail/${plainId}`);
-
-                        // ATAU jika mau tetap pakai encryption:
-                        // const encrypted = aes.encryptBase64Url(String(plainId));
-                        // console.log('Encrypted ID:', encrypted);
-                        // router.push(`/leave_manage/detail/${encrypted}`);
-                      }}
-                    >
-                      Detail
-                    </Button>
+                    // 2. NAVIGASI DENGAN ID TERENKRIPSI
+                    router.push(`/leave_manage/detail/${encryptedId}`);
+                  }}
+                >
+                  Detail
+                </Button>
                   )}
                 </Button.Group>
-              )}
-              {actions.includes("update") && (
-                <Button
-                  size="xs"
-                  color="yellow"
-                  leftSection={<IconPencil size={16} />}
-                  onClick={() =>
-                    router.push(`/leave_manage/update?id=${encryptedId}`)
-                  }
-                >
-                  Update
-                </Button>
               )}
               {actions.includes("delete") && (
                 <Button
@@ -229,7 +199,7 @@ export default function ListLeaveByStatus({ status }) {
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    manualSorting: true, 
+    manualSorting: true,
     manualFiltering: true,
     manualPagination: true,
   });
@@ -283,12 +253,6 @@ export default function ListLeaveByStatus({ status }) {
                   : `${status.replace(/_/g, " ")} Leave List`}
               </h2>
             </div>
-            {/* 
-            <div className="px-4 py-2 text-right">
-              <Button onClick={() => router.push("/leave_manage/create")}>
-                Add Leave
-              </Button>
-            </div> */}
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} />
             </div>
