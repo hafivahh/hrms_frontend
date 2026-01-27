@@ -5,7 +5,7 @@ import useUser from "@/store/useUser";
 import { Button, Paper, Text, TextInput, Select } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
-import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
+import { IconArrowLeft, IconSend } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
@@ -24,6 +24,7 @@ export default function Add_employee() {
   const [projects, setProjects] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [positions, setPositions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -102,7 +103,7 @@ export default function Add_employee() {
   const handleSubmit = async (values) => {
     const confirm = await showAlert(
       "Are you sure?",
-      "warning",
+      "question",
       "Do you want to submit this employee?",
       true,
       null,
@@ -168,133 +169,123 @@ export default function Add_employee() {
   };
 
   return (
-    <AuthLayout sidebarList={employee}>
-      <div className="py-6">
-        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="sm" mt="md" withBorder>
-            <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Add Employee</Text>
-            </div>
-
-            <form onSubmit={form.onSubmit(handleSubmit)}>
-              {/* FULL NAME */}
-              <div className="px-4 py-2">
-                <TextInput
-                  label="Full Name"
-                  withAsterisk
-                  placeholder="Input Employee Name"
-                  {...form.getInputProps("full_name")}
-                />
-              </div>
-
-              {/* BADGE NUMBER */}
-              <div className="px-4 py-2">
-                <TextInput
-                  label="Badge Number"
-                  withAsterisk
-                  placeholder="Input Badge Number"
-                  {...form.getInputProps("badge_number")}
-                />
-              </div>
-
-              {/* GENDER */}
-              <div className="px-4 py-2">
-                <Select
-                  label="Gender"
-                  placeholder="Select gender"
-                  data={[
-                    { value: "male", label: "Male" },
-                    { value: "female", label: "Female" },
-                  ]}
-                  searchable
-                  withAsterisk
-                  {...form.getInputProps("gender")}
-                />
-              </div>
-
-              {/* DEPARTEMENT */}
-              <div className="px-4 py-2">
-                <Select
-                  label="Departement"
-                  placeholder="Select departement"
-                  data={departments}
-                  searchable
-                  withAsterisk
-                  {...form.getInputProps("id_departement")}
-                />
-              </div>
-
-              {/* PROJECT */}
-              <div className="px-4 py-2">
-                <Select
-                  label="Project"
-                  placeholder="Select project"
-                  data={projects}
-                  searchable
-                  withAsterisk
-                  {...form.getInputProps("id_project")}
-                />
-              </div>
-
-              {/* COMPANY */}
-              <div className="px-4 py-2">
-                <Select
-                  label="Company"
-                  placeholder="Select company"
-                  data={companies}
-                  searchable
-                  withAsterisk
-                  {...form.getInputProps("id_company")}
-                />
-              </div>
-
-              {/* POSITION */}
-              <div className="px-4 py-2">
-                <Select
-                  label="Position"
-                  placeholder="Select position"
-                  data={positions}
-                  searchable
-                  withAsterisk
-                  {...form.getInputProps("id_position")}
-                />
-              </div>
-              {/* JOIN DATE */}
-              <div className="px-4 py-2">
-                <DateInput
-                  label="Join Date"
-                  placeholder="Select join date"
-                  withAsterisk
-                  {...form.getInputProps("join_date")}
-                />
-              </div>
-              {/* SUBMIT BUTTONS */}
-              <div className="px-4 py-2 text-right flex justify-end gap-3">
-                <Button
-                  size="md"
-                  color="gray"
-                  variant="filled"
-                  className="w-32"
-                  leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/employee/list")}
-                >
-                  Back
-                </Button> 
-                <Button
-                  size="md"
-                  color="blue"
-                  variant="filled"
-                  className="w-32"
-                  leftSection={<IconCheck size={16} />}
-                  type="submit"
-                >
-                  Submit
-                </Button>
-              </div>
-            </form>
-          </Paper>
+<AuthLayout sidebarList={employee}>
+  <div className="py-6">
+    <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+      <Paper radius="md" withBorder shadow="xs">
+        
+        {/* HEADER SECTION */}
+        <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <IconArrowLeft
+              size={18}
+              onClick={() => router.push("/employee/list")}
+              className="cursor-pointer hover:text-blue-600 transition-colors"
+            />
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+              Add Employee
+            </h2>
+          </div>
         </div>
-      </div>
-    </AuthLayout>
+
+        {/* CONTENT SECTION */}
+        <form onSubmit={form.onSubmit(handleSubmit)} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* FULL NAME */}
+            <TextInput
+              label="Full Name"
+              withAsterisk
+              placeholder="Input Employee Name"
+              {...form.getInputProps("full_name")}
+            />
+
+            {/* BADGE NUMBER */}
+            <TextInput
+              label="Badge Number"
+              withAsterisk
+              placeholder="Input Badge Number"
+              {...form.getInputProps("badge_number")}
+            />
+
+            {/* GENDER */}
+            <Select
+              label="Gender"
+              placeholder="Select gender"
+              data={[
+                { value: "male", label: "Male" },
+                { value: "female", label: "Female" },
+              ]}
+              searchable
+              withAsterisk
+              {...form.getInputProps("gender")}
+            />
+
+            {/* DEPARTEMENT */}
+            <Select
+              label="Departement"
+              placeholder="Select departement"
+              data={departments}
+              searchable
+              withAsterisk
+              {...form.getInputProps("id_departement")}
+            />
+
+            {/* PROJECT */}
+            <Select
+              label="Project"
+              placeholder="Select project"
+              data={projects}
+              searchable
+              withAsterisk
+              {...form.getInputProps("id_project")}
+            />
+
+            {/* COMPANY */}
+            <Select
+              label="Company"
+              placeholder="Select company"
+              data={companies}
+              searchable
+              withAsterisk
+              {...form.getInputProps("id_company")}
+            />
+
+            {/* POSITION */}
+            <Select
+              label="Position"
+              placeholder="Select position"
+              data={positions}
+              searchable
+              withAsterisk
+              {...form.getInputProps("id_position")}
+            />
+
+            {/* JOIN DATE */}
+            <DateInput
+              label="Join Date"
+              placeholder="Select join date"
+              withAsterisk
+              {...form.getInputProps("join_date")}
+            />
+          </div>
+
+          {/* SUBMIT BUTTON - Ukuran Disamakan */}
+          <Button
+            type="submit"
+            mt="2.5rem"
+            fullWidth
+            size="md"
+            leftSection={<IconSend size={18} />}
+            loading={loading}
+          >
+            Submit Employee Data
+          </Button>
+        </form>
+
+      </Paper>
+    </div>
+  </div>
+</AuthLayout>
   );
 }

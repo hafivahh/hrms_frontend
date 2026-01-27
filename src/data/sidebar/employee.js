@@ -29,11 +29,6 @@ export const employee = [
         href: "/leave_manage/list/all",
         icon: <IconDoorExit size={18} />,
       },
-      // {
-      //   title: "Draft",
-      //   href: "/leave_manage/list/draft",
-      //   icon: <IconDoorExit size={18} />,
-      // },
       {
         title: "Pending Approval",
         href: "/leave_manage/list/pending_approval",
@@ -44,11 +39,33 @@ export const employee = [
         href: "/leave_manage/list/completed",
         icon: <IconDoorExit size={18} />,
       },
-      // {
-      //   title: "Rejected",
-      //   href: "/leave_manage/list/rejected",
-      //   icon: <IconDoorExit size={18} />,
-      // },
+    ],
+  },
+  {
+    title: "MPR",
+    href: "",
+    icon: <IconListLetters size={18} />,
+    child: [
+       {
+        title: "Create",
+        href: "/iss_mpr/create",
+        icon: <IconDoorExit size={18} />,
+      },
+      {
+        title: "List",
+        href: "/iss_mpr/list/all",
+        icon: <IconDoorExit size={18} />,
+      },
+      {
+        title: "Pending Approval",
+        href: "/iss_mpr/list/pending_approval",
+        icon: <IconDoorExit size={18} />,
+      },
+      {
+        title: "Completed",
+        href: "/iss_mpr/list/completed",
+        icon: <IconDoorExit size={18} />,
+      },
     ],
   },
 ];

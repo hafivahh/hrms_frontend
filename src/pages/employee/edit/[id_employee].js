@@ -4,7 +4,7 @@ import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
 import { Button, Paper, Text, TextInput, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconArrowLeft,IconDeviceFloppy } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -96,7 +96,7 @@ export default function Edit_Employee() {
   const handleSubmit = async (values) => {
     const confirm = await showAlert(
       "Are You Sure?",
-      "warning",
+      "question",
       "Do you want to update this employee?",
       true,
       null,
@@ -142,90 +142,122 @@ export default function Edit_Employee() {
   if (loading) return <p className="p-4">Loading...</p>;
 
   return (
-    <AuthLayout sidebarList={employee}>
-      <div className="py-6">
-        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="sm" mt="md" withBorder>
-            <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Edit Employee</Text>
-            </div>
-
-            <form onSubmit={form.onSubmit(handleSubmit)}>
-              <div className="px-4 py-2 space-y-3">
-                <TextInput
-                  label="Badge Number"
-                  withAsterisk
-                  {...form.getInputProps("badge_number")}
-                />
-                <TextInput
-                  label="Full Name"
-                  withAsterisk
-                  {...form.getInputProps("full_name")}
-                />
-
-                <Select
-                  label="Gender"
-                  data={[
-                    { value: "1", label: "Laki-Laki" },
-                    { value: "2", label: "Perempuan" },
-                  ]}
-                  {...form.getInputProps("gender")}
-                />
-
-                <Select
-                  label="Position"
-                  data={positions.map((p) => ({
-                    value: p.id.toString(),
-                    label: p.position_name,
-                  }))}
-                  {...form.getInputProps("id_position")}
-                />
-
-                <Select
-                  label="Departement"
-                  data={departments.map((d) => ({
-                    value: d.id.toString(),
-                    label: d.departement_name,
-                  }))}
-                  {...form.getInputProps("id_departement")}
-                />
-
-                <Select
-                  label="Project"
-                  data={projects.map((p) => ({
-                    value: p.id.toString(),
-                    label: p.project_name,
-                  }))}
-                  {...form.getInputProps("id_project")}
-                />
-
-                <Select
-                  label="Company"
-                  data={companies.map((c) => ({
-                    value: c.id.toString(),
-                    label: c.company_name,
-                  }))}
-                  {...form.getInputProps("id_company")}
-                />
-              </div>
-
-              <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button
-                  size="md"
-                  color="gray"
-                  leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/employee/list")}
-                >
-                  Back
-                </Button>
-                <Button size="md" type="submit">
-                  Update
-                </Button>
-              </div>
-            </form>
-          </Paper>
+<AuthLayout sidebarList={employee}>
+  <div className="py-6">
+    <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+      <Paper radius="md" withBorder shadow="xs">
+        
+        {/* HEADER SECTION */}
+        <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <IconArrowLeft
+              size={18}
+              onClick={() => router.push("/employee/list")}
+              className="cursor-pointer hover:text-blue-600 transition-colors"
+            />
+            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+              Edit Employee
+            </h2>
+          </div>
         </div>
-      </div>
-    </AuthLayout>
+
+        {/* CONTENT SECTION */}
+        <form onSubmit={form.onSubmit(handleSubmit)} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* BADGE NUMBER */}
+            <TextInput
+              label="Badge Number"
+              withAsterisk
+              placeholder="Input Badge Number"
+              {...form.getInputProps("badge_number")}
+            />
+
+            {/* FULL NAME */}
+            <TextInput
+              label="Full Name"
+              withAsterisk
+              placeholder="Input Full Name"
+              {...form.getInputProps("full_name")}
+            />
+
+            {/* GENDER */}
+            <Select
+              label="Gender"
+              placeholder="Select gender"
+              data={[
+                { value: "1", label: "Laki-Laki" },
+                { value: "2", label: "Perempuan" },
+              ]}
+              searchable
+              {...form.getInputProps("gender")}
+            />
+
+            {/* POSITION */}
+            <Select
+              label="Position"
+              placeholder="Select position"
+              data={positions.map((p) => ({
+                value: p.id.toString(),
+                label: p.position_name,
+              }))}
+              searchable
+              {...form.getInputProps("id_position")}
+            />
+
+            {/* DEPARTEMENT */}
+            <Select
+              label="Departement"
+              placeholder="Select departement"
+              data={departments.map((d) => ({
+                value: d.id.toString(),
+                label: d.departement_name,
+              }))}
+              searchable
+              {...form.getInputProps("id_departement")}
+            />
+
+            {/* PROJECT */}
+            <Select
+              label="Project"
+              placeholder="Select project"
+              data={projects.map((p) => ({
+                value: p.id.toString(),
+                label: p.project_name,
+              }))}
+              searchable
+              {...form.getInputProps("id_project")}
+            />
+
+            {/* COMPANY */}
+            <Select
+              label="Company"
+              placeholder="Select company"
+              data={companies.map((c) => ({
+                value: c.id.toString(),
+                label: c.company_name,
+              }))}
+              searchable
+              {...form.getInputProps("id_company")}
+            />
+          </div>
+
+          {/* UPDATE BUTTON - FULL WIDTH */}
+          <Button
+            type="submit"
+            mt="2.5rem"
+            fullWidth
+            size="md"
+            leftSection={<IconDeviceFloppy size={18} />}
+            loading={loading} // Pastikan state loading sudah didefinisikan
+          >
+            Update Employee Data
+          </Button>
+        </form>
+
+      </Paper>
+    </div>
+  </div>
+</AuthLayout>
   );
 }

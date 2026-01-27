@@ -76,28 +76,29 @@ export default function ESSLeaveList() {
           return new Date(val).toISOString().split("T")[0];
         },
       },
-     {
-  accessorFn: (row) => row.leave_status,
-  id: "leave_status",
-  header: "Status",
-  cell: (info) => {
-    const val = Number(info.getValue());
-    
-    // Mengambil label dan color dari statusMap
-    const s = statusMap[val] || { label: "Unknown", color: "gray" };
+      {
+        accessorFn: (row) => row.leave_status,
+        id: "leave_status",
+        header: "Status",
+        cell: (info) => {
+          const val = Number(info.getValue());
 
-    return (
-      <Badge color={s.color} variant="filled" size="sm">
-        {s.label}
-      </Badge>
-    );
-  },
-},
-     {
+          // Mengambil label dan color dari statusMap
+          const s = statusMap[val] || { label: "Unknown", color: "gray" };
+
+          return (
+            <Badge color={s.color} variant="filled" size="sm">
+              {s.label}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
           const id = row.original?.id;
+          const leave_status = row.original?.leave_status;
           const encryptedId = encrypt(String(id));
 
           return (
@@ -110,20 +111,22 @@ export default function ESSLeaveList() {
               >
                 Detail
               </Button>
-              <Button
-                size="xs"
-                color="yellow"
-                leftSection={<IconList size={16} />}
-                onClick={() => router.push(`/ess_leave/edit/${encryptedId}`)}
-              >
-                Edit
-              </Button>
+              {leave_status === 0 && (
+                <Button
+                  size="xs"
+                  color="yellow"
+                  leftSection={<IconList size={16} />}
+                  onClick={() => router.push(`/ess_leave/edit/${encryptedId}`)}
+                >
+                  Edit
+                </Button>
+              )}
             </Button.Group>
           );
         },
       },
     ],
-    [encrypt, router] 
+    [encrypt, router],
   );
 
   // ======================
@@ -175,15 +178,13 @@ export default function ESSLeaveList() {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
-      }
+      },
     );
 
     setData(data.data);
     setTotalPages(data.total_pages);
 
- 
-  setLeaveBalance(data.current_balance ?? 0);
-
+    setLeaveBalance(data.current_balance ?? 0);
   }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
   useEffect(() => {
@@ -214,9 +215,17 @@ export default function ESSLeaveList() {
             <div className="px-4 pt-4 pb-2">
               <div className="flex items-center gap-2">
                 <IconCalendar size={16} className="text-gray-600" />
-                <span className="text-sm text-gray-600">Annual Leave Balance:</span>
+                <span className="text-sm text-gray-600">
+                  Annual Leave Balance:
+                </span>
                 <Badge
-                  color={leaveBalance > 5 ? "green" : leaveBalance > 0 ? "yellow" : "red"}
+                  color={
+                    leaveBalance > 5
+                      ? "green"
+                      : leaveBalance > 0
+                        ? "yellow"
+                        : "red"
+                  }
                   variant="filled"
                   size="md"
                 >
@@ -234,4 +243,4 @@ export default function ESSLeaveList() {
       </div>
     </AuthLayout>
   );
-} 
+}

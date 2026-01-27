@@ -37,6 +37,11 @@ const navigation = [
         url: "/leave_manage/list/all",
         icon: <IconList size={18} />,
       },
+      {
+        title: "MPR",
+        url: "/iss_mpr/list/all",
+        icon: <IconList size={18} />,
+      },
     ],
   },
   {
@@ -45,14 +50,19 @@ const navigation = [
     permission: 1,
     child: [
       {
-        title: "My Profile",
+        title: "Profile",
         url: "/ess_profile/index",
         icon: <IconUsers size={18} />,
       },
       {
-        title: "My Leave Request",
+        title: "Leave Request",
         url: "/ess_leave/list",
         icon: <IconList size={18} />,
+      },
+        {
+        title: "Attendance",
+        url: "/pss/attendance",
+        icon: <IconAccessible size={18} />,
       },
     ],
   },
@@ -62,12 +72,7 @@ const navigation = [
     permission: 1,
     child: [
       {
-        title: "Payroll List",
-        url: "/pss/payroll",
-        icon: <IconAccessible size={18} />,
-      },
-      {
-        title: "Attendance",
+        title: "Dashboard",
         url: "/pss/attendance",
         icon: <IconAccessible size={18} />,
       },

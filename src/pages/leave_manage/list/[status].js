@@ -81,6 +81,14 @@ export default function ListLeaveByStatus({ status }) {
 
   const columns = useMemo(
     () => [
+        {
+        accessorFn: (row) => row.request_date,
+        id: "request_date",
+        header: "Request Date",
+        enableColumnFilter: true,
+        enableSorting: true,
+        cell: (info) => info.getValue(),
+      },
       {
         accessorFn: (row) => row.badge_number,
         id: "badge_number",
@@ -110,14 +118,6 @@ export default function ListLeaveByStatus({ status }) {
         accessorFn: (row) => row.supervisor_name,
         id: "supervisor_id",
         header: "Supervisor",
-      },
-      {
-        accessorFn: (row) => row.request_date,
-        id: "request_date",
-        header: "Request Date",
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => info.getValue(),
       },
       {
         accessorFn: (row) => row.leave_in,

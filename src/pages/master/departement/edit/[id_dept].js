@@ -63,7 +63,7 @@ export default function Edit_Departement() {
   const handleSubmit = async (values) => {
     const confirm = await showAlert(
       "Are You Sure?",
-      "warning",
+      "question",
       "Do You Want To Update This Departement?",
       true
     );
@@ -100,11 +100,19 @@ export default function Edit_Departement() {
     <AuthLayout sidebarList={master_data}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="sm" mt="md" withBorder>
-            <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Edit Departement</Text>
+          <Paper radius="md" withBorder shadow="xs">
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconArrowLeft
+                  size={18}
+                  onClick={() => router.push("/master/departement/list")}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                  Edit Departement
+                </h2>
+              </div>
             </div>
-
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <div className="px-4 py-2">
                 <TextInput
@@ -116,17 +124,6 @@ export default function Edit_Departement() {
               </div>
 
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button
-                  size="md"
-                  color="gray"
-                  leftSection={<IconArrowLeft size={16} />}
-                  onClick={() =>
-                    router.push("/master/departement/list")
-                  }
-                >
-                  Back
-                </Button>
-
                 <Button size="md" type="submit">
                   Update
                 </Button>

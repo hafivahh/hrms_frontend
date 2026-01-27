@@ -10,7 +10,7 @@ import { useRouter } from "next/router";
 import { master_data } from "@/data/sidebar/master_data";
 
 export default function Create_Project() {
-Create_Project.title = "Add Project";
+  Create_Project.title = "Add Project";
 
   const router = useRouter();
   const { user } = useUser();
@@ -31,7 +31,7 @@ Create_Project.title = "Add Project";
   const handleSubmit = async (values) => {
     const confirm = await showAlert(
       "Are you sure?",
-      "warning",
+      "question",
       "Do you want to submit this project?",
       true
     );
@@ -51,7 +51,7 @@ Create_Project.title = "Add Project";
         }
       );
 
-     if (data.success) {
+      if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
         router.push("/master/project/list");
       }
@@ -68,9 +68,18 @@ Create_Project.title = "Add Project";
     <AuthLayout sidebarList={master_data}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="sm" mt="md" withBorder>
-            <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Add Project</Text>
+          <Paper radius="md" withBorder shadow="xs">
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconArrowLeft
+                  size={18}
+                  onClick={() => router.push("/master/project/list")}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                  Add Project
+                </h2>
+              </div>
             </div>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -83,18 +92,6 @@ Create_Project.title = "Add Project";
                 />
               </div>
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button
-                  size="md"
-                  color="gray"
-                  variant="filled"
-                  leftSection={<IconArrowLeft size={16} />}
-                  onClick={() =>
-                    router.push("/master/project/list")
-                  }
-                >
-                  Back
-                </Button>
-
                 <Button size="md" type="submit">
                   Submit
                 </Button>

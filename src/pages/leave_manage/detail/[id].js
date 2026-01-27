@@ -33,7 +33,6 @@ export default function LeaveDetailPage() {
     3: { label: "Rejected", color: "red" }, // Untuk level item
     4: { label: "Completed", color: "green" }, // Untuk level header
   };
-  
 
   const fetchLeaveDetail = async () => {
     if (!id) return;
@@ -244,12 +243,12 @@ export default function LeaveDetailPage() {
               </label>
               {leave.attachment ? (
                 <a
-                  href={leave.attachment}
+                  href={`${API_URL}/uploads/${leave.attachment}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-block px-3 py-2 border rounded bg-gray-50 hover:bg-gray-100"
+                  className="inline-block px-3 py-2 border rounded bg-gray-50 hover:bg-gray-100 text-blue-600 font-medium"
                 >
-                  link attachment
+                  View Attachment File
                 </a>
               ) : (
                 <div className="text-gray-400 italic text-sm">

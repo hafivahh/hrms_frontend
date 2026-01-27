@@ -133,7 +133,7 @@ export default function List() {
     // Konfirmasi sebelum hapus
     const confirm = await showAlert(
       "Are You Sure?",
-      "warning",
+      "question",
       "Do you want to delete this employee?",
       true,
       null,

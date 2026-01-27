@@ -9,9 +9,9 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { master_data } from "@/data/sidebar/master_data";
 
-Create_Departement.title = "Add Departement";
+export default function Create_Job_Title() {
+  Create_Job_Title.title = "Add Job Title";
 
-export default function Create_Departement() {
   const router = useRouter();
   const { user } = useUser();
   const API = useApi();
@@ -20,11 +20,11 @@ export default function Create_Departement() {
 
   const form = useForm({
     initialValues: {
-      departement_name: "",
+      job_title: "",
     },
     validate: {
-      departement_name: (value) =>
-        value.trim().length > 0 ? null : "Department Name is required",
+      job_title: (value) =>
+        value.trim().length > 0 ? null : "Job Title Name is required",
     },
   });
 
@@ -32,7 +32,7 @@ export default function Create_Departement() {
     const confirm = await showAlert(
       "Are you sure?",
       "question",
-      "Do you want to submit this departement?",
+      "Do you want to submit this job title?",
       true
     );
 
@@ -42,7 +42,7 @@ export default function Create_Departement() {
 
     try {
       const { data } = await axios.post(
-        `${API_URL}/api/master/departement/create`,
+        `${API_URL}/api/master/jobtitle/create`,
         values,
         {
           headers: {
@@ -53,8 +53,9 @@ export default function Create_Departement() {
 
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
-        router.push("/master/departement/list");
+        router.push("/master/job_title/list");
       }
+      
     } catch (error) {
       const data_error = error.response?.data || {
         message: "Error",
@@ -65,33 +66,35 @@ export default function Create_Departement() {
   };
 
   return (
-    <AuthLayout sidebarList={master_data}>
-      <div className="py-6">
-        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="md" withBorder shadow="xs">
-            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <IconArrowLeft
-                  size={18}
-                  onClick={() => router.push("/master/departement/list")}
-                  className="cursor-pointer hover:text-blue-600 transition-colors"
-                />
-                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
-                  Add Departement
-                </h2>
-              </div>
-            </div>
-
+     <AuthLayout sidebarList={master_data}>
+         <div className="py-6">
+           <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+             <Paper radius="md" withBorder shadow="xs">
+               <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+                 <div className="flex items-center gap-2">
+                   <IconArrowLeft
+                     size={18}
+                     onClick={() => router.push("/master/job_title/list")}
+                     className="cursor-pointer hover:text-blue-600 transition-colors"
+                   />
+                   <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                     Add Job Title
+                   </h2>
+                 </div>
+               </div>
+   
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <div className="px-4 py-2">
                 <TextInput
-                  label="Departement Name"
+                  label="Job Title Name"
                   withAsterisk
-                  placeholder="Input Department Name"
-                  {...form.getInputProps("departement_name")}
+                  placeholder="Input Job Title Name"
+                  {...form.getInputProps("job_title")}
                 />
               </div>
               <div className="px-4 py-2 flex justify-end space-x-2">
+            
+
                 <Button size="md" type="submit">
                   Submit
                 </Button>

@@ -163,7 +163,7 @@ export default function ESSLeaveCreate() {
     if (!supervisorId) {
       await showAlert(
         "Supervisor Required",
-        "warning",
+        "question",
         "Please select a supervisor from the dropdown list!\n\nYou must click on one of the suggested options.",
         false
       );
@@ -175,7 +175,7 @@ export default function ESSLeaveCreate() {
     if (missingLeaveType) {
       await showAlert(
         "Leave Type Required",
-        "warning",
+        "question",
         `Please select leave type for ${missingLeaveType.dateDisplay}`,
         false
       );
@@ -186,7 +186,7 @@ export default function ESSLeaveCreate() {
     if (!file) {
       await showAlert(
         "Attachment Required",
-        "warning",
+        "question",
         "Please upload an attachment before submitting the leave request.",
         false
       );
@@ -196,7 +196,7 @@ export default function ESSLeaveCreate() {
     // Konfirmasi submit
     const confirm = await showAlert(
       "Are you sure?",
-      "warning",
+      "question",
       `Do you want to submit this leave request?\n\nTotal Days: ${details.length}`,
       true
     );
@@ -271,187 +271,188 @@ export default function ESSLeaveCreate() {
 
   return (
     <AuthLayout sidebarList={employee}>
-      <div className="py-6 max-w-4xl mx-auto">
-        <Paper withBorder p="md">
-          <div className="flex items-center gap-2 mb-4">
-            <IconArrowLeft
-              size={18}
-              onClick={() => router.back()}
-              className="cursor-pointer"
-            />
-
-            <h2 className="text-lg font-semibold">Create Leave Request</h2>
-          </div>
-          {/* DATE RANGE */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <DateInput
-              label="Start Date"
-              placeholder="Select start date"
-              value={startDate}
-              onChange={setStartDate}
-              required
-            />
-            <DateInput
-              label="End Date"
-              placeholder="Select end date"
-              value={endDate}
-              onChange={setEndDate}
-              minDate={startDate || undefined}
-              required
-            />
-          </div>
-
-          {/* INFO JUMLAH HARI */}
-          {details.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 rounded">
-              <Text size="sm" c="blue" fw={500}>
-                Total Leave Days: {details.length}{" "}
-                {details.length === 1 ? "day" : "days"}
-              </Text>
+      <div className="py-6">
+        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+          <Paper radius="md" withBorder shadow="xs">
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconArrowLeft
+                  size={18}
+                  onClick={() => router.back()}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                  Create Leave Request
+                </h2>
+              </div>
             </div>
-          )}
 
-          {/* FORM DINAMIS PER HARI */}
-          {details.length > 0 && (
-            <div className="mb-4">
-              <Text fw={600} mb="sm">
-                Select Leave Type and Partial Days for Each Day:
-              </Text>
-
-              <div className="grid grid-cols-[1fr_2fr_2fr] gap-4 mb-2 px-3">
-                <Text size="sm" fw={500} c="dimmed">
-                  Date
-                </Text>
-                <Text size="sm" fw={500} c="dimmed">
-                  Leave Type *
-                </Text>
-                <Text size="sm" fw={500} c="dimmed">
-                  Partial Days
-                </Text>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <DateInput
+                  label="Start Date"
+                  placeholder="Select start date"
+                  value={startDate}
+                  onChange={setStartDate}
+                  required
+                />
+                <DateInput
+                  label="End Date"
+                  placeholder="Select end date"
+                  value={endDate}
+                  onChange={setEndDate}
+                  minDate={startDate || undefined}
+                  required
+                />
               </div>
 
-              {details.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="grid grid-cols-[1fr_2fr_2fr] gap-4 mb-3 items-center p-3 border rounded"
-                >
-                  <div>
-                    <Text fw={500} size="sm">
-                      {item.dateDisplay}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {item.dayName}
-                    </Text>
-                  </div>
+              {/* INFO JUMLAH HARI */}
+              {details.length > 0 && (
+                <div className="mb-6 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                  <Text
+                    size="sm"
+                    c="blue"
+                    fw={600}
+                    className="flex items-center gap-2"
+                  >
+                    Total Leave Days: {details.length}{" "}
+                    {details.length === 1 ? "day" : "days"}
+                  </Text>
+                </div>
+              )}
 
-                  <Select
-                    placeholder="Select leave type"
-                    data={leaveTypes}
-                    value={item.id_leave_type?.toString()}
+              {/* FORM DINAMIS PER HARI */}
+              {details.length > 0 && (
+                <div className="space-y-4 mb-8">
+                  <Text
+                    fw={600}
+                    size="md"
+                    className="border-b pb-2 text-gray-700"
+                  >
+                    Detail Per Day
+                  </Text>
+
+                  <div className="space-y-3">
+                    {details.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="grid grid-cols-1 sm:grid-cols-[1.5fr_2fr_2fr] gap-4 p-4 bg-gray-50 border border-gray-200 rounded-lg items-center"
+                      >
+                        <div>
+                          <Text fw={600} size="sm">
+                            {item.dateDisplay}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {item.dayName}
+                          </Text>
+                        </div>
+
+                        <Select
+                          placeholder="Select leave type"
+                          data={leaveTypes}
+                          value={item.id_leave_type?.toString()}
+                          onChange={(val) => {
+                            const copy = [...details];
+                            copy[idx].id_leave_type = Number(val);
+                            setDetails(copy);
+                          }}
+                          required
+                          searchable
+                        />
+
+                        <Select
+                          placeholder="Partial days (Optional)"
+                          data={partialDays.length > 0 ? partialDays : []}
+                          value={item.id_partial_days?.toString() || null}
+                          onChange={(val) => {
+                            const copy = [...details];
+                            copy[idx].id_partial_days = val
+                              ? Number(val)
+                              : null;
+                            setDetails(copy);
+                          }}
+                          searchable
+                          clearable
+                          disabled={partialDays.length === 0}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ADDITIONAL INFORMATION SECTION */}
+              <div className="space-y-5 border-t pt-6">
+                <div>
+                  <Autocomplete
+                    label="Supervisor (Approver)"
+                    placeholder="Type badge number or full name"
+                    value={supervisorQuery}
+                    data={supervisorOptions.map((o) => o.label)}
                     onChange={(val) => {
-                      const copy = [...details];
-                      copy[idx].id_leave_type = Number(val);
-                      setDetails(copy);
+                      setSupervisorQuery(val);
+                      const selected = supervisorOptions.find(
+                        (o) => o.label === val
+                      );
+                      setSupervisorId(selected ? selected.badge_number : null);
                     }}
                     required
-                    searchable
+                    limit={10}
                   />
 
-                  <Select
-                    placeholder="Select partial days"
-                    data={partialDays.length > 0 ? partialDays : []}
-                    value={item.id_partial_days?.toString() || null}
-                    onChange={(val) => {
-                      const copy = [...details];
-                      copy[idx].id_partial_days = val ? Number(val) : null;
-                      setDetails(copy);
-                    }}
-                    searchable
-                    clearable
-                    disabled={partialDays.length === 0}
-                  />
+                  {/* Supervisor Status Indicators */}
+                  {supervisorId && (
+                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded flex flex-col">
+                      <Text size="xs" c="green" fw={600}>
+                        ✓ Supervisor Selected
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Badge: {supervisorId}
+                      </Text>
+                    </div>
+                  )}
+                  {supervisorQuery && !supervisorId && (
+                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                      <Text size="xs" c="orange" fw={500}>
+                        ⚠ Please select from the dropdown list
+                      </Text>
+                    </div>
+                  )}
                 </div>
-              ))}
+
+                <FileInput
+                  label="Attachment"
+                  placeholder="Choose file"
+                  value={file}
+                  onChange={setFile}
+                  accept="image/*,.pdf,.doc,.docx"
+                  required
+                />
+
+                <Textarea
+                  label="Leave Remarks"
+                  placeholder="Enter your reason for leave"
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  minRows={3}
+                />
+              </div>
+
+              {/* SUBMIT BUTTON */}
+              <Button
+                mt="2.5rem"
+                fullWidth
+                size="md"
+                leftSection={<IconSend size={18} />}
+                onClick={onSubmit}
+                disabled={!isFormValid}
+                loading={loading}
+              >
+                Submit Leave Request
+              </Button>
             </div>
-          )}
-
-          {/* SUPERVISOR AUTOCOMPLETE */}
-          <Autocomplete
-            mt="md"
-            label="Supervisor (Approver)"
-            placeholder="Type badge number or full name"
-            value={supervisorQuery}
-            onChange={(val) => {
-              setSupervisorQuery(val);
-              // Cek apakah val match dengan salah satu option
-              const selected = supervisorOptions.find((o) => o.label === val);
-              if (selected) {
-                setSupervisorId(selected.badge_number);
-                console.log("Supervisor auto-selected:", selected.badge_number);
-              } else {
-                setSupervisorId(null);
-              }
-            }}
-            data={supervisorOptions.map((o) => o.label)}
-            required
-            limit={10}
-            dropdownPosition="bottom"
-          />
-
-          {/* Display selected supervisor untuk konfirmasi */}
-          {supervisorId && (
-            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-              <Text size="sm" c="green" fw={500}>
-                ✓ Supervisor Selected: {supervisorQuery}
-              </Text>
-              <Text size="xs" c="dimmed">
-                Badge: {supervisorId}
-              </Text>
-            </div>
-          )}
-
-          {/* Warning jika belum pilih dari dropdown */}
-          {supervisorQuery && !supervisorId && supervisorOptions.length > 0 && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-              <Text size="xs" c="orange" fw={500}>
-                ⚠ Please select a supervisor from the dropdown list
-              </Text>
-            </div>
-          )}
-
-          {/* ATTACHMENT */}
-          <FileInput
-            mt="md"
-            label="Attachment"
-            placeholder="Choose file"
-            value={file}
-            onChange={setFile}
-            accept="image/*,.pdf,.doc,.docx"
-            required
-          />
-
-          {/* REMARKS */}
-          <Textarea
-            mt="md"
-            label="Leave Remarks"
-            placeholder="Enter your reason for leave"
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            minRows={3}
-          />
-
-          {/* SUBMIT BUTTON */}
-          <Button
-            mt="lg"
-            leftSection={<IconSend size={16} />}
-            onClick={onSubmit}
-            disabled={!isFormValid}
-            loading={loading}
-            fullWidth
-          >
-            Submit Leave Request
-          </Button>
-        </Paper>
+          </Paper>
+        </div>
       </div>
     </AuthLayout>
   );
