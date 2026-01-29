@@ -7,7 +7,7 @@ import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
 import { Button, Paper, Badge } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconList, IconPlus, IconCalendar } from "@tabler/icons-react";
+import { IconList, IconPlus, IconCalendar, IconPencil } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -115,7 +115,7 @@ export default function ESSLeaveList() {
                 <Button
                   size="xs"
                   color="yellow"
-                  leftSection={<IconList size={16} />}
+                  leftSection={<IconPencil size={16} />}
                   onClick={() => router.push(`/ess_leave/edit/${encryptedId}`)}
                 >
                   Edit

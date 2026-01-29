@@ -31,10 +31,15 @@ export default function IssMprList() {
   const [totalPages, setTotalPages] = useState(1);
 
   // STATUS MAP untuk Recruitment Status
-  const recruitmentStatusMap = {
-    pending: { label: "Pending", color: "yellow" },
-    approved: { label: "Approved", color: "green" },
-    rejected: { label: "Rejected", color: "red" },
+  const vacantTypeMap = {
+    1: { label: "New Position", color: "green" },
+    2: { label: "Replacement", color: "blue" },
+  };
+
+  const mprStatusMap = {
+    1: { label: "Draft", color: "gray" },
+    2: { label: "Pending Approval", color: "yellow" },
+    3: { label: "Completed", color: "green" },
   };
 
   // ======================
@@ -67,9 +72,9 @@ export default function IssMprList() {
         cell: (info) => info.getValue() || "-",
       },
       {
-        accessorFn: (row) => row.job_title,
-        id: "job_title",
-        header: "Job Title",
+        accessorFn: (row) => row.position,
+        id: "position",
+        header: "Position",
         enableColumnFilter: true,
         enableSorting: true,
         cell: (info) => info.getValue() || "-",
@@ -108,8 +113,23 @@ export default function IssMprList() {
         ),
         enableColumnFilter: true,
         enableSorting: true,
-        cell: (info) => info.getValue() || "-",
+        cell: (info) => {
+          const val = Number(info.getValue());
+          if (isNaN(val)) return "-";
+
+          const vt = vacantTypeMap[val] ?? {
+            label: "Unknown",
+            color: "gray",
+          };
+
+          return (
+            <Badge color={vt.color} variant="filled" size="sm">
+              {vt.label}
+            </Badge>
+          );
+        },
       },
+
       {
         accessorFn: (row) => row.required_date,
         id: "required_date",
@@ -158,17 +178,33 @@ export default function IssMprList() {
         },
       },
       {
-        accessorFn: (row) => row.status,
-        id: "status",
-        header: "Status",
+        accessorFn: (row) => row.mpr_status,
+        id: "mpr_status",
+        header: () => (
+          <span className="flex flex-col text-center">
+            <span>Status</span>
+            <span>MR</span>
+          </span>
+        ),
         enableColumnFilter: true,
         enableSorting: true,
         cell: (info) => {
-          const val = info.getValue();
-          if (!val) return "-";
-          return val;
+          const val = Number(info.getValue());
+          if (isNaN(val)) return "-";
+
+          const st = mprStatusMap[val] ?? {
+            label: "Unknown",
+            color: "gray",
+          };
+
+          return (
+            <Badge color={st.color} variant="filled" size="sm">
+              {st.label}
+            </Badge>
+          );
         },
       },
+
       {
         accessorFn: (row) => row.recruitment_status,
         id: "recruitment_status",
@@ -209,7 +245,7 @@ export default function IssMprList() {
               <Button
                 size="xs"
                 color="blue"
-                leftSection={<IconEye size={16} />}
+                leftSection={<IconList size={16} />}
                 onClick={() => router.push(`/iss_mpr/detail/${encryptedId}`)}
               >
                 Detail

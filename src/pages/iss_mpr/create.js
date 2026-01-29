@@ -17,16 +17,16 @@ import {
   Table,
   Autocomplete,
   Text,
+  ActionIcon,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import { IconUsers, IconArrowLeft } from "@tabler/icons-react";
+import { IconUsers, IconArrowLeft, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
 const employee_status = [
-  { value: "0", label: "In Direct" },
-  { value: "1", label: "Direct" },
-  { value: "2", label: "Team Support" },
+  { value: "1", label: "In Direct" },
+  { value: "2", label: "Direct" },
 ];
 
 export default function IssMprCreate() {
@@ -38,13 +38,14 @@ export default function IssMprCreate() {
 
   const [departements, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [job_title, setJobtitles] = useState([]);
+  // const [job_title, setJobtitles] = useState([]);
+  const [positions, setPositions] = useState([]);
 
   const [formData, setFormData] = useState({
     // Section 1
     id_departement: "",
     id_project: "",
-    id_job_title: "",
+    id_position: "",
     // Section 2
     work_type: "",
     qty: "",
@@ -97,21 +98,20 @@ export default function IssMprCreate() {
         data.departements.map((d) => ({
           value: d.id.toString(),
           label: d.departement_name,
-        }))
+        })),
       );
 
       setProjects(
         data.projects.map((p) => ({
           value: p.id.toString(),
           label: p.project_name,
-        }))
+        })),
       );
-
-      setJobtitles(
-        data.job_titles.map((j) => ({
-          value: j.id.toString(),
-          label: j.job_title,
-        }))
+      setPositions(
+        data.positions.map((p) => ({
+          value: p.id.toString(),
+          label: p.position_name,
+        })),
       );
     } catch (err) {
       console.error("Dropdown error:", err);
@@ -175,7 +175,7 @@ export default function IssMprCreate() {
       true,
       null,
       "Submit",
-      "Cancel"
+      "Cancel",
     );
 
     if (!confirm) return;
@@ -183,12 +183,12 @@ export default function IssMprCreate() {
     const payload = {
       ...formData,
 
-      // 🔹 normalisasi ID (Select → string → number)
+      //  normalisasi ID (Select → string → number)
       id_departement: Number(formData.id_departement),
       id_project: Number(formData.id_project),
-      id_job_title: Number(formData.id_job_title),
+      id_position: Number(formData.id_position),
 
-      // 🔹 Assignment fields - sekarang menggunakan badge_number (string atau number tergantung backend)
+      //  Assignment fields - sekarang menggunakan badge_number (string atau number tergantung backend)
       requested_by: formData.requested_by || null,
       approved_section_manager: formData.approved_section_manager || null,
       approved_cm: formData.approved_cm || null,
@@ -198,9 +198,18 @@ export default function IssMprCreate() {
       acknowledged_by: formData.acknowledged_by || null,
       approved_by: formData.approved_by || null,
 
-      // 🔹 numeric field
-      qty: formData.qty ? Number(formData.qty) : 0,
-      transfer_qty: formData.transfer_qty ? Number(formData.transfer_qty) : 0,
+      //  numeric field
+      //  numeric field
+      qty:
+        formData.qty === "" || formData.qty === undefined
+          ? null
+          : Number(formData.qty),
+
+      transfer_qty:
+        formData.transfer_qty === "" || formData.transfer_qty === undefined
+          ? null
+          : Number(formData.transfer_qty),
+
       experience_years: formData.experience_years
         ? Number(formData.experience_years)
         : null,
@@ -219,11 +228,10 @@ export default function IssMprCreate() {
       console.log("SUBMIT payload (MPR):", payload);
 
       const res = await axios.post(`${API_URL}/api/iss_mpr/create`, payload, {
-  headers: {
-    Authorization: "Bearer " + user.token,
-  },
-});
-
+        headers: {
+          Authorization: "Bearer " + user.token,
+        },
+      });
 
       console.log("RESPONSE (create MPR):", res);
 
@@ -233,13 +241,12 @@ export default function IssMprCreate() {
         (data.success === true || data.id || data.createdAt || data.data)
       );
 
-     if (isSuccess) {
-    const message = data?.message || "MPR created successfully";
-    await showAlert("Success", "success", message, false, 1500);
-    router.back(); // ini akan kembali ke halaman sebelumnya
-    return;
-}
-
+      if (isSuccess) {
+        const message = data?.message || "MPR created successfully";
+        await showAlert("Success", "success", message, false, 1500);
+        router.back();
+        return;
+      }
 
       console.warn("Unexpected response shape:", data);
       const errMsg = data?.message || "Unexpected response from server";
@@ -256,7 +263,7 @@ export default function IssMprCreate() {
         showAlert(
           "Network Error",
           "error",
-          "No response from server (check backend/CORS)."
+          "No response from server (check backend/CORS).",
         );
       } else {
         showAlert("Error", "error", error.message || "Unknown error");
@@ -264,21 +271,55 @@ export default function IssMprCreate() {
     }
   };
 
-  // ✅ KOMPONEN BARU: EmployeeSelect dengan Autocomplete seperti ESS Leave
+  //  KOMPONEN BARU: EmployeeSelect dengan Autocomplete seperti ESS Leave
   const EmployeeSelect = ({ value, onChange, label }) => {
     const [localQuery, setLocalQuery] = useState("");
     const [localOptions, setLocalOptions] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
 
+    // Fetch employee data saat value berubah
     useEffect(() => {
-      // Reset jika query kosong
+      if (value && !selectedEmployee) {
+        const fetchSelectedEmployee = async () => {
+          try {
+            const res = await axios.get(`${API_URL}/api/employee`, {
+              headers: {
+                Authorization: "Bearer " + user.token,
+              },
+              params: {
+                search: value,
+              },
+            });
+
+            const emp = res.data.find((e) => e.badge_number === value);
+
+            if (emp) {
+              setSelectedEmployee({
+                badge_number: emp.badge_number,
+                full_name: emp.full_name,
+                label: `${emp.badge_number} - ${emp.full_name}`,
+              });
+            }
+          } catch (err) {
+            console.error("Failed to fetch selected employee:", err);
+          }
+        };
+
+        fetchSelectedEmployee();
+      } else if (!value) {
+        setSelectedEmployee(null);
+      }
+    }, [value]);
+
+    // Search employees
+    useEffect(() => {
       if (!localQuery || localQuery.trim().length === 0) {
         setLocalOptions([]);
         setIsSearching(false);
         return;
       }
 
-      // Set loading state
       setIsSearching(true);
 
       const timeout = setTimeout(async () => {
@@ -292,7 +333,6 @@ export default function IssMprCreate() {
             },
           });
 
-          // Map hasil search
           const options = res.data.map((emp) => ({
             badge_number: emp.badge_number,
             full_name: emp.full_name,
@@ -314,73 +354,69 @@ export default function IssMprCreate() {
       };
     }, [localQuery]);
 
-    // Find display value from badge_number
-    const displayValue =
-      localOptions.find((o) => o.badge_number === value)?.label || 
-      (value ? `${value}` : "");
+    const displayValue = selectedEmployee?.label || "";
 
     return (
-      <div>
+      <div style={{ position: "relative" }}>
         <Autocomplete
           placeholder="Type badge number or full name"
           value={localQuery || displayValue}
           data={localOptions.map((o) => o.label)}
           onChange={(val) => {
             setLocalQuery(val);
-            
-            // Cek apakah user memilih dari dropdown
+
             const selected = localOptions.find((o) => o.label === val);
-            
+
             if (selected) {
-              // User memilih dari dropdown
               onChange(selected.badge_number);
-              setLocalQuery(selected.label); // Set ke label lengkap
-            } else if (!val || val.trim() === "") {
-              // User clear input
-              onChange(null);
+              setSelectedEmployee(selected);
               setLocalQuery("");
             }
-            // Jika user masih mengetik, biarkan localQuery terupdate untuk trigger search
+
+            // kalau user hapus manual isi input
+            if (!val || val.trim() === "") {
+              onChange(null);
+              setSelectedEmployee(null);
+              setLocalQuery("");
+            }
           }}
           limit={20}
           nothingFoundMessage={
-            isSearching 
-              ? "Searching..." 
-              : localQuery.trim().length > 0 
-                ? "No employee found" 
+            isSearching
+              ? "Searching..."
+              : localQuery.trim().length > 0
+                ? "No employee found"
                 : "Start typing to search"
           }
         />
 
-        {/* Status Indicators */}
-        {value && !isSearching && (
-          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded flex flex-col">
-            <Text size="xs" c="green" fw={600}>
-              ✓ Employee Selected
-            </Text>
-            <Text size="xs" c="dimmed">
-              Badge: {value}
-            </Text>
-          </div>
-        )}
-        {localQuery && !value && localOptions.length > 0 && !isSearching && (
-          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-            <Text size="xs" c="orange" fw={500}>
-              ⚠ Please select an item from the available list
-            </Text>
-          </div>
-        )}
-        {isSearching && (
-          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-            <Text size="xs" c="blue" fw={500}>
-              🔍 Searching...
-            </Text>
-          </div>
+        {/* tombol hapus employee */}
+        {selectedEmployee && (
+          <ActionIcon
+            size="sm"
+            color="red"
+            variant="light"
+            radius="xl"
+            onClick={() => {
+              setSelectedEmployee(null);
+              setLocalQuery("");
+              setLocalOptions([]);
+              onChange(null);
+            }}
+            style={{
+              position: "absolute",
+              right: 8,
+              top: "50%",
+              transform: "translateY(-50%)",
+              zIndex: 2,
+            }}
+          >
+            <IconX size={14} />
+          </ActionIcon>
         )}
       </div>
     );
   };
-
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -427,10 +463,10 @@ export default function IssMprCreate() {
               <Grid>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Select
-                    label="Job Title"
-                    data={job_title}
-                    value={formData.id_job_title}
-                    onChange={(val) => handleInputChange("id_job_title", val)}
+                    label="Position"
+                    data={positions}
+                    value={formData.id_position}
+                    onChange={(val) => handleInputChange("id_position", val)}
                     searchable
                     withAsterisk
                   />
@@ -491,7 +527,7 @@ export default function IssMprCreate() {
                     onChange={(e) =>
                       handleInputChange(
                         "vacant_type",
-                        e.target.checked ? "new_position" : ""
+                        e.target.checked ? "new_position" : "",
                       )
                     }
                   />
@@ -501,7 +537,7 @@ export default function IssMprCreate() {
                     onChange={(e) =>
                       handleInputChange(
                         "vacant_type",
-                        e.target.checked ? "replacement" : ""
+                        e.target.checked ? "replacement" : "",
                       )
                     }
                   />
@@ -667,7 +703,7 @@ export default function IssMprCreate() {
                         handleCheckboxChange(
                           "access",
                           "computer",
-                          e.target.checked
+                          e.target.checked,
                         )
                       }
                     />
@@ -675,7 +711,11 @@ export default function IssMprCreate() {
                       label="Email"
                       checked={formData.access.includes("email")}
                       onChange={(e) =>
-                        handleCheckboxChange("access", "email", e.target.checked)
+                        handleCheckboxChange(
+                          "access",
+                          "email",
+                          e.target.checked,
+                        )
                       }
                     />
                   </div>
@@ -694,7 +734,7 @@ export default function IssMprCreate() {
                         handleCheckboxChange(
                           "share_folder",
                           "public",
-                          e.target.checked
+                          e.target.checked,
                         )
                       }
                     />
@@ -705,7 +745,7 @@ export default function IssMprCreate() {
                         handleCheckboxChange(
                           "share_folder",
                           "department",
-                          e.target.checked
+                          e.target.checked,
                         )
                       }
                     />
@@ -725,7 +765,7 @@ export default function IssMprCreate() {
                         handleCheckboxChange(
                           "printer",
                           "color",
-                          e.target.checked
+                          e.target.checked,
                         )
                       }
                     />
@@ -736,7 +776,7 @@ export default function IssMprCreate() {
                         handleCheckboxChange(
                           "printer",
                           "black_white",
-                          e.target.checked
+                          e.target.checked,
                         )
                       }
                     />
@@ -757,7 +797,7 @@ export default function IssMprCreate() {
                       handleCheckboxChange(
                         "application",
                         "self_service",
-                        e.target.checked
+                        e.target.checked,
                       )
                     }
                   />
@@ -768,7 +808,7 @@ export default function IssMprCreate() {
                       handleCheckboxChange(
                         "application",
                         "pcms_iss",
-                        e.target.checked
+                        e.target.checked,
                       )
                     }
                   />
@@ -839,6 +879,7 @@ export default function IssMprCreate() {
                 </Table.Thead>
 
                 <Table.Tbody>
+                  {/* Requested By - SELALU TAMPIL */}
                   <Table.Tr>
                     <Table.Td>Requested By (End User)</Table.Td>
                     <Table.Td>
@@ -851,64 +892,82 @@ export default function IssMprCreate() {
                     </Table.Td>
                   </Table.Tr>
 
-                  <Table.Tr>
-                    <Table.Td>Approved By Section Manager</Table.Td>
-                    <Table.Td>
-                      <EmployeeSelect
-                        value={formData.approved_section_manager}
-                        onChange={(val) =>
-                          handleInputChange("approved_section_manager", val)
-                        }
-                      />
-                    </Table.Td>
-                  </Table.Tr>
+                  {/* Approved By Section Manager - HANYA UNTUK NON-OVERHEAD */}
+                  {formData.id_project !== "11" && (
+                    <Table.Tr>
+                      <Table.Td>Approved By Section Manager</Table.Td>
+                      <Table.Td>
+                        <EmployeeSelect
+                          value={formData.approved_section_manager}
+                          onChange={(val) =>
+                            handleInputChange("approved_section_manager", val)
+                          }
+                        />
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
 
-                  <Table.Tr>
-                    <Table.Td>Approved By (CM)</Table.Td>
-                    <Table.Td>
-                      <EmployeeSelect
-                        value={formData.approved_cm}
-                        onChange={(val) => handleInputChange("approved_cm", val)}
-                      />
-                    </Table.Td>
-                  </Table.Tr>
+                  {/* Approved By (CM) - HANYA UNTUK NON-OVERHEAD */}
+                  {formData.id_project !== "11" && (
+                    <Table.Tr>
+                      <Table.Td>Approved By (CM)</Table.Td>
+                      <Table.Td>
+                        <EmployeeSelect
+                          value={formData.approved_cm}
+                          onChange={(val) =>
+                            handleInputChange("approved_cm", val)
+                          }
+                        />
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
 
-                  <Table.Tr>
-                    <Table.Td>Concurred By (PMO)</Table.Td>
-                    <Table.Td>
-                      <EmployeeSelect
-                        value={formData.concurred_pmo}
-                        onChange={(val) =>
-                          handleInputChange("concurred_pmo", val)
-                        }
-                      />
-                    </Table.Td>
-                  </Table.Tr>
+                  {/* Concurred By (PMO) - HANYA UNTUK NON-OVERHEAD */}
+                  {formData.id_project !== "11" && (
+                    <Table.Tr>
+                      <Table.Td>Concurred By (PMO)</Table.Td>
+                      <Table.Td>
+                        <EmployeeSelect
+                          value={formData.concurred_pmo}
+                          onChange={(val) =>
+                            handleInputChange("concurred_pmo", val)
+                          }
+                        />
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
 
-                  <Table.Tr>
-                    <Table.Td>Concurred Yard Manager</Table.Td>
-                    <Table.Td>
-                      <EmployeeSelect
-                        value={formData.concurred_yard_manager}
-                        onChange={(val) =>
-                          handleInputChange("concurred_yard_manager", val)
-                        }
-                      />
-                    </Table.Td>
-                  </Table.Tr>
+                  {/* Concurred Yard Manager - HANYA UNTUK NON-OVERHEAD */}
+                  {formData.id_project !== "11" && (
+                    <Table.Tr>
+                      <Table.Td>Concurred Yard Manager</Table.Td>
+                      <Table.Td>
+                        <EmployeeSelect
+                          value={formData.concurred_yard_manager}
+                          onChange={(val) =>
+                            handleInputChange("concurred_yard_manager", val)
+                          }
+                        />
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
 
-                  <Table.Tr>
-                    <Table.Td>Concurred By</Table.Td>
-                    <Table.Td>
-                      <EmployeeSelect
-                        value={formData.concurred_by}
-                        onChange={(val) =>
-                          handleInputChange("concurred_by", val)
-                        }
-                      />
-                    </Table.Td>
-                  </Table.Tr>
+                  {/* Concurred By - SELALU TAMPIL */}
+                  {formData.id_project === "11" && (
+                    <Table.Tr>
+                      <Table.Td>Concurred By</Table.Td>
+                      <Table.Td>
+                        <EmployeeSelect
+                          value={formData.concurred_by}
+                          onChange={(val) =>
+                            handleInputChange("concurred_by", val)
+                          }
+                        />
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
 
+                  {/* Acknowledged By HR - SELALU TAMPIL */}
                   <Table.Tr>
                     <Table.Td>Acknowledged By HR</Table.Td>
                     <Table.Td>
@@ -921,6 +980,7 @@ export default function IssMprCreate() {
                     </Table.Td>
                   </Table.Tr>
 
+                  {/* Approved By (President Director) - SELALU TAMPIL */}
                   <Table.Tr>
                     <Table.Td>Approved By (President Director)</Table.Td>
                     <Table.Td>
