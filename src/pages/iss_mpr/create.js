@@ -108,7 +108,7 @@ export default function IssMprCreate() {
         })),
       );
       setPositions(
-        data.positions.map((p) => ({
+        data.position_name.map((p) => ({
           value: p.id.toString(),
           label: p.position_name,
         })),
@@ -122,8 +122,12 @@ export default function IssMprCreate() {
     fetchDropdown();
   }, []);
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (field, value) => { 
+    const ignoreSet = ['requested_by', 'approved_section_manager', 'approved_cm', 'concurred_pmo', 'concurred_yard_manager', 'concurred_by', 'acknowledged_by', 'approved_by']
+    if(!ignoreSet.includes(field)){
+
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleCheckboxChange = (field, value, checked) => {
@@ -283,7 +287,7 @@ export default function IssMprCreate() {
       if (value && !selectedEmployee) {
         const fetchSelectedEmployee = async () => {
           try {
-            const res = await axios.get(`${API_URL}/api/employee`, {
+            const res = await axios.get(`${API_URL}/api/employee/searchEmployeeById`, {
               headers: {
                 Authorization: "Bearer " + user.token,
               },
@@ -292,11 +296,16 @@ export default function IssMprCreate() {
               },
             });
 
-            const emp = res.data.find((e) => e.badge_number === value);
-
+            const emp = res.data.find((e) => 
+              e.id === value
+            // console.log("hohoho", res)
+          );
+            console.log('ini e.id ', res.data)
+            console.log('ini emp ', value)
             if (emp) {
               setSelectedEmployee({
                 badge_number: emp.badge_number,
+                id_user: emp.id,
                 full_name: emp.full_name,
                 label: `${emp.badge_number} - ${emp.full_name}`,
               });
@@ -336,6 +345,7 @@ export default function IssMprCreate() {
           const options = res.data.map((emp) => ({
             badge_number: emp.badge_number,
             full_name: emp.full_name,
+            id: emp.id,
             label: `${emp.badge_number} - ${emp.full_name}`,
           }));
 
@@ -368,6 +378,9 @@ export default function IssMprCreate() {
             const selected = localOptions.find((o) => o.label === val);
 
             if (selected) {
+              console.log("selected", label)
+              let id_user = selected.id
+              setFormData((prev) => ({ ...prev, [label]: id_user }));
               onChange(selected.badge_number);
               setSelectedEmployee(selected);
               setLocalQuery("");
@@ -885,9 +898,11 @@ export default function IssMprCreate() {
                     <Table.Td>
                       <EmployeeSelect
                         value={formData.requested_by}
-                        onChange={(val) =>
+                        onChange={(val) => 
                           handleInputChange("requested_by", val)
+                          // console.log('asd')
                         }
+                        label={"requested_by"}
                       />
                     </Table.Td>
                   </Table.Tr>
@@ -902,6 +917,7 @@ export default function IssMprCreate() {
                           onChange={(val) =>
                             handleInputChange("approved_section_manager", val)
                           }
+                          label={"approved_section_manager"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -917,6 +933,7 @@ export default function IssMprCreate() {
                           onChange={(val) =>
                             handleInputChange("approved_cm", val)
                           }
+                          label={"approved_cm"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -932,6 +949,7 @@ export default function IssMprCreate() {
                           onChange={(val) =>
                             handleInputChange("concurred_pmo", val)
                           }
+                          label={"concurred_pmo"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -947,6 +965,7 @@ export default function IssMprCreate() {
                           onChange={(val) =>
                             handleInputChange("concurred_yard_manager", val)
                           }
+                          label={"concurred_yard_manager"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -962,6 +981,7 @@ export default function IssMprCreate() {
                           onChange={(val) =>
                             handleInputChange("concurred_by", val)
                           }
+                          label={"concurred_by"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -976,6 +996,7 @@ export default function IssMprCreate() {
                         onChange={(val) =>
                           handleInputChange("acknowledged_by", val)
                         }
+                        label={"acknowledged_by"}
                       />
                     </Table.Td>
                   </Table.Tr>
@@ -989,6 +1010,7 @@ export default function IssMprCreate() {
                         onChange={(val) =>
                           handleInputChange("approved_by", val)
                         }
+                        label={"approved_by"}
                       />
                     </Table.Td>
                   </Table.Tr>
