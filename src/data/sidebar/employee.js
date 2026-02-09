@@ -58,7 +58,7 @@ export const employee = [
       },
       {
         title: "Pending Approval",
-        href: "/iss_mpr/list/pending_approval",
+        href: "/iss_mpr/list/pending",
         icon: <IconDoorExit size={18} />,
       },
       {

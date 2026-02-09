@@ -16,11 +16,10 @@ import {
   Divider,
   Table,
   Autocomplete,
-  Text,
   ActionIcon,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import { IconUsers, IconArrowLeft, IconX } from "@tabler/icons-react";
+import { IconArrowLeft, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
@@ -38,7 +37,6 @@ export default function IssMprCreate() {
 
   const [departements, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
-  // const [job_title, setJobtitles] = useState([]);
   const [positions, setPositions] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -51,18 +49,13 @@ export default function IssMprCreate() {
     qty: "",
     transfer_qty: "",
     vacant_type: "",
-
     // Section 3
     budgeted: "",
-
     // Section 4
     job_description: "",
     experience_years: "",
-
-    // 🔥 FIX PENTING
     education_level: [],
     education_note: {},
-
     // Section 5–7
     contract_type: "",
     contract_duration: "",
@@ -70,21 +63,19 @@ export default function IssMprCreate() {
     share_folder: [],
     printer: [],
     application: [],
-
     // Section 8
     purpose: "",
     required_date: null,
     remarks: "",
-
-    // Section 9 - Ubah dari ID ke badge_number
-    requested_by: "",
-    approved_section_manager: "",
-    approved_cm: "",
-    concurred_pmo: "",
-    concurred_yard_manager: "",
-    concurred_by: "",
-    acknowledged_by: "",
-    approved_by: "",
+    // Section 9 - Ubah menjadi null (id_user number)
+    requested_by: null,
+    approved_section_manager: null,
+    approved_cm: null,
+    concurred_pmo: null,
+    concurred_yard_manager: null,
+    concurred_by: null,
+    acknowledged_by: null,
+    approved_by: null,
   });
 
   // FETCH DATA DROPDOWN
@@ -122,12 +113,8 @@ export default function IssMprCreate() {
     fetchDropdown();
   }, []);
 
-  const handleInputChange = (field, value) => { 
-    const ignoreSet = ['requested_by', 'approved_section_manager', 'approved_cm', 'concurred_pmo', 'concurred_yard_manager', 'concurred_by', 'acknowledged_by', 'approved_by']
-    if(!ignoreSet.includes(field)){
-
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    }
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleCheckboxChange = (field, value, checked) => {
@@ -187,23 +174,22 @@ export default function IssMprCreate() {
     const payload = {
       ...formData,
 
-      //  normalisasi ID (Select → string → number)
+      // normalisasi ID (Select → string → number)
       id_departement: Number(formData.id_departement),
       id_project: Number(formData.id_project),
       id_position: Number(formData.id_position),
 
-      //  Assignment fields - sekarang menggunakan badge_number (string atau number tergantung backend)
-      requested_by: formData.requested_by || null,
-      approved_section_manager: formData.approved_section_manager || null,
-      approved_cm: formData.approved_cm || null,
-      concurred_pmo: formData.concurred_pmo || null,
-      concurred_yard_manager: formData.concurred_yard_manager || null,
-      concurred_by: formData.concurred_by || null,
-      acknowledged_by: formData.acknowledged_by || null,
-      approved_by: formData.approved_by || null,
+      // ✅ Assignment fields - langsung kirim id_user (number atau null)
+      requested_by: formData.requested_by,
+      approved_section_manager: formData.approved_section_manager,
+      approved_cm: formData.approved_cm,
+      concurred_pmo: formData.concurred_pmo,
+      concurred_yard_manager: formData.concurred_yard_manager,
+      concurred_by: formData.concurred_by,
+      acknowledged_by: formData.acknowledged_by,
+      approved_by: formData.approved_by,
 
-      //  numeric field
-      //  numeric field
+      // numeric field
       qty:
         formData.qty === "" || formData.qty === undefined
           ? null
@@ -222,7 +208,7 @@ export default function IssMprCreate() {
           ? Number(formData.contract_duration)
           : null,
 
-      // 🔹 date
+      // date
       required_date: formData.required_date
         ? formData.required_date.toISOString()
         : null,
@@ -275,145 +261,132 @@ export default function IssMprCreate() {
     }
   };
 
-  //  KOMPONEN BARU: EmployeeSelect dengan Autocomplete seperti ESS Leave
-  const EmployeeSelect = ({ value, onChange, label }) => {
+  /**
+   * ✅ KOMPONEN: PortalUserSelect
+   * Menggunakan endpoint /api/user/list yang sudah ada
+   * dengan client-side filtering
+   */
+  const PortalUserSelect = ({ value, onChange }) => {
     const [localQuery, setLocalQuery] = useState("");
-    const [localOptions, setLocalOptions] = useState([]);
-    const [isSearching, setIsSearching] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [allUsers, setAllUsers] = useState([]);
+    const [filteredOptions, setFilteredOptions] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
 
-    // Fetch employee data saat value berubah
+    // ✅ Fetch all users saat component mount
     useEffect(() => {
-      if (value && !selectedEmployee) {
-        const fetchSelectedEmployee = async () => {
-          try {
-            const res = await axios.get(`${API_URL}/api/employee/searchEmployeeById`, {
-              headers: {
-                Authorization: "Bearer " + user.token,
-              },
-              params: {
-                search: value,
-              },
-            });
+      const fetchUsers = async () => {
+        try {
+          setIsLoading(true);
+          const res = await axios.get(`${API_URL}/api/user/list`, {
+            headers: { Authorization: "Bearer " + user.token },
+          });
 
-            const emp = res.data.find((e) => 
-              e.id === value
-            // console.log("hohoho", res)
-          );
-            console.log('ini e.id ', res.data)
-            console.log('ini emp ', value)
-            if (emp) {
-              setSelectedEmployee({
-                badge_number: emp.badge_number,
-                id_user: emp.id,
-                full_name: emp.full_name,
-                label: `${emp.badge_number} - ${emp.full_name}`,
-              });
-            }
-          } catch (err) {
-            console.error("Failed to fetch selected employee:", err);
-          }
-        };
+          // Asumsi response format: array of users
+          const users = res.data || [];
+          setAllUsers(users);
+        } catch (err) {
+          console.error("Failed to fetch users:", err);
+          showAlert("Error", "error", "Failed to load user list");
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
-        fetchSelectedEmployee();
+      fetchUsers();
+    }, []);
+
+    // ✅ Load selected user saat value berubah
+    useEffect(() => {
+      if (value && allUsers.length > 0) {
+        const user = allUsers.find((u) => u.id_user === value);
+        if (user) {
+          setSelectedUser({
+            id_user: user.id_user,
+            badge_number: user.badge_number,
+            full_name: user.full_name,
+            label: `${user.badge_number} - ${user.full_name}`,
+          });
+        }
       } else if (!value) {
-        setSelectedEmployee(null);
+        setSelectedUser(null);
       }
-    }, [value]);
+    }, [value, allUsers]);
 
-    // Search employees
+    // ✅ Filter users berdasarkan query (client-side)
     useEffect(() => {
       if (!localQuery || localQuery.trim().length === 0) {
-        setLocalOptions([]);
-        setIsSearching(false);
+        setFilteredOptions([]);
         return;
       }
 
-      setIsSearching(true);
+      const query = localQuery.toLowerCase();
+      const filtered = allUsers
+        .filter(
+          (u) =>
+            u.badge_number?.toLowerCase().includes(query) ||
+            u.full_name?.toLowerCase().includes(query)
+        )
+        .slice(0, 20) // Limit to 20 results
+        .map((u) => ({
+          id_user: u.id_user,
+          badge_number: u.badge_number,
+          full_name: u.full_name,
+          label: `${u.badge_number} - ${u.full_name}`,
+        }));
 
-      const timeout = setTimeout(async () => {
-        try {
-          const res = await axios.get(`${API_URL}/api/employee`, {
-            headers: {
-              Authorization: "Bearer " + user.token,
-            },
-            params: {
-              search: localQuery.trim(),
-            },
-          });
+      setFilteredOptions(filtered);
+    }, [localQuery, allUsers]);
 
-          const options = res.data.map((emp) => ({
-            badge_number: emp.badge_number,
-            full_name: emp.full_name,
-            id: emp.id,
-            label: `${emp.badge_number} - ${emp.full_name}`,
-          }));
-
-          setLocalOptions(options);
-        } catch (err) {
-          console.error("Employee search error:", err);
-          setLocalOptions([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, 300);
-
-      return () => {
-        clearTimeout(timeout);
-        setIsSearching(false);
-      };
-    }, [localQuery]);
-
-    const displayValue = selectedEmployee?.label || "";
+    const displayValue = selectedUser?.label || "";
 
     return (
       <div style={{ position: "relative" }}>
         <Autocomplete
           placeholder="Type badge number or full name"
           value={localQuery || displayValue}
-          data={localOptions.map((o) => o.label)}
+          data={filteredOptions.map((o) => o.label)}
           onChange={(val) => {
             setLocalQuery(val);
 
-            const selected = localOptions.find((o) => o.label === val);
+            const selected = filteredOptions.find((o) => o.label === val);
 
             if (selected) {
-              console.log("selected", label)
-              let id_user = selected.id
-              setFormData((prev) => ({ ...prev, [label]: id_user }));
-              onChange(selected.badge_number);
-              setSelectedEmployee(selected);
+              // ✅ Simpan id_user (number) ke formData
+              onChange(selected.id_user);
+              setSelectedUser(selected);
               setLocalQuery("");
             }
 
-            // kalau user hapus manual isi input
+            // Kalau user hapus manual isi input
             if (!val || val.trim() === "") {
               onChange(null);
-              setSelectedEmployee(null);
+              setSelectedUser(null);
               setLocalQuery("");
             }
           }}
           limit={20}
           nothingFoundMessage={
-            isSearching
-              ? "Searching..."
+            isLoading
+              ? "Loading users..."
               : localQuery.trim().length > 0
-                ? "No employee found"
+                ? "No user found"
                 : "Start typing to search"
           }
+          disabled={isLoading}
         />
 
-        {/* tombol hapus employee */}
-        {selectedEmployee && (
+        {/* Tombol hapus user */}
+        {selectedUser && (
           <ActionIcon
             size="sm"
             color="red"
             variant="light"
             radius="xl"
             onClick={() => {
-              setSelectedEmployee(null);
+              setSelectedUser(null);
               setLocalQuery("");
-              setLocalOptions([]);
+              setFilteredOptions([]);
               onChange(null);
             }}
             style={{
@@ -430,6 +403,7 @@ export default function IssMprCreate() {
       </div>
     );
   };
+
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -442,7 +416,6 @@ export default function IssMprCreate() {
                 onClick={() => router.back()}
                 className="cursor-pointer hover:text-blue-600 transition-colors"
               />
-
               <h2 className="text-lg font-semibold">Create Manpower Request</h2>
             </div>
 
@@ -471,6 +444,7 @@ export default function IssMprCreate() {
               </Grid>
 
               <Divider my="lg" />
+
               {/* Section 2: Position Vacant */}
               <h3 className="text-md font-semibold mb-4">Position Vacant</h3>
               <Grid>
@@ -558,7 +532,8 @@ export default function IssMprCreate() {
               </div>
 
               <Divider my="lg" />
-              {/* Section 1: Annual Budget */}
+
+              {/* Section 3: Annual Budget */}
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-3">
                   1. Is the above manpower request budgeted for in the Annual
@@ -579,7 +554,7 @@ export default function IssMprCreate() {
                 </div>
               </div>
 
-              {/* Section 2: Job Description */}
+              {/* Section 4: Job Description */}
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">
                   2. Job Description <span className="text-red-500">*</span>
@@ -593,7 +568,8 @@ export default function IssMprCreate() {
                   }
                 />
               </div>
-              {/* Section 3: Years of Relevant Experience */}
+
+              {/* Section 5: Years of Relevant Experience */}
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-2">
                   3. Years of Relevant Experience{" "}
@@ -610,7 +586,8 @@ export default function IssMprCreate() {
               </div>
 
               <Divider my="lg" />
-              {/* Section 4: Educational Background */}
+
+              {/* Section 6: Educational Background */}
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-4">
                   4. Educational Background{" "}
@@ -628,7 +605,6 @@ export default function IssMprCreate() {
                       key={item.key}
                       className="grid grid-cols-[180px_1fr] items-center gap-4"
                     >
-                      {/* Checkbox */}
                       <Checkbox
                         label={item.label}
                         checked={formData.education_level.includes(item.key)}
@@ -636,14 +612,8 @@ export default function IssMprCreate() {
                           handleEducationChange(item.key, e.target.checked)
                         }
                       />
-
-                      {/* Text Input */}
                       <TextInput
-                        placeholder={
-                          item.key === "others"
-                            ? "Additional info"
-                            : "Additional info"
-                        }
+                        placeholder="Additional info"
                         value={formData.education_note[item.key] || ""}
                         onChange={(e) =>
                           handleEducationNoteChange(item.key, e.target.value)
@@ -655,12 +625,12 @@ export default function IssMprCreate() {
                 </div>
               </div>
 
+              {/* Section 7: Contract Type */}
               <label className="block text-sm font-medium mb-3">
                 5. Contract Type <span className="text-red-500">*</span>
               </label>
 
               <div className="space-y-3 ml-4">
-                {/* Probation / Permanent */}
                 <div className="grid grid-cols-[180px_1fr] items-center gap-4">
                   <Checkbox
                     label="Probation / Permanent"
@@ -672,7 +642,6 @@ export default function IssMprCreate() {
                   <div />
                 </div>
 
-                {/* Contract / Temporary */}
                 <div className="grid grid-cols-[180px_1fr] items-center gap-4">
                   <Checkbox
                     label="Contract / Temporary"
@@ -700,13 +669,12 @@ export default function IssMprCreate() {
 
               <Divider my="lg" />
 
-              {/* Section 6: Information Technology Facilities */}
+              {/* Section 8: Information Technology Facilities */}
               <div className="mb-6">
                 <h3 className="text-md font-semibold mb-4">
                   6. Information Technology Facilities
                 </h3>
 
-                {/* Computer & Email */}
                 <div className="mb-6">
                   <div className="space-y-2 ml-4">
                     <Checkbox
@@ -734,7 +702,6 @@ export default function IssMprCreate() {
                   </div>
                 </div>
 
-                {/* Share Folder */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-3">
                     Share Folder
@@ -765,7 +732,6 @@ export default function IssMprCreate() {
                   </div>
                 </div>
 
-                {/* Printer */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-3">
                     Printer
@@ -797,7 +763,7 @@ export default function IssMprCreate() {
                 </div>
               </div>
 
-              {/* Section 7: Application */}
+              {/* Section 9: Application */}
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-3">
                   Application
@@ -835,7 +801,7 @@ export default function IssMprCreate() {
 
               <Divider my="lg" />
 
-              {/* Section 8: Purpose & Required Date */}
+              {/* Section 10: Purpose & Required Date */}
               <Grid>
                 <Grid.Col span={12}>
                   <Textarea
@@ -878,7 +844,7 @@ export default function IssMprCreate() {
 
               <Divider my="lg" />
 
-              {/* Section 9: Assignment - DENGAN AUTOCOMPLETE */}
+              {/* Section 11: Assignment */}
               <h3 className="text-md font-semibold mb-4">Assignment</h3>
 
               <Table withTableBorder withColumnBorders>
@@ -896,13 +862,11 @@ export default function IssMprCreate() {
                   <Table.Tr>
                     <Table.Td>Requested By (End User)</Table.Td>
                     <Table.Td>
-                      <EmployeeSelect
+                      <PortalUserSelect
                         value={formData.requested_by}
-                        onChange={(val) => 
+                        onChange={(val) =>
                           handleInputChange("requested_by", val)
-                          // console.log('asd')
                         }
-                        label={"requested_by"}
                       />
                     </Table.Td>
                   </Table.Tr>
@@ -912,12 +876,11 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Approved By Section Manager</Table.Td>
                       <Table.Td>
-                        <EmployeeSelect
+                        <PortalUserSelect
                           value={formData.approved_section_manager}
                           onChange={(val) =>
                             handleInputChange("approved_section_manager", val)
                           }
-                          label={"approved_section_manager"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -928,12 +891,11 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Approved By (CM)</Table.Td>
                       <Table.Td>
-                        <EmployeeSelect
+                        <PortalUserSelect
                           value={formData.approved_cm}
                           onChange={(val) =>
                             handleInputChange("approved_cm", val)
                           }
-                          label={"approved_cm"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -944,12 +906,11 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Concurred By (PMO)</Table.Td>
                       <Table.Td>
-                        <EmployeeSelect
+                        <PortalUserSelect
                           value={formData.concurred_pmo}
                           onChange={(val) =>
                             handleInputChange("concurred_pmo", val)
                           }
-                          label={"concurred_pmo"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -960,28 +921,26 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Concurred Yard Manager</Table.Td>
                       <Table.Td>
-                        <EmployeeSelect
+                        <PortalUserSelect
                           value={formData.concurred_yard_manager}
                           onChange={(val) =>
                             handleInputChange("concurred_yard_manager", val)
                           }
-                          label={"concurred_yard_manager"}
                         />
                       </Table.Td>
                     </Table.Tr>
                   )}
 
-                  {/* Concurred By - SELALU TAMPIL */}
+                  {/* Concurred By - HANYA UNTUK OVERHEAD */}
                   {formData.id_project === "11" && (
                     <Table.Tr>
                       <Table.Td>Concurred By</Table.Td>
                       <Table.Td>
-                        <EmployeeSelect
+                        <PortalUserSelect
                           value={formData.concurred_by}
                           onChange={(val) =>
                             handleInputChange("concurred_by", val)
                           }
-                          label={"concurred_by"}
                         />
                       </Table.Td>
                     </Table.Tr>
@@ -991,12 +950,11 @@ export default function IssMprCreate() {
                   <Table.Tr>
                     <Table.Td>Acknowledged By HR</Table.Td>
                     <Table.Td>
-                      <EmployeeSelect
+                      <PortalUserSelect
                         value={formData.acknowledged_by}
                         onChange={(val) =>
                           handleInputChange("acknowledged_by", val)
                         }
-                        label={"acknowledged_by"}
                       />
                     </Table.Td>
                   </Table.Tr>
@@ -1005,12 +963,11 @@ export default function IssMprCreate() {
                   <Table.Tr>
                     <Table.Td>Approved By (President Director)</Table.Td>
                     <Table.Td>
-                      <EmployeeSelect
+                      <PortalUserSelect
                         value={formData.approved_by}
                         onChange={(val) =>
                           handleInputChange("approved_by", val)
                         }
-                        label={"approved_by"}
                       />
                     </Table.Td>
                   </Table.Tr>

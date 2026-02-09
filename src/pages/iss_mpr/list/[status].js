@@ -12,14 +12,43 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-export default function IssMprList() {
+export const getStaticPaths = async () => {
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
+};
+
+export const getStaticProps = async (context) => {
+  return {
+    props: { mpr_status: context.params.status },
+  };
+};
+
+export default function IssMprList({ mpr_status }) {
   const router = useRouter();
   const { user } = useUser();
   const { encrypt } = useEncrypt();
   const API = useApi();
   const API_URL = API.API_URL;
 
-  const { status = "all" } = router.query;
+  const allowedStatus = [
+    "all",
+    "pending",
+  ];
+
+  useEffect(() => {
+    if (!allowedStatus.includes(mpr_status)) {
+      router.back();
+      Swal.fire({
+        text: `Invalid mpr status: "${mpr_status}"`,
+        icon: "error",
+        confirmButtonText: "OK",
+        timer: 2000,
+      });
+      return;
+    }
+  }, [mpr_status, router]);
 
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
@@ -28,6 +57,7 @@ export default function IssMprList() {
     pageIndex: 0,
     pageSize: 10,
   });
+
   const [totalPages, setTotalPages] = useState(1);
 
   // STATUS MAP untuk Recruitment Status
@@ -36,11 +66,19 @@ export default function IssMprList() {
     2: { label: "Replacement", color: "blue" },
   };
 
-  const mprStatusMap = {
-    1: { label: "Draft", color: "gray" },
-    2: { label: "Pending Approval", color: "yellow" },
-    3: { label: "Completed", color: "green" },
-  };
+const mprStatusMap = {
+  0: { label: "Draft", color: "gray" },
+  2: { label: "Pending Approval", color: "yellow" },
+  1: { label: "Pending Approval", color: "yellow" },
+  3: { label: "Pending Approval", color: "yellow" },
+  4: { label: "Pending Approval", color: "yellow" },
+  5: { label: "Pending Approval", color: "yellow" },
+  6: { label: "Pending Approval", color: "yellow" },
+  7: { label: "Pending Approval", color: "yellow" },
+  8: { label: "Pending Approval", color: "yellow" },
+  9: { label: "Completed", color: "green" },
+  10: { label: "Rejected", color: "red" },
+};
 
   // ======================
   // TABLE COLUMNS
@@ -272,6 +310,7 @@ export default function IssMprList() {
   const table = useReactTable({
     data,
     columns,
+    filterFns: {},
     state: {
       columnFilters,
       sorting,
@@ -308,11 +347,9 @@ export default function IssMprList() {
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
           : "";
 
-      const statusParam = status !== "all" ? `&status=${status}` : "";
-
       const { data } = await axios.post(
         API_URL +
-          `/api/iss_mpr/serverside?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}${statusParam}`,
+          `/api/iss_mpr/serverside/${mpr_status}?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
         {},
         {
           headers: {
@@ -329,13 +366,7 @@ export default function IssMprList() {
       setData([]);
       setTotalPages(1);
     }
-  }, [
-    columnFilters,
-    pagination.pageIndex,
-    pagination.pageSize,
-    sorting,
-    status,
-  ]);
+  }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
 
   useEffect(() => {
     fetchData();

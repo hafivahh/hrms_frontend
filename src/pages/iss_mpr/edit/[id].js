@@ -1,4 +1,5 @@
 import AuthLayout from "@/components/layout/authLayout";
+import ManagerSelect from "@/components/ManagerSelect";
 import { employee } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import axios from "axios";
@@ -11,18 +12,19 @@ import {
   Checkbox,
   Grid,
   Divider,
+  Text,
+  Box,
   Button,
-  Select,
-  NumberInput,
-  Radio,
   Group,
-  Alert,
+  Select,
+  Table,
+  Autocomplete,
+  ActionIcon,
 } from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import { IconArrowLeft, IconDeviceFloppy, IconAlertCircle } from "@tabler/icons-react";
+import { IconArrowLeft, IconDeviceFloppy, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { notifications } from "@mantine/notifications";
+import useSwal from "@/hooks/useSwal";
 
 export default function IssMprEdit() {
   const router = useRouter();
@@ -31,368 +33,676 @@ export default function IssMprEdit() {
   const { decrypt } = useDecrypt();
   const API = useApi();
   const API_URL = API.API_URL;
-
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  // Dropdown options
-  const [departments, setDepartments] = useState([]);
+  const { showAlert } = useSwal();
+  const [departements, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
   const [positions, setPositions] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [mprData, setMprData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [assignments, setAssignments] = useState({});
 
-  // Form state
+  // Form state untuk edit
+  // Form state untuk edit
   const [formData, setFormData] = useState({
-    // Basic Info
-    id_departement: null,
-    id_project: null,
-    id_position: null,
-    work_type: null,
-    qty: 0,
-    transfer_qty: 0,
-    
-    // Vacant Type
-    vacant_type: null,
-    
-    // Budget
-    budgeted: null,
-    
-    // Job Detail
+    // =========================
+    // MASTER DATA
+    // =========================
+    id_departement: "",
+    id_project: "",
+    id_position: "",
+    work_type: "",
+    qty: "",
+    transfer_qty: "",
+    vacant_type: "",
+    is_budgeted: "",
     job_description: "",
     experience_years: "",
-    
-    // Education
+    contract_type: "",
+    contract_duration: "",
+    purpose: "",
+    required_date: "",
+    remarks: "",
+
+    // =========================
+    // EDUCATION & FACILITY
+    // =========================
     education_level: [],
     education_note: {},
-    
-    // Contract
-    contract_type: null,
-    contract_duration: null,
-    
-    // IT Facilities
     access: [],
-    share_folder: [],
     printer: [],
     application: [],
-    
-    // Purpose
-    purpose: "",
-    required_date: null,
-    remarks: "",
-    
-    // Assignments
+
+    // =========================
+    //  ASSIGNMENT
+    // =========================
     requested_by: null,
     approved_section_manager: null,
     approved_cm: null,
     concurred_pmo: null,
     concurred_yard_manager: null,
-    concurred_by: null,
+    concurred_by: null, // khusus overhead
     acknowledged_by: null,
     approved_by: null,
   });
 
+  // Style untuk input editable
+  const editableInputStyle = {
+    input: {
+      backgroundColor: "#ffffff",
+      cursor: "text",
+    },
+  };
   useEffect(() => {
     if (id) {
-      fetchInitialData();
+      fetchMprDetail();
     }
   }, [id]);
-
-  const fetchInitialData = async () => {
+  // FETCH DATA DROPDOWN
+  const fetchDropdown = async () => {
     try {
-      setLoading(true);
-      
-      // Fetch dropdown data
-      await Promise.all([
-        fetchDepartments(),
-        fetchProjects(),
-        fetchPositions(),
-        fetchEmployees(),
-      ]);
-      
-      // Fetch MPR detail
-      await fetchMprDetail();
-      
-      setLoading(false);
-    } catch (err) {
-      console.error("Failed to fetch initial data:", err);
-      setLoading(false);
-    }
-  };
-
-  const fetchDepartments = async () => {
-    try {
-      const { data } = await axios.get(`${API_URL}/api/departement`, {
+      const { data } = await axios.get(`${API_URL}/api/iss_mpr/dropdowns`, {
         headers: { Authorization: "Bearer " + user.token },
       });
+
       setDepartments(
-        data.map((d) => ({
-          value: String(d.id),
+        data.departements.map((d) => ({
+          value: d.id.toString(),
           label: d.departement_name,
-        }))
+        })),
       );
-    } catch (err) {
-      console.error("Failed to fetch departments:", err);
-    }
-  };
 
-  const fetchProjects = async () => {
-    try {
-      const { data } = await axios.get(`${API_URL}/api/project`, {
-        headers: { Authorization: "Bearer " + user.token },
-      });
       setProjects(
-        data.map((p) => ({
-          value: String(p.id),
+        data.projects.map((p) => ({
+          value: p.id.toString(),
           label: p.project_name,
-        }))
+        })),
       );
-    } catch (err) {
-      console.error("Failed to fetch projects:", err);
-    }
-  };
-
-  const fetchPositions = async () => {
-    try {
-      const { data } = await axios.get(`${API_URL}/api/position`, {
-        headers: { Authorization: "Bearer " + user.token },
-      });
       setPositions(
-        data.map((p) => ({
-          value: String(p.id),
+        data.position_name.map((p) => ({
+          value: p.id.toString(),
           label: p.position_name,
-        }))
+        })),
       );
     } catch (err) {
-      console.error("Failed to fetch positions:", err);
+      console.error("Dropdown error:", err);
     }
   };
 
-  const fetchEmployees = async () => {
-    try {
-      const { data } = await axios.get(`${API_URL}/api/employee`, {
-        headers: { Authorization: "Bearer " + user.token },
-      });
-      setEmployees(
-        data.map((e) => ({
-          value: e.badge_number,
-          label: `${e.badge_number} - ${e.full_name}`,
-        }))
-      );
-    } catch (err) {
-      console.error("Failed to fetch employees:", err);
-    }
-  };
+  useEffect(() => {
+    fetchDropdown();
+  }, []);
 
   const fetchMprDetail = async () => {
     try {
       const decryptedId = decrypt(id);
+
       const { data } = await axios.get(
         `${API_URL}/api/iss_mpr/${decryptedId}`,
         {
           headers: { Authorization: "Bearer " + user.token },
-        }
+        },
       );
 
-      // Parse education data
-      const educationLevels = [];
-      const educationNotes = {};
-      
-      data.details?.forEach((detail) => {
-        if (detail.detail_type === 1) {
-          // Education
-          const eduKey = getEducationKey(detail.detail_key);
-          if (eduKey) {
-            educationLevels.push(eduKey);
-            if (detail.detail_value) {
-              educationNotes[eduKey] = detail.detail_value;
-            }
-          }
-        }
+      const mpr = data.data;
+      setMprData(mpr);
+
+      // ✅ Extract education - konversi dari number ke string untuk Edit UI
+      const educationDetails =
+        mpr.details?.filter((d) => d.detail_type === 1) || [];
+      const educationLevel = educationDetails.map((d) => {
+        // Map number key ke string yang digunakan di UI
+        const keyMap = {
+          1: "degree",
+          2: "diploma",
+          3: "high_school",
+          4: "others",
+        };
+        return keyMap[d.detail_key] || d.detail_key;
       });
 
-      // Parse IT facilities
-      const access = data.details
-        ?.filter((d) => d.detail_type === 2)
-        .map((d) => getAccessKey(d.detail_key))
-        .filter(Boolean) || [];
-      
-      const share_folder = data.details
-        ?.filter((d) => d.detail_type === 3)
-        .map((d) => getShareFolderKey(d.detail_key))
-        .filter(Boolean) || [];
-      
-      const printer = data.details
-        ?.filter((d) => d.detail_type === 4)
-        .map((d) => getPrinterKey(d.detail_key))
-        .filter(Boolean) || [];
-      
-      const application = data.details
-        ?.filter((d) => d.detail_type === 5)
-        .map((d) => getApplicationKey(d.detail_key))
-        .filter(Boolean) || [];
+      const educationNote = educationDetails.reduce((acc, d) => {
+        const keyMap = {
+          1: "degree",
+          2: "diploma",
+          3: "high_school",
+          4: "others",
+        };
+        const stringKey = keyMap[d.detail_key] || d.detail_key;
+        acc[stringKey] = d.detail_value;
+        return acc;
+      }, {});
+
+      // ✅ LANGSUNG AMBIL STRING DARI DB
+      const accessDetails =
+        mpr.details
+          ?.filter((d) => d.detail_type === 2)
+          .map((d) => d.detail_value) || [];
+
+      const printerDetails =
+        mpr.details
+          ?.filter((d) => d.detail_type === 3)
+          .map((d) => d.detail_value) || [];
+
+      const applicationDetails =
+        mpr.details
+          ?.filter((d) => d.detail_type === 4)
+          .map((d) => d.detail_value) || [];
 
       setFormData({
-        id_departement: data.id_departement ? String(data.id_departement) : null,
-        id_project: data.id_project ? String(data.id_project) : null,
-        id_position: data.id_position ? String(data.id_position) : null,
-        work_type: data.work_type ? String(data.work_type) : null,
-        qty: data.qty || 0,
-        transfer_qty: data.transfer_qty || 0,
-        vacant_type: data.vacant_type === 1 ? "new_position" : data.vacant_type === 2 ? "replacement" : null,
-        budgeted: data.is_budgeted === 1 ? "yes" : data.is_budgeted === 2 ? "no" : null,
-        job_description: data.job_description || "",
-        experience_years: data.experience_years || "",
-        education_level: educationLevels,
-        education_note: educationNotes,
-        contract_type: data.contract_type || null,
-        contract_duration: data.contract_duration || null,
-        access,
-        share_folder,
-        printer,
-        application,
-        purpose: data.purpose || "",
-        required_date: data.required_date ? new Date(data.required_date) : null,
-        remarks: data.remarks || "",
-        requested_by: data.requestedByEmployee?.badge_number || null,
-        approved_section_manager: data.approvedSectionManagerEmployee?.badge_number || null,
-        approved_cm: data.approvedCmEmployee?.badge_number || null,
-        concurred_pmo: data.concurredPmoEmployee?.badge_number || null,
-        concurred_yard_manager: data.concurredYardManagerEmployee?.badge_number || null,
-        concurred_by: data.concurredByEmployee?.badge_number || null,
-        acknowledged_by: data.acknowledgedByEmployee?.badge_number || null,
-        approved_by: data.approvedByEmployee?.badge_number || null,
+        id_departement: mpr.id_departement?.toString() || "",
+        id_project: mpr.id_project?.toString() || "",
+        id_position: mpr.id_position?.toString() || "",
+        work_type: mpr.work_type?.toString() || "",
+        qty: mpr.qty?.toString() || "",
+        transfer_qty: mpr.transfer_qty?.toString() || "",
+        vacant_type: mpr.vacant_type === 1 ? "new_position" : "replacement",
+        is_budgeted: mpr.is_budgeted === 1 ? "yes" : "no",
+        job_description: mpr.job_description || "",
+        experience_years: mpr.experience_years || "",
+        contract_type: mpr.contract_type === 1 ? "permanent" : "contract",
+        contract_duration: mpr.contract_duration || "",
+        purpose: mpr.purpose || "",
+        required_date: mpr.required_date
+          ? new Date(mpr.required_date).toISOString().split("T")[0]
+          : "",
+        remarks: mpr.remarks || "",
+        education_level: educationLevel,
+        education_note: educationNote,
+        access: accessDetails,
+        printer: printerDetails,
+        application: applicationDetails,
       });
-    } catch (err) {
-      console.error("Failed to fetch MPR detail:", err);
-      notifications.show({
-        title: "Error",
-        message: "Failed to load MPR data",
-        color: "red",
-      });
-    }
-  };
 
-  // Helper functions to convert detail_key to string keys
-  const getEducationKey = (key) => {
-    const map = { 1: "degree", 2: "diploma", 3: "high_school", 4: "others" };
-    return map[key];
-  };
+      // Assignment mapping
+      const mapAssignment = (index) => {
+        const assign = mpr.assignments?.find((a) => a.index === index);
+        if (!assign) return null;
 
-  const getAccessKey = (key) => {
-    const map = { 1: "computer", 2: "email" };
-    return map[key];
-  };
-
-  const getShareFolderKey = (key) => {
-    const map = { 1: "public", 2: "department" };
-    return map[key];
-  };
-
-  const getPrinterKey = (key) => {
-    const map = { 1: "black_white", 2: "color" };
-    return map[key];
-  };
-
-  const getApplicationKey = (key) => {
-    const map = { 1: "ess", 2: "pcms_iss" };
-    return map[key];
-  };
-
-  const handleSubmit = async () => {
-    try {
-      setSaving(true);
-
-      const decryptedId = decrypt(id);
-      
-      const payload = {
-        ...formData,
-        id_departement: formData.id_departement ? Number(formData.id_departement) : null,
-        id_project: formData.id_project ? Number(formData.id_project) : null,
-        id_position: formData.id_position ? Number(formData.id_position) : null,
+        return {
+          ...assign.user,
+          approval_date: assign.assign_date,
+          status_sign: assign.status_sign,
+        };
       };
 
-      await axios.patch(
-        `${API_URL}/api/iss_mpr/${decryptedId}`,
-        payload,
-        {
-          headers: { Authorization: "Bearer " + user.token },
-        }
-      );
-
-      notifications.show({
-        title: "Success",
-        message: "MPR updated successfully",
-        color: "green",
+      setAssignments({
+        requested_by: mapAssignment(1),
+        approved_section_manager: mapAssignment(2),
+        approved_cm: mapAssignment(3),
+        concurred_pmo: mapAssignment(4),
+        concurred_yard_manager: mapAssignment(5),
+        concurred_by: mapAssignment(6),
+        acknowledged_by: mapAssignment(7),
+        approved_by: mapAssignment(8),
       });
+      // ==========================
+      // 🔥 TAMBAHAN: MAP ASSIGNMENT → formData (UNTUK EDIT)
+      // ==========================
+      setFormData((prev) => ({
+        ...prev,
+        requested_by:
+          mpr.assignments?.find((a) => a.index === 1)?.user_id?.toString() ??
+          null,
+        approved_section_manager:
+          mpr.assignments?.find((a) => a.index === 2)?.user_id?.toString() ??
+          null,
+        approved_cm:
+          mpr.assignments?.find((a) => a.index === 3)?.user_id?.toString() ??
+          null,
+        concurred_pmo:
+          mpr.assignments?.find((a) => a.index === 4)?.user_id?.toString() ??
+          null,
+        concurred_yard_manager:
+          mpr.assignments?.find((a) => a.index === 5)?.user_id?.toString() ??
+          null,
+        concurred_by:
+          mpr.assignments?.find((a) => a.index === 6)?.user_id?.toString() ??
+          null,
+        acknowledged_by:
+          mpr.assignments?.find((a) => a.index === 7)?.user_id?.toString() ??
+          null,
+        approved_by:
+          mpr.assignments?.find((a) => a.index === 8)?.user_id?.toString() ??
+          null,
+      }));
 
-      router.back();
+      setLoading(false);
     } catch (err) {
-      console.error("Failed to update MPR:", err);
-      notifications.show({
-        title: "Error",
-        message: err.response?.data?.message || "Failed to update MPR",
-        color: "red",
-      });
-    } finally {
-      setSaving(false);
+      console.error("Failed to fetch MPR detail:", err);
+      setLoading(false);
     }
   };
 
-  const handleEducationChange = (eduLevel, checked) => {
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleEducationChange = (key, checked) => {
     setFormData((prev) => {
-      const newLevels = checked
-        ? [...prev.education_level, eduLevel]
-        : prev.education_level.filter((e) => e !== eduLevel);
-      
-      // Remove note if unchecked
-      const newNotes = { ...prev.education_note };
-      if (!checked) {
-        delete newNotes[eduLevel];
-      }
-      
+      const newEducationLevel = checked
+        ? [...prev.education_level, key]
+        : prev.education_level.filter((k) => k !== key);
+
       return {
         ...prev,
-        education_level: newLevels,
-        education_note: newNotes,
+        education_level: newEducationLevel,
       };
     });
   };
 
-  const handleEducationNoteChange = (eduLevel, value) => {
+  const handleEducationNoteChange = (key, value) => {
     setFormData((prev) => ({
       ...prev,
       education_note: {
         ...prev.education_note,
-        [eduLevel]: value,
+        [key]: value,
       },
     }));
   };
 
-  const handleCheckboxArrayChange = (field, value, checked) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: checked
-        ? [...prev[field], value]
-        : prev[field].filter((v) => v !== value),
-    }));
+  const handleCheckboxArrayChange = (field, key, checked) => {
+    setFormData((prev) => {
+      const newArray = checked
+        ? [...prev[field], key]
+        : prev[field].filter((k) => k !== key);
+
+      return {
+        ...prev,
+        [field]: newArray,
+      };
+    });
+  };
+const toIntOrNull = (v) => {
+  if (v === "" || v === null || v === undefined) return null;
+  const n = Number(v);
+  return isNaN(n) ? null : n;
+};
+
+const normalizeUserId = (val) => {
+  if (!val) return null;
+  if (typeof val === "object") return val.id_user ?? null;
+  return Number(val);
+};
+
+const handleSave = async () => {
+  try {
+    const decryptedId = decrypt(id);
+
+    const educationMap = {
+      degree: 1,
+      diploma: 2,
+      high_school: 3,
+      others: 4,
+    };
+
+    const payload = {
+      // =========================
+      // MASTER
+      // =========================
+      id_departement: toIntOrNull(formData.id_departement),
+      id_project: toIntOrNull(formData.id_project),
+      id_position: toIntOrNull(formData.id_position),
+      work_type: toIntOrNull(formData.work_type),
+      qty: toIntOrNull(formData.qty),
+      transfer_qty: toIntOrNull(formData.transfer_qty),
+
+      vacant_type: formData.vacant_type,
+      budgeted: formData.is_budgeted,
+      job_description: formData.job_description,
+      experience_years: toIntOrNull(formData.experience_years),
+
+      contract_type: formData.contract_type,
+      contract_duration:
+        formData.contract_type === "contract"
+          ? toIntOrNull(formData.contract_duration)
+          : null,
+
+      purpose: formData.purpose,
+      required_date: formData.required_date || null,
+      remarks: formData.remarks,
+
+      // =========================
+      // EDUCATION
+      // =========================
+      education_level: formData.education_level.map(
+        (lvl) => educationMap[lvl],
+      ),
+      education_note: Object.fromEntries(
+        Object.entries(formData.education_note).map(([k, v]) => [
+          educationMap[k],
+          v,
+        ]),
+      ),
+
+      // =========================
+      // IT FACILITY
+      // =========================
+      access: formData.access || [],
+      printer: formData.printer || [],
+      application: formData.application || [],
+
+      // =========================
+      // ASSIGNMENT (SELALU DIKIRIM)
+      // =========================
+      requested_by: toIntOrNull(formData.requested_by),
+      approved_section_manager: toIntOrNull(
+        formData.approved_section_manager,
+      ),
+      approved_cm: toIntOrNull(formData.approved_cm),
+      concurred_pmo: toIntOrNull(formData.concurred_pmo),
+      concurred_yard_manager: toIntOrNull(
+        formData.concurred_yard_manager,
+      ),
+      concurred_by: toIntOrNull(formData.concurred_by),
+      acknowledged_by: toIntOrNull(formData.acknowledged_by),
+      approved_by: toIntOrNull(formData.approved_by),
+    };
+
+    await axios.patch(
+      `${API_URL}/api/iss_mpr/${decryptedId}`,
+      payload,
+      {
+        headers: { Authorization: "Bearer " + user.token },
+      },
+    );
+
+    await showAlert(
+      "Success",
+      "success",
+      "MPR updated successfully",
+      false,
+      1500,
+    );
+
+    router.push("/iss_mpr/list/all");
+  } catch (err) {
+    console.error("UPDATE ERROR:", err);
+    showAlert(
+      "Error",
+      "error",
+      err.response?.data?.message || "Failed to update MPR",
+    );
+  }
+};
+
+
+  const handleApproval = async (approvalType, status) => {
+    try {
+      const decryptedId = decrypt(id);
+
+      await axios.patch(
+        `${API_URL}/api/iss_mpr/${decryptedId}/approval`,
+        {
+          approval_type: approvalType,
+          status,
+        },
+        {
+          headers: { Authorization: "Bearer " + user.token },
+        },
+      );
+
+      await showAlert(
+        "Success",
+        "success",
+        "Item processed successfully",
+        false,
+        1000,
+      );
+
+      fetchMprDetail();
+    } catch (err) {
+      showAlert(
+        "Error",
+        "error",
+        err.response?.data?.message || "Approval failed",
+      );
+    }
+  };
+
+  const handleAlert = (approvalType, status) => {
+    showAlert(
+      "Are you sure?",
+      "question",
+      `You are about to ${status} this MPR`,
+      true,
+      null,
+      "Yes, proceed",
+      "Cancel",
+    ).then((confirmed) => {
+      if (confirmed) {
+        handleApproval(approvalType, status);
+      }
+    });
+  };
+
+  const AssignmentBox = ({
+    title,
+    employeeData,
+    approvalType,
+    currentUser,
+  }) => {
+    const isAssignedUser =
+      currentUser?.badge_number &&
+      employeeData?.badge_number &&
+      currentUser.badge_number === employeeData.badge_number;
+
+    const isNotApproved = !employeeData?.approval_date;
+
+    const canApprove =
+      approvalType && employeeData && isAssignedUser && isNotApproved;
+
+    return (
+      <Box
+        style={{
+          border: "1px solid #dee2e6",
+          borderRadius: "6px",
+          padding: "12px",
+          marginBottom: "16px",
+        }}
+      >
+        <Text size="sm" fw={600} mb={8}>
+          {title}
+        </Text>
+
+        <Text size="sm" c="dimmed">
+          Name: {employeeData?.full_name || "-"}
+        </Text>
+        <Text size="sm" c="dimmed">
+          Date:{" "}
+          {employeeData?.approval_date
+            ? new Date(employeeData.approval_date).toLocaleDateString()
+            : "-"}
+        </Text>
+        <Text size="sm" c="dimmed">
+          Status:{" "}
+          {employeeData?.status_sign === 1
+            ? "Approved"
+            : employeeData?.status_sign === 2
+              ? "Rejected"
+              : "Pending"}
+        </Text>
+
+        {canApprove && (
+          <Group mt="md" grow>
+            <Button
+              size="xs"
+              color="green"
+              onClick={() => handleAlert(approvalType, "approved")}
+            >
+              Approve
+            </Button>
+            <Button
+              size="xs"
+              color="red"
+              onClick={() => handleAlert(approvalType, "rejected")}
+            >
+              Reject
+            </Button>
+          </Group>
+        )}
+      </Box>
+    );
   };
 
   if (loading) {
     return (
       <AuthLayout sidebarList={employee}>
-        <div className="py-6">
-          <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-            <Paper radius="sm" mt="md" withBorder p="lg">
-              Loading...
-            </Paper>
-          </div>
-        </div>
+        <Paper radius="sm" mt="md" withBorder p="lg">
+          <Text>Loading...</Text>
+        </Paper>
       </AuthLayout>
     );
   }
 
-  const isOverhead = formData.id_project === "11";
+  if (!mprData) {
+    return (
+      <AuthLayout sidebarList={employee}>
+        <Paper radius="sm" mt="md" withBorder p="lg">
+          <Text>MPR not found</Text>
+        </Paper>
+      </AuthLayout>
+    );
+  }
 
+  //   const [localQuery, setLocalQuery] = useState("");
+  //   const [allUsers, setAllUsers] = useState([]);
+  //   const [filteredOptions, setFilteredOptions] = useState([]);
+  //   const [isLoading, setIsLoading] = useState(false);
+  //   const [selectedUser, setSelectedUser] = useState(null);
+
+  //   // ✅ Fetch all users saat component mount
+  //   useEffect(() => {
+  //     const fetchUsers = async () => {
+  //       try {
+  //         setIsLoading(true);
+  //         const res = await axios.get(`${API_URL}/api/user/list`, {
+  //           headers: { Authorization: "Bearer " + user.token },
+  //         });
+
+  //         // Asumsi response format: array of users
+  //         const users = res.data || [];
+  //         setAllUsers(users);
+  //       } catch (err) {
+  //         console.error("Failed to fetch users:", err);
+  //         showAlert("Error", "error", "Failed to load user list");
+  //       } finally {
+  //         setIsLoading(false);
+  //       }
+  //     };
+
+  //     fetchUsers();
+  //   }, []);
+
+  //   // ✅ Load selected user saat value berubah
+  //   useEffect(() => {
+  //     if (value && allUsers.length > 0) {
+  //       const user = allUsers.find((u) => u.id_user === value);
+  //       if (user) {
+  //         setSelectedUser({
+  //           id_user: user.id_user,
+  //           badge_number: user.badge_number,
+  //           full_name: user.full_name,
+  //           label: `${user.badge_number} - ${user.full_name}`,
+  //         });
+  //       }
+  //     } else if (!value) {
+  //       setSelectedUser(null);
+  //     }
+  //   }, [value, allUsers]);
+
+  //   // ✅ Filter users berdasarkan query (client-side)
+  //   useEffect(() => {
+  //     if (!localQuery || localQuery.trim().length === 0) {
+  //       setFilteredOptions([]);
+  //       return;
+  //     }
+
+  //     const query = localQuery.toLowerCase();
+  //     const filtered = allUsers
+  //       .filter(
+  //         (u) =>
+  //           u.badge_number?.toLowerCase().includes(query) ||
+  //           u.full_name?.toLowerCase().includes(query)
+  //       )
+  //       .slice(0, 20) // Limit to 20 results
+  //       .map((u) => ({
+  //         id_user: u.id_user,
+  //         badge_number: u.badge_number,
+  //         full_name: u.full_name,
+  //         label: `${u.badge_number} - ${u.full_name}`,
+  //       }));
+
+  //     setFilteredOptions(filtered);
+  //   }, [localQuery, allUsers]);
+
+  //   const displayValue = selectedUser?.label || "";
+
+  //   return (
+  //     <div style={{ position: "relative" }}>
+  //       <Autocomplete
+  //         placeholder="Type badge number or full name"
+  //         value={localQuery || displayValue}
+  //         data={filteredOptions.map((o) => o.label)}
+  //         onChange={(val) => {
+  //           setLocalQuery(val);
+
+  //           const selected = filteredOptions.find((o) => o.label === val);
+
+  //           if (selected) {
+  //             // ✅ Simpan id_user (number) ke formData
+  //             onChange(selected.id_user);
+  //             setSelectedUser(selected);
+  //             setLocalQuery("");
+  //           }
+
+  //           // Kalau user hapus manual isi input
+  //           if (!val || val.trim() === "") {
+  //             onChange(null);
+  //             setSelectedUser(null);
+  //             setLocalQuery("");
+  //           }
+  //         }}
+  //         limit={20}
+  //         nothingFoundMessage={
+  //           isLoading
+  //             ? "Loading users..."
+  //             : localQuery.trim().length > 0
+  //               ? "No user found"
+  //               : "Start typing to search"
+  //         }
+  //         disabled={isLoading}
+  //       />
+
+  //       {/* Tombol hapus user */}
+  //       {selectedUser && (
+  //         <ActionIcon
+  //           size="sm"
+  //           color="red"
+  //           variant="light"
+  //           radius="xl"
+  //           onClick={() => {
+  //             setSelectedUser(null);
+  //             setLocalQuery("");
+  //             setFilteredOptions([]);
+  //             onChange(null);
+  //           }}
+  //           style={{
+  //             position: "absolute",
+  //             right: 8,
+  //             top: "50%",
+  //             transform: "translateY(-50%)",
+  //             zIndex: 2,
+  //           }}
+  //         >
+  //           <IconX size={14} />
+  //         </ActionIcon>
+  //       )}
+  //     </div>
+  //   );
+  // };
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -406,12 +716,14 @@ export default function IssMprEdit() {
                   onClick={() => router.back()}
                   className="cursor-pointer hover:text-blue-600 transition-colors"
                 />
-                <h2 className="text-lg font-semibold">Edit MPR</h2>
+                <h2 className="text-lg font-semibold">
+                  Edit MPR - {mprData.mpr_no}
+                </h2>
               </div>
               <Button
                 leftSection={<IconDeviceFloppy size={16} />}
-                onClick={handleSubmit}
-                loading={saving}
+                onClick={handleSave}
+                color="blue"
               >
                 Save Changes
               </Button>
@@ -419,41 +731,28 @@ export default function IssMprEdit() {
 
             {/* FORM CONTENT */}
             <div className="p-6">
-              <Alert
-                icon={<IconAlertCircle size={16} />}
-                title="Edit Mode"
-                color="blue"
-                mb="lg"
-              >
-                You are editing an existing MPR. Make sure all changes are correct before saving.
-              </Alert>
-
               {/* Section 1: Department & Project */}
               <Grid>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Select
                     label="Department"
-                    placeholder="Select department"
-                    data={departments}
                     value={formData.id_departement}
                     onChange={(value) =>
-                      setFormData({ ...formData, id_departement: value })
+                      handleInputChange("id_departement", value)
                     }
-                    required
+                    data={departements}
                     searchable
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Select
                     label="Project"
-                    placeholder="Select project"
-                    data={projects}
                     value={formData.id_project}
-                    onChange={(value) =>
-                      setFormData({ ...formData, id_project: value })
-                    }
-                    required
+                    onChange={(value) => handleInputChange("id_project", value)}
+                    data={projects}
                     searchable
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
               </Grid>
@@ -466,52 +765,47 @@ export default function IssMprEdit() {
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Select
                     label="Position"
-                    placeholder="Select position"
-                    data={positions}
                     value={formData.id_position}
                     onChange={(value) =>
-                      setFormData({ ...formData, id_position: value })
+                      handleInputChange("id_position", value)
                     }
-                    required
+                    data={positions}
                     searchable
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Select
                     label="Employee Status"
-                    placeholder="Select employee status"
+                    value={formData.work_type?.toString()}
+                    onChange={(value) =>
+                      handleInputChange("work_type", parseInt(value))
+                    }
                     data={[
                       { value: "1", label: "In Direct" },
                       { value: "2", label: "Direct" },
                     ]}
-                    value={formData.work_type}
-                    onChange={(value) =>
-                      setFormData({ ...formData, work_type: value })
-                    }
-                    required
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
-                  <NumberInput
+                  <TextInput
                     label="Qty"
-                    placeholder="Enter quantity"
+                    type="number"
                     value={formData.qty}
-                    onChange={(value) =>
-                      setFormData({ ...formData, qty: value || 0 })
-                    }
-                    min={0}
-                    required
+                    onChange={(e) => handleInputChange("qty", e.target.value)}
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <NumberInput
+                <Grid.Col span={12}>
+                  <TextInput
                     label="Transfer Qty"
-                    placeholder="Enter transfer quantity"
+                    type="number"
                     value={formData.transfer_qty}
-                    onChange={(value) =>
-                      setFormData({ ...formData, transfer_qty: value || 0 })
+                    onChange={(e) =>
+                      handleInputChange("transfer_qty", e.target.value)
                     }
-                    min={0}
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
               </Grid>
@@ -519,19 +813,30 @@ export default function IssMprEdit() {
               {/* Vacant Type */}
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-2">
-                  Vacant Type <span className="text-red-500">*</span>
+                  Vacant Type
                 </label>
-                <Radio.Group
-                  value={formData.vacant_type}
-                  onChange={(value) =>
-                    setFormData({ ...formData, vacant_type: value })
-                  }
-                >
-                  <Group mt="xs">
-                    <Radio value="new_position" label="New Position" />
-                    <Radio value="replacement" label="Replacement" />
-                  </Group>
-                </Radio.Group>
+                <div className="space-y-2">
+                  <Checkbox
+                    label="New Position"
+                    checked={formData.vacant_type === "new_position"}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "vacant_type",
+                        e.currentTarget.checked ? "new_position" : "",
+                      )
+                    }
+                  />
+                  <Checkbox
+                    label="Replacement"
+                    checked={formData.vacant_type === "replacement"}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "vacant_type",
+                        e.currentTarget.checked ? "replacement" : "",
+                      )
+                    }
+                  />
+                </div>
               </div>
 
               <Divider my="lg" />
@@ -540,45 +845,58 @@ export default function IssMprEdit() {
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-3">
                   1. Is the above manpower request budgeted for in the Annual
-                  Budget? <span className="text-red-500">*</span>
+                  Budget?
                 </label>
-                <Radio.Group
-                  value={formData.budgeted}
-                  onChange={(value) =>
-                    setFormData({ ...formData, budgeted: value })
-                  }
-                >
-                  <Group mt="xs" ml={16}>
-                    <Radio value="yes" label="Yes" />
-                    <Radio value="no" label="No" />
-                  </Group>
-                </Radio.Group>
+                <div className="space-y-2 ml-4">
+                  <Checkbox
+                    label="Yes"
+                    checked={formData.is_budgeted === "yes"}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "is_budgeted",
+                        e.currentTarget.checked ? "yes" : "no",
+                      )
+                    }
+                  />
+                  <Checkbox
+                    label="No"
+                    checked={formData.is_budgeted === "no"}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "is_budgeted",
+                        e.currentTarget.checked ? "no" : "yes",
+                      )
+                    }
+                  />
+                </div>
               </div>
 
               {/* Section 4: Job Description */}
               <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                  2. Job Description
+                </label>
                 <Textarea
-                  label="2. Job Description"
-                  placeholder="Enter job description"
                   value={formData.job_description}
                   onChange={(e) =>
-                    setFormData({ ...formData, job_description: e.target.value })
+                    handleInputChange("job_description", e.target.value)
                   }
                   minRows={4}
-                  required
+                  styles={editableInputStyle}
                 />
               </div>
 
               {/* Section 5: Experience */}
               <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  3. Years of Relevant Experience
+                </label>
                 <TextInput
-                  label="3. Years of Relevant Experience"
-                  placeholder="e.g., 3-5 years"
                   value={formData.experience_years}
                   onChange={(e) =>
-                    setFormData({ ...formData, experience_years: e.target.value })
+                    handleInputChange("experience_years", e.target.value)
                   }
-                  required
+                  styles={editableInputStyle}
                 />
               </div>
 
@@ -587,7 +905,7 @@ export default function IssMprEdit() {
               {/* Section 6: Education */}
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-4">
-                  4. Educational Background <span className="text-red-500">*</span>
+                  4. Educational Background
                 </label>
                 <div className="space-y-3 ml-4">
                   {[
@@ -595,68 +913,84 @@ export default function IssMprEdit() {
                     { key: "diploma", label: "Diploma" },
                     { key: "high_school", label: "High School" },
                     { key: "others", label: "Others" },
-                  ].map((item) => (
-                    <div
-                      key={item.key}
-                      className="grid grid-cols-[180px_1fr] items-start gap-4"
-                    >
-                      <Checkbox
-                        label={item.label}
-                        checked={formData.education_level.includes(item.key)}
-                        onChange={(e) =>
-                          handleEducationChange(item.key, e.target.checked)
-                        }
-                      />
-                      <TextInput
-                        placeholder={`Specify ${item.label.toLowerCase()}`}
-                        value={formData.education_note[item.key] || ""}
-                        onChange={(e) =>
-                          handleEducationNoteChange(item.key, e.target.value)
-                        }
-                        disabled={!formData.education_level.includes(item.key)}
-                      />
-                    </div>
-                  ))}
+                  ].map((item) => {
+                    const isChecked = formData.education_level.includes(
+                      item.key,
+                    );
+                    return (
+                      <div
+                        key={item.key}
+                        className="grid grid-cols-[180px_1fr] items-center gap-4"
+                      >
+                        <Checkbox
+                          label={item.label}
+                          checked={isChecked}
+                          onChange={(e) =>
+                            handleEducationChange(
+                              item.key,
+                              e.currentTarget.checked,
+                            )
+                          }
+                        />
+                        <TextInput
+                          value={formData.education_note[item.key] || ""}
+                          onChange={(e) =>
+                            handleEducationNoteChange(item.key, e.target.value)
+                          }
+                          disabled={!isChecked}
+                          styles={isChecked ? editableInputStyle : undefined}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Section 7: Contract Type */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-3">
-                  5. Contract Type <span className="text-red-500">*</span>
-                </label>
-                <div className="space-y-3 ml-4">
-                  <Radio.Group
-                    value={formData.contract_type?.toString()}
-                    onChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        contract_type: Number(value),
-                        contract_duration:
-                          Number(value) === 1 ? null : formData.contract_duration,
-                      })
+              <label className="block text-sm font-medium mb-3">
+                5. Contract Type
+              </label>
+              <div className="space-y-3 ml-4">
+                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                  <Checkbox
+                    label="Probation / Permanent"
+                    checked={formData.contract_type === "permanent"}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "contract_type",
+                        e.currentTarget.checked ? "permanent" : "",
+                      )
                     }
-                  >
-                    <div className="space-y-3">
-                      <Radio value="1" label="Probation / Permanent" />
-                      <div className="flex items-center gap-4">
-                        <Radio value="2" label="Contract / Temporary" />
-                        <div className="flex items-center gap-2">
-                          <NumberInput
-                            placeholder="Duration"
-                            value={formData.contract_duration}
-                            onChange={(value) =>
-                              setFormData({ ...formData, contract_duration: value })
-                            }
-                            disabled={formData.contract_type !== 2}
-                            min={1}
-                            className="w-32"
-                          />
-                          <span className="text-sm text-gray-600">Month</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Radio.Group>
+                  />
+                  <div />
+                </div>
+                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                  <Checkbox
+                    label="Contract / Temporary"
+                    checked={formData.contract_type === "contract"}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "contract_type",
+                        e.currentTarget.checked ? "contract" : "",
+                      )
+                    }
+                  />
+                  <div className="flex items-center gap-2">
+                    <TextInput
+                      value={formData.contract_duration}
+                      onChange={(e) =>
+                        handleInputChange("contract_duration", e.target.value)
+                      }
+                      disabled={formData.contract_type !== "contract"}
+                      className="w-40"
+                      styles={
+                        formData.contract_type === "contract"
+                          ? editableInputStyle
+                          : undefined
+                      }
+                    />
+                    <span className="text-sm text-gray-600">Month</span>
+                  </div>
                 </div>
               </div>
 
@@ -667,55 +1001,46 @@ export default function IssMprEdit() {
                 <h3 className="text-md font-semibold mb-4">
                   6. Information Technology Facilities
                 </h3>
-                
-                <label className="block text-sm font-medium mb-3">Access</label>
-                <div className="space-y-2 ml-4 mb-4">
+                <div className="space-y-2 ml-4">
                   <Checkbox
                     label="Computer"
                     checked={formData.access.includes("computer")}
                     onChange={(e) =>
-                      handleCheckboxArrayChange("access", "computer", e.target.checked)
+                      handleCheckboxArrayChange(
+                        "access",
+                        "computer",
+                        e.currentTarget.checked,
+                      )
                     }
                   />
                   <Checkbox
                     label="Email"
                     checked={formData.access.includes("email")}
                     onChange={(e) =>
-                      handleCheckboxArrayChange("access", "email", e.target.checked)
+                      handleCheckboxArrayChange(
+                        "access",
+                        "email",
+                        e.currentTarget.checked,
+                      )
                     }
                   />
                 </div>
 
-                <label className="block text-sm font-medium mb-3">
-                  Share Folder
+                <label className="block text-sm font-medium mb-3 mt-4">
+                  Printer
                 </label>
-                <div className="space-y-2 ml-4 mb-4">
+                <div className="space-y-2 ml-4">
                   <Checkbox
-                    label="Public"
-                    checked={formData.share_folder.includes("public")}
+                    label="Color"
+                    checked={formData.printer.includes("color")}
                     onChange={(e) =>
                       handleCheckboxArrayChange(
-                        "share_folder",
-                        "public",
-                        e.target.checked
+                        "printer",
+                        "color",
+                        e.currentTarget.checked,
                       )
                     }
                   />
-                  <Checkbox
-                    label="Department"
-                    checked={formData.share_folder.includes("department")}
-                    onChange={(e) =>
-                      handleCheckboxArrayChange(
-                        "share_folder",
-                        "department",
-                        e.target.checked
-                      )
-                    }
-                  />
-                </div>
-
-                <label className="block text-sm font-medium mb-3">Printer</label>
-                <div className="space-y-2 ml-4 mb-4">
                   <Checkbox
                     label="Black / White"
                     checked={formData.printer.includes("black_white")}
@@ -723,31 +1048,27 @@ export default function IssMprEdit() {
                       handleCheckboxArrayChange(
                         "printer",
                         "black_white",
-                        e.target.checked
+                        e.currentTarget.checked,
                       )
                     }
                   />
-                  <Checkbox
-                    label="Color"
-                    checked={formData.printer.includes("color")}
-                    onChange={(e) =>
-                      handleCheckboxArrayChange("printer", "color", e.target.checked)
-                    }
-                  />
                 </div>
+              </div>
 
+              {/* Application */}
+              <div className="mb-4">
                 <label className="block text-sm font-medium mb-3">
                   Application
                 </label>
                 <div className="space-y-2 ml-4">
                   <Checkbox
                     label="Employee Service System"
-                    checked={formData.application.includes("ess")}
+                    checked={formData.application.includes("self_service")}
                     onChange={(e) =>
                       handleCheckboxArrayChange(
                         "application",
-                        "ess",
-                        e.target.checked
+                        "self_service",
+                        e.currentTarget.checked,
                       )
                     }
                   />
@@ -758,7 +1079,7 @@ export default function IssMprEdit() {
                       handleCheckboxArrayChange(
                         "application",
                         "pcms_iss",
-                        e.target.checked
+                        e.currentTarget.checked,
                       )
                     }
                   />
@@ -772,188 +1093,161 @@ export default function IssMprEdit() {
                 <Grid.Col span={12}>
                   <Textarea
                     label="Purpose for Request"
-                    placeholder="Enter purpose for request"
                     value={formData.purpose}
                     onChange={(e) =>
-                      setFormData({ ...formData, purpose: e.target.value })
+                      handleInputChange("purpose", e.target.value)
                     }
                     minRows={3}
-                    required
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={12}>
-                  <DateInput
+                  <TextInput
                     label="Required Date"
-                    placeholder="Select required date"
+                    type="date"
                     value={formData.required_date}
-                    onChange={(value) =>
-                      setFormData({ ...formData, required_date: value })
+                    onChange={(e) =>
+                      handleInputChange("required_date", e.target.value)
                     }
-                    required
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={12}>
                   <Textarea
                     label="Remarks"
-                    placeholder="Enter remarks (optional)"
                     value={formData.remarks}
                     onChange={(e) =>
-                      setFormData({ ...formData, remarks: e.target.value })
+                      handleInputChange("remarks", e.target.value)
                     }
                     minRows={3}
+                    styles={editableInputStyle}
                   />
                 </Grid.Col>
               </Grid>
 
               <Divider my="lg" />
 
-              {/* Section 10: Assignment */}
               <h3 className="text-md font-semibold mb-4">Assignment</h3>
 
-              <Grid>
-                {/* Requested By - SELALU TAMPIL */}
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <Select
-                    label="Requested By (End User)"
-                    placeholder="Select employee"
-                    data={employees}
-                    value={formData.requested_by}
-                    onChange={(value) =>
-                      setFormData({ ...formData, requested_by: value })
-                    }
-                    searchable
-                    required
-                  />
-                </Grid.Col>
+<Table withTableBorder withColumnBorders>
+  <Table.Thead>
+    <Table.Tr>
+      <Table.Th>Process</Table.Th>
+      <Table.Th>User Assign</Table.Th>
+    </Table.Tr>
+  </Table.Thead>
 
-                {/* Approved By Section Manager - NON-OVERHEAD */}
-                {!isOverhead && (
-                  <Grid.Col span={{ base: 12, md: 4 }}>
-                    <Select
-                      label="Approved By Section Manager"
-                      placeholder="Select employee"
-                      data={employees}
-                      value={formData.approved_section_manager}
-                      onChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          approved_section_manager: value,
-                        })
-                      }
-                      searchable
-                    />
-                  </Grid.Col>
-                )}
+  <Table.Tbody>
+    <Table.Tr>
+      <Table.Td>Requested By</Table.Td>
+      <Table.Td>
+        <ManagerSelect
+          value={formData.requested_by}
+          onChange={(val) =>
+            handleInputChange("requested_by", normalizeUserId(val))
+          }
+        />
+      </Table.Td>
+    </Table.Tr>
 
-                {/* Approved By (CM) - NON-OVERHEAD */}
-                {!isOverhead && (
-                  <Grid.Col span={{ base: 12, md: 4 }}>
-                    <Select
-                      label="Approved By (CM)"
-                      placeholder="Select employee"
-                      data={employees}
-                      value={formData.approved_cm}
-                      onChange={(value) =>
-                        setFormData({ ...formData, approved_cm: value })
-                      }
-                      searchable
-                    />
-                  </Grid.Col>
-                )}
+    {formData.id_project !== "11" && (
+      <>
+        <Table.Tr>
+          <Table.Td>Approved Section Manager</Table.Td>
+          <Table.Td>
+            <ManagerSelect
+              value={formData.approved_section_manager}
+              onChange={(val) =>
+                handleInputChange(
+                  "approved_section_manager",
+                  normalizeUserId(val),
+                )
+              }
+            />
+          </Table.Td>
+        </Table.Tr>
 
-                {/* Concurred By (PMO) - NON-OVERHEAD */}
-                {!isOverhead && (
-                  <Grid.Col span={{ base: 12, md: 4 }}>
-                    <Select
-                      label="Concurred By (PMO)"
-                      placeholder="Select employee"
-                      data={employees}
-                      value={formData.concurred_pmo}
-                      onChange={(value) =>
-                        setFormData({ ...formData, concurred_pmo: value })
-                      }
-                      searchable
-                    />
-                  </Grid.Col>
-                )}
+        <Table.Tr>
+          <Table.Td>Approved CM</Table.Td>
+          <Table.Td>
+            <ManagerSelect
+              value={formData.approved_cm}
+              onChange={(val) =>
+                handleInputChange("approved_cm", normalizeUserId(val))
+              }
+            />
+          </Table.Td>
+        </Table.Tr>
 
-                {/* Concurred Yard Manager - NON-OVERHEAD */}
-                {!isOverhead && (
-                  <Grid.Col span={{ base: 12, md: 4 }}>
-                    <Select
-                      label="Concurred Yard Manager"
-                      placeholder="Select employee"
-                      data={employees}
-                      value={formData.concurred_yard_manager}
-                      onChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          concurred_yard_manager: value,
-                        })
-                      }
-                      searchable
-                    />
-                  </Grid.Col>
-                )}
+        <Table.Tr>
+          <Table.Td>Concurred PMO</Table.Td>
+          <Table.Td>
+            <ManagerSelect
+              value={formData.concurred_pmo}
+              onChange={(val) =>
+                handleInputChange("concurred_pmo", normalizeUserId(val))
+              }
+            />
+          </Table.Td>
+        </Table.Tr>
 
-                {/* Concurred By - OVERHEAD ONLY */}
-                {isOverhead && (
-                  <Grid.Col span={{ base: 12, md: 4 }}>
-                    <Select
-                      label="Concurred By"
-                      placeholder="Select employee"
-                      data={employees}
-                      value={formData.concurred_by}
-                      onChange={(value) =>
-                        setFormData({ ...formData, concurred_by: value })
-                      }
-                      searchable
-                    />
-                  </Grid.Col>
-                )}
+        <Table.Tr>
+          <Table.Td>Concurred Yard Manager</Table.Td>
+          <Table.Td>
+            <ManagerSelect
+              value={formData.concurred_yard_manager}
+              onChange={(val) =>
+                handleInputChange(
+                  "concurred_yard_manager",
+                  normalizeUserId(val),
+                )
+              }
+            />
+          </Table.Td>
+        </Table.Tr>
+      </>
+    )}
 
-                {/* Acknowledged By HR - SELALU TAMPIL */}
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <Select
-                    label="Acknowledged By HR"
-                    placeholder="Select employee"
-                    data={employees}
-                    value={formData.acknowledged_by}
-                    onChange={(value) =>
-                      setFormData({ ...formData, acknowledged_by: value })
-                    }
-                    searchable
-                  />
-                </Grid.Col>
+    {formData.id_project === "11" && (
+      <Table.Tr>
+        <Table.Td>Concurred By</Table.Td>
+        <Table.Td>
+          <ManagerSelect
+            value={formData.concurred_by}
+            onChange={(val) =>
+              handleInputChange("concurred_by", normalizeUserId(val))
+            }
+          />
+        </Table.Td>
+      </Table.Tr>
+    )}
 
-                {/* Approved By (President Director) - SELALU TAMPIL */}
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <Select
-                    label="Approved By (President Director)"
-                    placeholder="Select employee"
-                    data={employees}
-                    value={formData.approved_by}
-                    onChange={(value) =>
-                      setFormData({ ...formData, approved_by: value })
-                    }
-                    searchable
-                  />
-                </Grid.Col>
-              </Grid>
+    <Table.Tr>
+      <Table.Td>Acknowledged By HR</Table.Td>
+      <Table.Td>
+        <ManagerSelect
+          value={formData.acknowledged_by}
+          onChange={(val) =>
+            handleInputChange("acknowledged_by", normalizeUserId(val))
+          }
+        />
+      </Table.Td>
+    </Table.Tr>
 
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-3 mt-6">
-                <Button variant="default" onClick={() => router.back()}>
-                  Cancel
-                </Button>
-                <Button
-                  leftSection={<IconDeviceFloppy size={16} />}
-                  onClick={handleSubmit}
-                  loading={saving}
-                >
-                  Save Changes
-                </Button>
-              </div>
+    <Table.Tr>
+      <Table.Td>Approved By President Director</Table.Td>
+      <Table.Td>
+        <ManagerSelect
+          value={formData.approved_by}
+          onChange={(val) =>
+            handleInputChange("approved_by", normalizeUserId(val))
+          }
+        />
+      </Table.Td>
+    </Table.Tr>
+  </Table.Tbody>
+</Table>
+
             </div>
           </Paper>
         </div>

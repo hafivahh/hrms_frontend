@@ -13,13 +13,10 @@ import {
   Divider,
   Text,
   Box,
-  Button,
-  Group,
 } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import useSwal from "@/hooks/useSwal";
 
 export default function IssMprDetail() {
   const router = useRouter();
@@ -28,12 +25,17 @@ export default function IssMprDetail() {
   const { decrypt } = useDecrypt();
   const API = useApi();
   const API_URL = API.API_URL;
-  const { showAlert } = useSwal();
   const [mprData, setMprData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Assignment data dengan nama, tanggal, signature
   const [assignments, setAssignments] = useState({});
+
+  // Style untuk readonly input
+  const readOnlyInputStyle = {
+    input: {
+      backgroundColor: '#f1f3f5',
+      cursor: 'not-allowed',
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -49,68 +51,33 @@ export default function IssMprDetail() {
         `${API_URL}/api/iss_mpr/${decryptedId}`,
         {
           headers: { Authorization: "Bearer " + user.token },
-        },
+        }
       );
 
-      setMprData(data);
+      const mpr = data.data;
+      setMprData(mpr);
 
-      // 🔥 INI SATU-SATUNYA assignments (JANGAN DOBEL)
+      // Mapping assignment dari backend
+      const mapAssignment = (index) => {
+        const assign = mpr.assignments?.find((a) => a.index === index);
+        if (!assign) return null;
+
+        return {
+          ...assign.user,
+          approval_date: assign.assign_date,
+          status_sign: assign.status_sign,
+        };
+      };
+
       setAssignments({
-        requested_by: data.requestedByEmployee
-          ? {
-              ...data.requestedByEmployee,
-              approval_date: data.assigned_requested_by,
-            }
-          : null,
-
-        approved_section_manager: data.approvedSectionManagerEmployee
-          ? {
-              ...data.approvedSectionManagerEmployee,
-              approval_date: data.assigned_section_manager,
-            }
-          : null,
-
-        approved_cm: data.approvedCmEmployee
-          ? {
-              ...data.approvedCmEmployee,
-              approval_date: data.assigned_cm,
-            }
-          : null,
-
-        concurred_pmo: data.concurredPmoEmployee
-          ? {
-              ...data.concurredPmoEmployee,
-              approval_date: data.assigned_pmo,
-            }
-          : null,
-
-        concurred_yard_manager: data.concurredYardManagerEmployee
-          ? {
-              ...data.concurredYardManagerEmployee,
-              approval_date: data.assigned_yard_manager,
-            }
-          : null,
-
-        concurred_by: data.concurredByEmployee
-          ? {
-              ...data.concurredByEmployee,
-              approval_date: data.assigned_concurred_by,
-            }
-          : null,
-
-        acknowledged_by: data.acknowledgedByEmployee
-          ? {
-              ...data.acknowledgedByEmployee,
-              approval_date: data.assigned_hr,
-            }
-          : null,
-
-        approved_by: data.approvedByEmployee
-          ? {
-              ...data.approvedByEmployee,
-              approval_date: data.assigned_president_director,
-            }
-          : null,
+        requested_by: mapAssignment(1),
+        approved_section_manager: mapAssignment(2),
+        approved_cm: mapAssignment(3),
+        concurred_pmo: mapAssignment(4),
+        concurred_yard_manager: mapAssignment(5),
+        concurred_by: mapAssignment(6),
+        acknowledged_by: mapAssignment(7),
+        approved_by: mapAssignment(8),
       });
 
       setLoading(false);
@@ -120,76 +87,8 @@ export default function IssMprDetail() {
     }
   };
 
-  const handleApproval = async (approvalType, status) => {
-    try {
-      const decryptedId = decrypt(id);
-
-      const { data } = await axios.patch(
-        `${API_URL}/api/iss_mpr/${decryptedId}/approval`,
-        {
-          approval_type: approvalType,
-          status,
-        },
-        {
-          headers: { Authorization: "Bearer " + user.token },
-        },
-      );
-
-      await showAlert(
-        "Success",
-        "success",
-        "Item processed successfully",
-        false,
-        1000,
-      );
-
-      // refresh data
-      fetchMprDetail();
-    } catch (err) {
-      showAlert(
-        "Error",
-        "error",
-        err.response?.data?.message || "Approval failed",
-      );
-    }
-  };
-
-  const handleAlert = (approvalType, status) => {
-    showAlert(
-      "Are you sure?",
-      "question",
-      `You are about to ${status} this MPR`,
-      true,
-      null,
-      "Yes, proceed",
-      "Cancel",
-    ).then((confirmed) => {
-      if (confirmed) {
-        handleApproval(approvalType, status);
-      }
-    });
-  };
-
-  // 🔥 Assignment Box
-  const AssignmentBox = ({
-    title,
-    employeeData,
-    approvalType,
-    currentUser,
-  }) => {
-    // 1️⃣ user login = user assign
-    const isAssignedUser =
-      currentUser?.badge_number &&
-      employeeData?.badge_number &&
-      currentUser.badge_number === employeeData.badge_number;
-
-    // 2️⃣ belum di approve (timestamp masih null)
-    const isNotApproved = !employeeData?.approval_date;
-
-    // 3️⃣ izin tampil tombol
-    const canApprove =
-      approvalType && employeeData && isAssignedUser && isNotApproved;
-
+  // Assignment Box - Display Only
+  const AssignmentBox = ({ title, employeeData }) => {
     return (
       <Box
         style={{
@@ -213,28 +112,13 @@ export default function IssMprDetail() {
             : "-"}
         </Text>
         <Text size="sm" c="dimmed">
-          Signature: {employeeData?.signature || "-"}
+          Status:{" "}
+          {employeeData?.status_sign === 1
+            ? "Approved"
+            : employeeData?.status_sign === 2
+            ? "Rejected"
+            : "Pending"}
         </Text>
-
-        {/* 🔐 TOMBOL HANYA MUNCUL JIKA SYARAT TERPENUHI */}
-        {canApprove && (
-          <Group mt="md" grow>
-            <Button
-              size="xs"
-              color="green"
-              onClick={() => handleAlert(approvalType, "approved")}
-            >
-              Approve
-            </Button>
-            <Button
-              size="xs"
-              color="red"
-              onClick={() => handleAlert(approvalType, "rejected")}
-            >
-              Reject
-            </Button>
-          </Group>
-        )}
       </Box>
     );
   };
@@ -285,6 +169,7 @@ export default function IssMprDetail() {
                     label="Department"
                     value={mprData.departement?.departement_name || "-"}
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -292,6 +177,7 @@ export default function IssMprDetail() {
                     label="Project"
                     value={mprData.project?.project_name || "-"}
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
               </Grid>
@@ -306,29 +192,37 @@ export default function IssMprDetail() {
                     label="Position"
                     value={mprData.position?.position_name || "-"}
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <TextInput
                     label="Employee Status"
                     value={
-                      mprData.work_type === "1"
+                      mprData.work_type === 1
                         ? "In Direct"
-                        : mprData.work_type === "2"
+                        : mprData.work_type === 2
                           ? "Direct"
                           : "-"
                     }
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
-                  <TextInput label="Qty" value={mprData.qty || "0"} readOnly />
+                  <TextInput 
+                    label="Qty" 
+                    value={mprData.qty || "0"} 
+                    readOnly 
+                    styles={readOnlyInputStyle}
+                  />
                 </Grid.Col>
                 <Grid.Col span={12}>
                   <TextInput
                     label="Transfer Qty"
                     value={mprData.transfer_qty || "0"}
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
               </Grid>
@@ -387,6 +281,7 @@ export default function IssMprDetail() {
                   value={mprData.job_description || "-"}
                   minRows={4}
                   readOnly
+                  styles={readOnlyInputStyle}
                 />
               </div>
 
@@ -395,7 +290,11 @@ export default function IssMprDetail() {
                 <label className="block text-sm font-medium mb-2">
                   3. Years of Relevant Experience
                 </label>
-                <TextInput value={mprData.experience_years || "-"} readOnly />
+                <TextInput 
+                  value={mprData.experience_years || "-"} 
+                  readOnly 
+                  styles={readOnlyInputStyle}
+                />
               </div>
 
               <Divider my="lg" />
@@ -430,6 +329,7 @@ export default function IssMprDetail() {
                           value={detail?.detail_value || ""}
                           readOnly
                           disabled={!detail}
+                          styles={detail ? readOnlyInputStyle : undefined}
                         />
                       </div>
                     );
@@ -464,6 +364,7 @@ export default function IssMprDetail() {
                       readOnly
                       disabled={mprData.contract_type !== 2}
                       className="w-40"
+                      styles={mprData.contract_type === 2 ? readOnlyInputStyle : undefined}
                     />
                     <span className="text-sm text-gray-600">Month</span>
                   </div>
@@ -576,6 +477,7 @@ export default function IssMprDetail() {
                     value={mprData.purpose || "-"}
                     minRows={3}
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={12}>
@@ -589,6 +491,7 @@ export default function IssMprDetail() {
                         : "-"
                     }
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
                 <Grid.Col span={12}>
@@ -597,13 +500,14 @@ export default function IssMprDetail() {
                     value={mprData.remarks || "-"}
                     minRows={3}
                     readOnly
+                    styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
               </Grid>
 
               <Divider my="lg" />
 
-              {/* Section 10: Assignment dengan Box */}
+              {/* Section 10: Assignment - Display Only */}
               <h3 className="text-md font-semibold mb-4">Assignment</h3>
 
               <Grid>
@@ -611,8 +515,6 @@ export default function IssMprDetail() {
                   <AssignmentBox
                     title="Requested By (End User)"
                     employeeData={assignments.requested_by}
-                    approvalType="requested_by"
-                    currentUser={user}
                   />
                 </Grid.Col>
 
@@ -621,8 +523,6 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Approved By Section Manager"
                       employeeData={assignments.approved_section_manager}
-                      approvalType="section_manager"
-                      currentUser={user}
                     />
                   </Grid.Col>
                 )}
@@ -632,8 +532,6 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Approved By (CM)"
                       employeeData={assignments.approved_cm}
-                      approvalType="cm"
-                      currentUser={user}
                     />
                   </Grid.Col>
                 )}
@@ -643,18 +541,15 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Concurred By (PMO)"
                       employeeData={assignments.concurred_pmo}
-                      approvalType="pmo"
-                      currentUser={user}
                     />
                   </Grid.Col>
                 )}
+
                 {mprData.id_project !== 11 && (
                   <Grid.Col span={{ base: 12, md: 4 }}>
                     <AssignmentBox
                       title="Concurred By Yard Manager"
                       employeeData={assignments.concurred_yard_manager}
-                      approvalType="yard_manager"
-                      currentUser={user}
                     />
                   </Grid.Col>
                 )}
@@ -664,8 +559,6 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Concurred By"
                       employeeData={assignments.concurred_by}
-                      approvalType="concurred"
-                      currentUser={user}
                     />
                   </Grid.Col>
                 )}
@@ -674,8 +567,6 @@ export default function IssMprDetail() {
                   <AssignmentBox
                     title="Acknowledged By HR"
                     employeeData={assignments.acknowledged_by}
-                    approvalType="hr"
-                    currentUser={user}
                   />
                 </Grid.Col>
 
@@ -683,8 +574,6 @@ export default function IssMprDetail() {
                   <AssignmentBox
                     title="Approved By (President Director)"
                     employeeData={assignments.approved_by}
-                    approvalType="president_director"
-                    currentUser={user}
                   />
                 </Grid.Col>
               </Grid>
