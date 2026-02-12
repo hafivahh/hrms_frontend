@@ -226,14 +226,14 @@ export default function IssMprEdit() {
       };
 
       setAssignments({
-        requested_by: mapAssignment(1),
-        approved_section_manager: mapAssignment(2),
-        approved_cm: mapAssignment(3),
-        concurred_pmo: mapAssignment(4),
-        concurred_yard_manager: mapAssignment(5),
-        concurred_by: mapAssignment(6),
-        acknowledged_by: mapAssignment(7),
-        approved_by: mapAssignment(8),
+        requested_by: mapAssignment(0),
+        approved_section_manager: mapAssignment(1),
+        approved_cm: mapAssignment(2),
+        concurred_pmo: mapAssignment(3),
+        concurred_yard_manager: mapAssignment(4),
+        concurred_by: mapAssignment(5),
+        acknowledged_by: mapAssignment(6),
+        approved_by: mapAssignment(7),
       });
       // ==========================
       // 🔥 TAMBAHAN: MAP ASSIGNMENT → formData (UNTUK EDIT)
@@ -241,28 +241,28 @@ export default function IssMprEdit() {
       setFormData((prev) => ({
         ...prev,
         requested_by:
-          mpr.assignments?.find((a) => a.index === 1)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 0)?.user_id?.toString() ??
           null,
         approved_section_manager:
-          mpr.assignments?.find((a) => a.index === 2)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 1)?.user_id?.toString() ??
           null,
         approved_cm:
-          mpr.assignments?.find((a) => a.index === 3)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 2)?.user_id?.toString() ??
           null,
         concurred_pmo:
-          mpr.assignments?.find((a) => a.index === 4)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 3)?.user_id?.toString() ??
           null,
         concurred_yard_manager:
-          mpr.assignments?.find((a) => a.index === 5)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 4)?.user_id?.toString() ??
           null,
         concurred_by:
-          mpr.assignments?.find((a) => a.index === 6)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 5)?.user_id?.toString() ??
           null,
         acknowledged_by:
-          mpr.assignments?.find((a) => a.index === 7)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 6)?.user_id?.toString() ??
           null,
         approved_by:
-          mpr.assignments?.find((a) => a.index === 8)?.user_id?.toString() ??
+          mpr.assignments?.find((a) => a.index === 7)?.user_id?.toString() ??
           null,
       }));
 
@@ -315,237 +315,284 @@ export default function IssMprEdit() {
       };
     });
   };
-const toIntOrNull = (v) => {
-  if (v === "" || v === null || v === undefined) return null;
-  const n = Number(v);
-  return isNaN(n) ? null : n;
-};
+  const toIntOrNull = (v) => {
+    if (v === "" || v === null || v === undefined) return null;
+    const n = Number(v);
+    return isNaN(n) ? null : n;
+  };
 
-const normalizeUserId = (val) => {
-  if (!val) return null;
-  if (typeof val === "object") return val.id_user ?? null;
-  return Number(val);
-};
+  const normalizeUserId = (val) => {
+    if (!val) return null;
+    if (typeof val === "object") return val.id_user ?? null;
+    return Number(val);
+  };
 
-const handleSave = async () => {
-  try {
-    const decryptedId = decrypt(id);
-
-    const educationMap = {
-      degree: 1,
-      diploma: 2,
-      high_school: 3,
-      others: 4,
-    };
-
-    const payload = {
-      // =========================
-      // MASTER
-      // =========================
-      id_departement: toIntOrNull(formData.id_departement),
-      id_project: toIntOrNull(formData.id_project),
-      id_position: toIntOrNull(formData.id_position),
-      work_type: toIntOrNull(formData.work_type),
-      qty: toIntOrNull(formData.qty),
-      transfer_qty: toIntOrNull(formData.transfer_qty),
-
-      vacant_type: formData.vacant_type,
-      budgeted: formData.is_budgeted,
-      job_description: formData.job_description,
-      experience_years: toIntOrNull(formData.experience_years),
-
-      contract_type: formData.contract_type,
-      contract_duration:
-        formData.contract_type === "contract"
-          ? toIntOrNull(formData.contract_duration)
-          : null,
-
-      purpose: formData.purpose,
-      required_date: formData.required_date || null,
-      remarks: formData.remarks,
-
-      // =========================
-      // EDUCATION
-      // =========================
-      education_level: formData.education_level.map(
-        (lvl) => educationMap[lvl],
-      ),
-      education_note: Object.fromEntries(
-        Object.entries(formData.education_note).map(([k, v]) => [
-          educationMap[k],
-          v,
-        ]),
-      ),
-
-      // =========================
-      // IT FACILITY
-      // =========================
-      access: formData.access || [],
-      printer: formData.printer || [],
-      application: formData.application || [],
-
-      // =========================
-      // ASSIGNMENT (SELALU DIKIRIM)
-      // =========================
-      requested_by: toIntOrNull(formData.requested_by),
-      approved_section_manager: toIntOrNull(
-        formData.approved_section_manager,
-      ),
-      approved_cm: toIntOrNull(formData.approved_cm),
-      concurred_pmo: toIntOrNull(formData.concurred_pmo),
-      concurred_yard_manager: toIntOrNull(
-        formData.concurred_yard_manager,
-      ),
-      concurred_by: toIntOrNull(formData.concurred_by),
-      acknowledged_by: toIntOrNull(formData.acknowledged_by),
-      approved_by: toIntOrNull(formData.approved_by),
-    };
-
-    await axios.patch(
-      `${API_URL}/api/iss_mpr/${decryptedId}`,
-      payload,
-      {
-        headers: { Authorization: "Bearer " + user.token },
-      },
-    );
-
-    await showAlert(
-      "Success",
-      "success",
-      "MPR updated successfully",
-      false,
-      1500,
-    );
-
-    router.push("/iss_mpr/list/all");
-  } catch (err) {
-    console.error("UPDATE ERROR:", err);
-    showAlert(
-      "Error",
-      "error",
-      err.response?.data?.message || "Failed to update MPR",
-    );
-  }
-};
-
-
-  const handleApproval = async (approvalType, status) => {
+  const handleSave = async () => {
     try {
-      const decryptedId = decrypt(id);
-
-      await axios.patch(
-        `${API_URL}/api/iss_mpr/${decryptedId}/approval`,
-        {
-          approval_type: approvalType,
-          status,
-        },
-        {
-          headers: { Authorization: "Bearer " + user.token },
-        },
+      //  Confirmation alert
+      const confirm = await showAlert(
+        "Are you sure?",
+        "question",
+        "Do you want to save changes to this Manpower Request?",
+        true,
+        null,
+        "Submit",
+        "Cancel",
       );
 
+      if (!confirm.isConfirmed) return; // User klik Cancel -> keluar
+
+      const decryptedId = decrypt(id);
+
+      const educationMap = {
+        degree: 1,
+        diploma: 2,
+        high_school: 3,
+        others: 4,
+      };
+
+      //  BUILD ASSIGNMENTS ARRAY
+      const assignments = [];
+
+      if (formData.id_project !== "11") {
+        // Project biasa: index 0,1,2,3,4,6,7
+        const normalMapping = [
+          { key: "requested_by", index: 0 },
+          { key: "approved_section_manager", index: 1 },
+          { key: "approved_cm", index: 2 },
+          { key: "concurred_pmo", index: 3 },
+          { key: "concurred_yard_manager", index: 4 },
+          { key: "acknowledged_by", index: 6 },
+          { key: "approved_by", index: 7 },
+        ];
+
+        for (const map of normalMapping) {
+          const userId = toIntOrNull(formData[map.key]);
+          if (userId) {
+            assignments.push({
+              index: map.index,
+              user_id: userId,
+            });
+          }
+        }
+      } else {
+        // Project overhead (id=11): index 0,5,6,7
+        const overheadMapping = [
+          { key: "requested_by", index: 0 },
+          { key: "concurred_by", index: 5 },
+          { key: "acknowledged_by", index: 6 },
+          { key: "approved_by", index: 7 },
+        ];
+
+        for (const map of overheadMapping) {
+          const userId = toIntOrNull(formData[map.key]);
+          if (userId) {
+            assignments.push({
+              index: map.index,
+              user_id: userId,
+            });
+          }
+        }
+      }
+
+      const payload = {
+        // =========================
+        // MASTER
+        // =========================
+        id_departement: toIntOrNull(formData.id_departement),
+        id_project: toIntOrNull(formData.id_project),
+        id_position: toIntOrNull(formData.id_position),
+        work_type: toIntOrNull(formData.work_type),
+        qty: toIntOrNull(formData.qty),
+        transfer_qty: toIntOrNull(formData.transfer_qty),
+
+        vacant_type: formData.vacant_type,
+        budgeted: formData.is_budgeted,
+        job_description: formData.job_description,
+        experience_years: toIntOrNull(formData.experience_years),
+
+        contract_type: formData.contract_type,
+        contract_duration:
+          formData.contract_type === "contract"
+            ? toIntOrNull(formData.contract_duration)
+            : null,
+
+        purpose: formData.purpose,
+        required_date: formData.required_date || null,
+        remarks: formData.remarks,
+
+        // =========================
+        // EDUCATION
+        // =========================
+        education_level: formData.education_level.map(
+          (lvl) => educationMap[lvl],
+        ),
+        education_note: Object.fromEntries(
+          Object.entries(formData.education_note).map(([k, v]) => [
+            educationMap[k],
+            v,
+          ]),
+        ),
+
+        // =========================
+        // IT FACILITY
+        // =========================
+        access: formData.access || [],
+        printer: formData.printer || [],
+        application: formData.application || [],
+
+        // =========================
+        //  ASSIGNMENT FORMAT BARU (ARRAY)
+        // =========================
+        assignments: assignments,
+      };
+
+      console.log(" Payload being sent:", payload);
+      console.log(" Assignments count:", assignments.length);
+      console.log(" Assignments:", assignments);
+
+      //  Kirim request update
+      await axios.patch(`${API_URL}/api/iss_mpr/${decryptedId}`, payload, {
+        headers: { Authorization: "Bearer " + user.token },
+      });
+
+      //  Success alert
       await showAlert(
         "Success",
         "success",
-        "Item processed successfully",
+        "MPR updated successfully",
         false,
-        1000,
+        1500,
       );
 
-      fetchMprDetail();
+      //  Redirect ke list
+      router.push("/iss_mpr/list/all");
     } catch (err) {
+      console.error("UPDATE ERROR:", err);
       showAlert(
         "Error",
         "error",
-        err.response?.data?.message || "Approval failed",
+        err.response?.data?.message || "Failed to update MPR",
       );
     }
   };
+  // const handleApproval = async (approvalType, status) => {
+  //   try {
+  //     const decryptedId = decrypt(id);
 
-  const handleAlert = (approvalType, status) => {
-    showAlert(
-      "Are you sure?",
-      "question",
-      `You are about to ${status} this MPR`,
-      true,
-      null,
-      "Yes, proceed",
-      "Cancel",
-    ).then((confirmed) => {
-      if (confirmed) {
-        handleApproval(approvalType, status);
-      }
-    });
-  };
+  //     await axios.patch(
+  //       `${API_URL}/api/iss_mpr/${decryptedId}/approval`,
+  //       {
+  //         approval_type: approvalType,
+  //         status,
+  //       },
+  //       {
+  //         headers: { Authorization: "Bearer " + user.token },
+  //       },
+  //     );
 
-  const AssignmentBox = ({
-    title,
-    employeeData,
-    approvalType,
-    currentUser,
-  }) => {
-    const isAssignedUser =
-      currentUser?.badge_number &&
-      employeeData?.badge_number &&
-      currentUser.badge_number === employeeData.badge_number;
+  //     await showAlert(
+  //       "Success",
+  //       "success",
+  //       "Item processed successfully",
+  //       false,
+  //       1000,
+  //     );
 
-    const isNotApproved = !employeeData?.approval_date;
+  //     fetchMprDetail();
+  //   } catch (err) {
+  //     showAlert(
+  //       "Error",
+  //       "error",
+  //       err.response?.data?.message || "Approval failed",
+  //     );
+  //   }
+  // };
 
-    const canApprove =
-      approvalType && employeeData && isAssignedUser && isNotApproved;
+  // const handleAlert = (approvalType, status) => {
+  //   showAlert(
+  //     "Are you sure?",
+  //     "question",
+  //     `You are about to ${status} this MPR`,
+  //     true,
+  //     null,
+  //     "Yes, proceed",
+  //     "Cancel",
+  //   ).then((confirmed) => {
+  //     if (confirmed) {
+  //       handleApproval(approvalType, status);
+  //     }
+  //   });
+  // };
 
-    return (
-      <Box
-        style={{
-          border: "1px solid #dee2e6",
-          borderRadius: "6px",
-          padding: "12px",
-          marginBottom: "16px",
-        }}
-      >
-        <Text size="sm" fw={600} mb={8}>
-          {title}
-        </Text>
+  // const AssignmentBox = ({
+  //   title,
+  //   employeeData,
+  //   approvalType,
+  //   currentUser,
+  // }) => {
+  //   const isAssignedUser =
+  //     currentUser?.badge_number &&
+  //     employeeData?.badge_number &&
+  //     currentUser.badge_number === employeeData.badge_number;
 
-        <Text size="sm" c="dimmed">
-          Name: {employeeData?.full_name || "-"}
-        </Text>
-        <Text size="sm" c="dimmed">
-          Date:{" "}
-          {employeeData?.approval_date
-            ? new Date(employeeData.approval_date).toLocaleDateString()
-            : "-"}
-        </Text>
-        <Text size="sm" c="dimmed">
-          Status:{" "}
-          {employeeData?.status_sign === 1
-            ? "Approved"
-            : employeeData?.status_sign === 2
-              ? "Rejected"
-              : "Pending"}
-        </Text>
+  //   const isNotApproved = !employeeData?.approval_date;
 
-        {canApprove && (
-          <Group mt="md" grow>
-            <Button
-              size="xs"
-              color="green"
-              onClick={() => handleAlert(approvalType, "approved")}
-            >
-              Approve
-            </Button>
-            <Button
-              size="xs"
-              color="red"
-              onClick={() => handleAlert(approvalType, "rejected")}
-            >
-              Reject
-            </Button>
-          </Group>
-        )}
-      </Box>
-    );
-  };
+  //   const canApprove =
+  //     approvalType && employeeData && isAssignedUser && isNotApproved;
+
+  //   return (
+  //     <Box
+  //       style={{
+  //         border: "1px solid #dee2e6",
+  //         borderRadius: "6px",
+  //         padding: "12px",
+  //         marginBottom: "16px",
+  //       }}
+  //     >
+  //       <Text size="sm" fw={600} mb={8}>
+  //         {title}
+  //       </Text>
+
+  //       <Text size="sm" c="dimmed">
+  //         Name: {employeeData?.full_name || "-"}
+  //       </Text>
+  //       <Text size="sm" c="dimmed">
+  //         Date:{" "}
+  //         {employeeData?.approval_date
+  //           ? new Date(employeeData.approval_date).toLocaleDateString()
+  //           : "-"}
+  //       </Text>
+  //       <Text size="sm" c="dimmed">
+  //         Status:{" "}
+  //         {employeeData?.status_sign === 1
+  //           ? "Approved"
+  //           : employeeData?.status_sign === 2
+  //             ? "Rejected"
+  //             : "Pending"}
+  //       </Text>
+
+  //       {canApprove && (
+  //         <Group mt="md" grow>
+  //           <Button
+  //             size="xs"
+  //             color="green"
+  //             onClick={() => handleAlert(approvalType, "approved")}
+  //           >
+  //             Approve
+  //           </Button>
+  //           <Button
+  //             size="xs"
+  //             color="red"
+  //             onClick={() => handleAlert(approvalType, "rejected")}
+  //           >
+  //             Reject
+  //           </Button>
+  //         </Group>
+  //       )}
+  //     </Box>
+  //   );
+  // };
 
   if (loading) {
     return (
@@ -709,24 +756,15 @@ const handleSave = async () => {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
             {/* HEADER */}
-            <div className="px-4 py-3 border-b flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <IconArrowLeft
-                  size={20}
-                  onClick={() => router.back()}
-                  className="cursor-pointer hover:text-blue-600 transition-colors"
-                />
-                <h2 className="text-lg font-semibold">
-                  Edit MPR - {mprData.mpr_no}
-                </h2>
-              </div>
-              <Button
-                leftSection={<IconDeviceFloppy size={16} />}
-                onClick={handleSave}
-                color="blue"
-              >
-                Save Changes
-              </Button>
+            <div className="px-4 py-3 border-b flex items-center gap-2">
+              <IconArrowLeft
+                size={20}
+                onClick={() => router.back()}
+                className="cursor-pointer hover:text-blue-600 transition-colors"
+              />
+              <h2 className="text-lg font-semibold">
+                Edit MPR - {mprData.mpr_no}
+              </h2>
             </div>
 
             {/* FORM CONTENT */}
@@ -1129,125 +1167,149 @@ const handleSave = async () => {
 
               <h3 className="text-md font-semibold mb-4">Assignment</h3>
 
-<Table withTableBorder withColumnBorders>
-  <Table.Thead>
-    <Table.Tr>
-      <Table.Th>Process</Table.Th>
-      <Table.Th>User Assign</Table.Th>
-    </Table.Tr>
-  </Table.Thead>
+              <Table withTableBorder withColumnBorders>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Process</Table.Th>
+                    <Table.Th>User Assign</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
 
-  <Table.Tbody>
-    <Table.Tr>
-      <Table.Td>Requested By</Table.Td>
-      <Table.Td>
-        <ManagerSelect
-          value={formData.requested_by}
-          onChange={(val) =>
-            handleInputChange("requested_by", normalizeUserId(val))
-          }
-        />
-      </Table.Td>
-    </Table.Tr>
+                <Table.Tbody>
+                  <Table.Tr>
+                    <Table.Td>Requested By</Table.Td>
+                    <Table.Td>
+                      <ManagerSelect
+                        value={formData.requested_by}
+                        onChange={(val) =>
+                          handleInputChange(
+                            "requested_by",
+                            normalizeUserId(val),
+                          )
+                        }
+                      />
+                    </Table.Td>
+                  </Table.Tr>
 
-    {formData.id_project !== "11" && (
-      <>
-        <Table.Tr>
-          <Table.Td>Approved Section Manager</Table.Td>
-          <Table.Td>
-            <ManagerSelect
-              value={formData.approved_section_manager}
-              onChange={(val) =>
-                handleInputChange(
-                  "approved_section_manager",
-                  normalizeUserId(val),
-                )
-              }
-            />
-          </Table.Td>
-        </Table.Tr>
+                  {formData.id_project !== "11" && (
+                    <>
+                      <Table.Tr>
+                        <Table.Td>Approved Section Manager</Table.Td>
+                        <Table.Td>
+                          <ManagerSelect
+                            value={formData.approved_section_manager}
+                            onChange={(val) =>
+                              handleInputChange(
+                                "approved_section_manager",
+                                normalizeUserId(val),
+                              )
+                            }
+                          />
+                        </Table.Td>
+                      </Table.Tr>
 
-        <Table.Tr>
-          <Table.Td>Approved CM</Table.Td>
-          <Table.Td>
-            <ManagerSelect
-              value={formData.approved_cm}
-              onChange={(val) =>
-                handleInputChange("approved_cm", normalizeUserId(val))
-              }
-            />
-          </Table.Td>
-        </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>Approved CM</Table.Td>
+                        <Table.Td>
+                          <ManagerSelect
+                            value={formData.approved_cm}
+                            onChange={(val) =>
+                              handleInputChange(
+                                "approved_cm",
+                                normalizeUserId(val),
+                              )
+                            }
+                          />
+                        </Table.Td>
+                      </Table.Tr>
 
-        <Table.Tr>
-          <Table.Td>Concurred PMO</Table.Td>
-          <Table.Td>
-            <ManagerSelect
-              value={formData.concurred_pmo}
-              onChange={(val) =>
-                handleInputChange("concurred_pmo", normalizeUserId(val))
-              }
-            />
-          </Table.Td>
-        </Table.Tr>
+                      <Table.Tr>
+                        <Table.Td>Concurred PMO</Table.Td>
+                        <Table.Td>
+                          <ManagerSelect
+                            value={formData.concurred_pmo}
+                            onChange={(val) =>
+                              handleInputChange(
+                                "concurred_pmo",
+                                normalizeUserId(val),
+                              )
+                            }
+                          />
+                        </Table.Td>
+                      </Table.Tr>
 
-        <Table.Tr>
-          <Table.Td>Concurred Yard Manager</Table.Td>
-          <Table.Td>
-            <ManagerSelect
-              value={formData.concurred_yard_manager}
-              onChange={(val) =>
-                handleInputChange(
-                  "concurred_yard_manager",
-                  normalizeUserId(val),
-                )
-              }
-            />
-          </Table.Td>
-        </Table.Tr>
-      </>
-    )}
+                      <Table.Tr>
+                        <Table.Td>Concurred Yard Manager</Table.Td>
+                        <Table.Td>
+                          <ManagerSelect
+                            value={formData.concurred_yard_manager}
+                            onChange={(val) =>
+                              handleInputChange(
+                                "concurred_yard_manager",
+                                normalizeUserId(val),
+                              )
+                            }
+                          />
+                        </Table.Td>
+                      </Table.Tr>
+                    </>
+                  )}
 
-    {formData.id_project === "11" && (
-      <Table.Tr>
-        <Table.Td>Concurred By</Table.Td>
-        <Table.Td>
-          <ManagerSelect
-            value={formData.concurred_by}
-            onChange={(val) =>
-              handleInputChange("concurred_by", normalizeUserId(val))
-            }
-          />
-        </Table.Td>
-      </Table.Tr>
-    )}
+                  {formData.id_project === "11" && (
+                    <Table.Tr>
+                      <Table.Td>Concurred By</Table.Td>
+                      <Table.Td>
+                        <ManagerSelect
+                          value={formData.concurred_by}
+                          onChange={(val) =>
+                            handleInputChange(
+                              "concurred_by",
+                              normalizeUserId(val),
+                            )
+                          }
+                        />
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
 
-    <Table.Tr>
-      <Table.Td>Acknowledged By HR</Table.Td>
-      <Table.Td>
-        <ManagerSelect
-          value={formData.acknowledged_by}
-          onChange={(val) =>
-            handleInputChange("acknowledged_by", normalizeUserId(val))
-          }
-        />
-      </Table.Td>
-    </Table.Tr>
+                  <Table.Tr>
+                    <Table.Td>Acknowledged By HR</Table.Td>
+                    <Table.Td>
+                      <ManagerSelect
+                        value={formData.acknowledged_by}
+                        onChange={(val) =>
+                          handleInputChange(
+                            "acknowledged_by",
+                            normalizeUserId(val),
+                          )
+                        }
+                      />
+                    </Table.Td>
+                  </Table.Tr>
 
-    <Table.Tr>
-      <Table.Td>Approved By President Director</Table.Td>
-      <Table.Td>
-        <ManagerSelect
-          value={formData.approved_by}
-          onChange={(val) =>
-            handleInputChange("approved_by", normalizeUserId(val))
-          }
-        />
-      </Table.Td>
-    </Table.Tr>
-  </Table.Tbody>
-</Table>
-
+                  <Table.Tr>
+                    <Table.Td>Approved By President Director</Table.Td>
+                    <Table.Td>
+                      <ManagerSelect
+                        value={formData.approved_by}
+                        onChange={(val) =>
+                          handleInputChange("approved_by", normalizeUserId(val))
+                        }
+                      />
+                    </Table.Td>
+                  </Table.Tr>
+                </Table.Tbody>
+              </Table>
+              <div className="mt-8 flex justify-end">
+                <Button
+                  leftSection={<IconDeviceFloppy size={16} />}
+                  onClick={handleSave}
+                  color="blue"
+                  size="md"
+                >
+                  Save Changes
+                </Button>
+              </div>
             </div>
           </Paper>
         </div>

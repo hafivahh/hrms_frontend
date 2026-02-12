@@ -1,5 +1,6 @@
 import AuthLayout from "@/components/layout/authLayout";
 import { employee } from "@/data/sidebar/employee";
+import ManagerSelect from "@/components/ManagerSelect";
 import useApi from "@/hooks/useApi";
 import axios from "axios";
 import useUser from "@/store/useUser";
@@ -156,6 +157,13 @@ export default function IssMprCreate() {
         [key]: value,
       },
     }));
+  };
+
+ // ✅ Helper untuk normalize user ID dari ManagerSelect
+  const normalizeUserId = (val) => {
+    if (!val) return null;
+    if (typeof val === "object") return val.id_user ?? null;
+    return Number(val);
   };
 
   const handleSubmit = async () => {
@@ -404,7 +412,7 @@ export default function IssMprCreate() {
     );
   };
 
-  return (
+return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
@@ -862,10 +870,10 @@ export default function IssMprCreate() {
                   <Table.Tr>
                     <Table.Td>Requested By (End User)</Table.Td>
                     <Table.Td>
-                      <PortalUserSelect
+                      <ManagerSelect
                         value={formData.requested_by}
                         onChange={(val) =>
-                          handleInputChange("requested_by", val)
+                          handleInputChange("requested_by", normalizeUserId(val))
                         }
                       />
                     </Table.Td>
@@ -876,10 +884,10 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Approved By Section Manager</Table.Td>
                       <Table.Td>
-                        <PortalUserSelect
+                        <ManagerSelect
                           value={formData.approved_section_manager}
                           onChange={(val) =>
-                            handleInputChange("approved_section_manager", val)
+                            handleInputChange("approved_section_manager", normalizeUserId(val))
                           }
                         />
                       </Table.Td>
@@ -891,10 +899,10 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Approved By (CM)</Table.Td>
                       <Table.Td>
-                        <PortalUserSelect
+                        <ManagerSelect
                           value={formData.approved_cm}
                           onChange={(val) =>
-                            handleInputChange("approved_cm", val)
+                            handleInputChange("approved_cm", normalizeUserId(val))
                           }
                         />
                       </Table.Td>
@@ -906,10 +914,10 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Concurred By (PMO)</Table.Td>
                       <Table.Td>
-                        <PortalUserSelect
+                        <ManagerSelect
                           value={formData.concurred_pmo}
                           onChange={(val) =>
-                            handleInputChange("concurred_pmo", val)
+                            handleInputChange("concurred_pmo", normalizeUserId(val))
                           }
                         />
                       </Table.Td>
@@ -921,10 +929,10 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Concurred Yard Manager</Table.Td>
                       <Table.Td>
-                        <PortalUserSelect
+                        <ManagerSelect
                           value={formData.concurred_yard_manager}
                           onChange={(val) =>
-                            handleInputChange("concurred_yard_manager", val)
+                            handleInputChange("concurred_yard_manager", normalizeUserId(val))
                           }
                         />
                       </Table.Td>
@@ -936,10 +944,10 @@ export default function IssMprCreate() {
                     <Table.Tr>
                       <Table.Td>Concurred By</Table.Td>
                       <Table.Td>
-                        <PortalUserSelect
+                        <ManagerSelect
                           value={formData.concurred_by}
                           onChange={(val) =>
-                            handleInputChange("concurred_by", val)
+                            handleInputChange("concurred_by", normalizeUserId(val))
                           }
                         />
                       </Table.Td>
@@ -950,10 +958,10 @@ export default function IssMprCreate() {
                   <Table.Tr>
                     <Table.Td>Acknowledged By HR</Table.Td>
                     <Table.Td>
-                      <PortalUserSelect
+                      <ManagerSelect
                         value={formData.acknowledged_by}
                         onChange={(val) =>
-                          handleInputChange("acknowledged_by", val)
+                          handleInputChange("acknowledged_by", normalizeUserId(val))
                         }
                       />
                     </Table.Td>
@@ -963,10 +971,10 @@ export default function IssMprCreate() {
                   <Table.Tr>
                     <Table.Td>Approved By (President Director)</Table.Td>
                     <Table.Td>
-                      <PortalUserSelect
+                      <ManagerSelect
                         value={formData.approved_by}
                         onChange={(val) =>
-                          handleInputChange("approved_by", val)
+                          handleInputChange("approved_by", normalizeUserId(val))
                         }
                       />
                     </Table.Td>

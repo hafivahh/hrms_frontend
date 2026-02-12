@@ -14,10 +14,53 @@ export default function ManagerSelect(props) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [initialUserLoaded, setInitialUserLoaded] = useState(false);
+
+  // ✅ Fetch semua users dan cari berdasarkan id_user
+  const fetchUserById = useCallback(async (userId) => {
+    if (!userId) return;
+
+    try {
+      // Gunakan endpoint list yang sudah ada
+      const res = await axios.get(`${API_URL}/api/user/list`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+
+      const users = res.data || [];
+      
+      // Cari user berdasarkan id_user
+      const foundUser = users.find(u => u.id_user === Number(userId));
+      
+      if (foundUser) {
+        const userData = {
+          value: String(foundUser.id_user),
+          label: `${foundUser.full_name} - ${foundUser.badge_number}`,
+        };
+        
+        setSelectedOption(userData);
+        setData((prev) => {
+          const exists = prev.some(item => item.value === userData.value);
+          return exists ? prev : [userData, ...prev];
+        });
+        setInitialUserLoaded(true);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user by ID:", err);
+    }
+  }, [API_URL, user.token]);
+
+  // ✅ Load initial user saat component mount dengan value
+  useEffect(() => {
+    if (value && !initialUserLoaded) {
+      fetchUserById(value);
+    }
+  }, [value, initialUserLoaded, fetchUserById]);
 
   const fetchUsers = useCallback(async (text) => {
     if (!text || text.length < 2) {
-      setData([]);
+      if (!selectedOption) {
+        setData([]);
+      }
       return;
     }
 
@@ -29,27 +72,32 @@ export default function ManagerSelect(props) {
       });
 
       const users = res.data || [];
-      setData(
-        users.map((u) => ({
-          value: String(u.id_user),
-          label: `${u.full_name} - ${u.badge_number}`,
-        }))
-      );
+      const mappedUsers = users.map((u) => ({
+        value: String(u.id_user),
+        label: `${u.full_name} - ${u.badge_number}`,
+      }));
+
+      setData((prev) => {
+        if (selectedOption && !mappedUsers.some(u => u.value === selectedOption.value)) {
+          return [selectedOption, ...mappedUsers];
+        }
+        return mappedUsers;
+      });
     } catch (err) {
       console.error(err);
-      setData([]);
+      setData(selectedOption ? [selectedOption] : []);
     } finally {
       setLoading(false);
     }
-  }, [API_URL, user.token]);
+  }, [API_URL, user.token, selectedOption]);
 
   useEffect(() => {
     const timeout = setTimeout(() => fetchUsers(search), 500);
     return () => clearTimeout(timeout);
   }, [search, fetchUsers]);
 
-const handleChange = (val) => {
-  onChange(val ? Number(val) : null)
+  const handleChange = (val) => {
+    onChange(val ? Number(val) : null);
 
     const selected = [...data, ...(choose ?? [])].find(
       (u) => u.value === val
@@ -57,6 +105,9 @@ const handleChange = (val) => {
 
     if (selected) {
       setSelectedOption(selected);
+    } else if (!val) {
+      setSelectedOption(null);
+      setInitialUserLoaded(false);
     }
 
     if (onSelect && selected) {
@@ -70,7 +121,7 @@ const handleChange = (val) => {
       clearable
       placeholder="Type to search..."
       value={value ? String(value) : null}
-      onChange={(val) => onChange(val ? Number(val) : null)} // 🔥 FIX
+      onChange={handleChange}
       data={data}
       searchValue={search}
       onSearchChange={setSearch}

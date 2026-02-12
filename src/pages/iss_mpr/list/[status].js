@@ -11,6 +11,7 @@ import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Swal from "sweetalert2";
 
 export const getStaticPaths = async () => {
   return {
@@ -34,7 +35,18 @@ export default function IssMprList({ mpr_status }) {
 
   const allowedStatus = [
     "all",
+    "draft",
     "pending",
+    "completed",
+    "rejected",
+    "pending_requestor_end_user",
+    "pending_acknowledge_sm",
+    "pending_requestor_cm",
+    "pending_concurred_pmo",
+    "pending_concurred",
+    "pending_concurred_ym",
+    "pending_acknowledge_hr",
+    "pending_approval_president",
   ];
 
   useEffect(() => {
@@ -60,25 +72,60 @@ export default function IssMprList({ mpr_status }) {
 
   const [totalPages, setTotalPages] = useState(1);
 
-  // STATUS MAP untuk Recruitment Status
+  // STATUS MAP untuk Vacant Type
   const vacantTypeMap = {
     1: { label: "New Position", color: "green" },
     2: { label: "Replacement", color: "blue" },
   };
 
-const mprStatusMap = {
-  0: { label: "Draft", color: "gray" },
-  2: { label: "Pending Approval", color: "yellow" },
-  1: { label: "Pending Approval", color: "yellow" },
-  3: { label: "Pending Approval", color: "yellow" },
-  4: { label: "Pending Approval", color: "yellow" },
-  5: { label: "Pending Approval", color: "yellow" },
-  6: { label: "Pending Approval", color: "yellow" },
-  7: { label: "Pending Approval", color: "yellow" },
-  8: { label: "Pending Approval", color: "yellow" },
-  9: { label: "Completed", color: "green" },
-  10: { label: "Rejected", color: "red" },
-};
+  // STATUS MAP untuk MPR Status
+  const mprStatusMap = {
+    0: { label: "Draft", color: "gray" },
+    1: { label: "Pending Approval", color: "yellow" },
+    2: { label: "Completed", color: "green" },
+    3: { label: "Rejected", color: "red" },
+  };
+
+  // STATUS MAP untuk Index Sign (Approval Stage)
+  const indexSignMap = {
+    0: { label: "Pending Requestor (End User)", color: "orange" },
+    1: { label: "Pending Acknowledge (SM)", color: "yellow" },
+    2: { label: "Pending Requestor (CM)", color: "orange" },
+    3: { label: "Pending Concurred (PMO)", color: "blue" },
+    4: { label: "Pending Concurred", color: "blue" },
+    5: { label: "Pending Concurred (YM)", color: "blue" },
+    6: { label: "Pending Acknowledge (HR)", color: "cyan" },
+    7: { label: "Pending Approval President", color: "grape" },
+  };
+
+  // STATUS MAP untuk Recruitment Status
+  const recruitmentStatusMap = {
+    open: { label: "Open", color: "blue" },
+    in_progress: { label: "In Progress", color: "yellow" },
+    on_hold: { label: "On Hold", color: "orange" },
+    closed: { label: "Closed", color: "green" },
+    cancelled: { label: "Cancelled", color: "red" },
+  };
+
+  // Helper function to get page title
+  const getPageTitle = () => {
+    const titleMap = {
+      all: "All MPR List",
+      draft: "Draft MPR List",
+      pending: "Pending Approval MPR List",
+      completed: "Completed MPR List",
+      rejected: "Rejected MPR List",
+      pending_requestor_end_user: "Pending Requestor (End User)",
+      pending_acknowledge_sm: "Pending Acknowledge (SM)",
+      pending_requestor_cm: "Pending Requestor (CM)",
+      pending_concurred_pmo: "Pending Concurred (PMO)",
+      pending_concurred: "Pending Concurred",
+      pending_concurred_ym: "Pending Concurred (YM)",
+      pending_acknowledge_hr: "Pending Acknowledge (HR)",
+      pending_approval_president: "Pending Approval President",
+    };
+    return titleMap[mpr_status] || "MPR List";
+  };
 
   // ======================
   // TABLE COLUMNS
@@ -167,7 +214,6 @@ const mprStatusMap = {
           );
         },
       },
-
       {
         accessorFn: (row) => row.required_date,
         id: "required_date",
@@ -221,7 +267,7 @@ const mprStatusMap = {
         header: () => (
           <span className="flex flex-col text-center">
             <span>Status</span>
-            <span>MR</span>
+            <span>MPR</span>
           </span>
         ),
         enableColumnFilter: true,
@@ -242,7 +288,38 @@ const mprStatusMap = {
           );
         },
       },
+      // Tambahkan kolom index_sign hanya jika mpr_status adalah pending approval
+      ...(mpr_status === "pending" || mpr_status.startsWith("pending_")
+        ? [
+            {
+              accessorFn: (row) => row.index_sign,
+              id: "index_sign",
+              header: () => (
+                <span className="flex flex-col text-center">
+                  <span>Approval</span>
+                  <span>Stage</span>
+                </span>
+              ),
+              enableColumnFilter: false,
+              enableSorting: true,
+              cell: (info) => {
+                const val = Number(info.getValue());
+                if (isNaN(val)) return "-";
 
+                const stage = indexSignMap[val] ?? {
+                  label: "Unknown",
+                  color: "gray",
+                };
+
+                return (
+                  <Badge color={stage.color} variant="filled" size="sm">
+                    {stage.label}
+                  </Badge>
+                );
+              },
+            },
+          ]
+        : []),
       {
         accessorFn: (row) => row.recruitment_status,
         id: "recruitment_status",
@@ -301,7 +378,7 @@ const mprStatusMap = {
         },
       },
     ],
-    [encrypt, router],
+    [encrypt, router, mpr_status]
   );
 
   // ======================
@@ -355,7 +432,7 @@ const mprStatusMap = {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
-        },
+        }
       );
 
       setData(data.data);
@@ -366,7 +443,7 @@ const mprStatusMap = {
       setData([]);
       setTotalPages(1);
     }
-  }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting]);
+  }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting, mpr_status, API_URL, user.token]);
 
   useEffect(() => {
     fetchData();
@@ -381,9 +458,7 @@ const mprStatusMap = {
             <div className="px-4 py-3 border-b flex items-center gap-2">
               <IconList size={20} />
               <h2 className="text-lg font-semibold uppercase">
-                {status === "all"
-                  ? "MPR LIST"
-                  : `${status.replace(/_/g, " ")} MPR LIST`}
+                {getPageTitle()}
               </h2>
             </div>
 

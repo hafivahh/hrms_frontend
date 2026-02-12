@@ -10,7 +10,7 @@ export default function useSwal() {
     confirmText = "Submit",
     cancelText = "Cancel"
   ) => {
-    const showButtons = timer ? false : true;
+    const showButtons = !timer;
 
     return Swal.fire({
       title,
@@ -24,7 +24,7 @@ export default function useSwal() {
       confirmButtonColor: "#3085d6",
       timer: timer || undefined,
       timerProgressBar: !!timer,
-    }).then((result) => result.isConfirmed);
+    });
   };
 
   return { showAlert };

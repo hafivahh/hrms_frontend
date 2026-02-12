@@ -4,6 +4,7 @@ import useApi from "@/hooks/useApi";
 import axios from "axios";
 import useUser from "@/store/useUser";
 import useDecrypt from "@/hooks/useDecrypt";
+import useSwal from "@/hooks/useSwal";
 import {
   Paper,
   TextInput,
@@ -13,8 +14,12 @@ import {
   Divider,
   Text,
   Box,
+  Button,
+  Modal,
+  Group,
+  Badge,
 } from "@mantine/core";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconArrowLeft, IconCheck, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
@@ -23,18 +28,20 @@ export default function IssMprDetail() {
   const { id } = router.query;
   const { user } = useUser();
   const { decrypt } = useDecrypt();
+  const { showAlert } = useSwal();
   const API = useApi();
   const API_URL = API.API_URL;
   const [mprData, setMprData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState({});
-
-  // Style untuk readonly input
+  const [submitting, setSubmitting] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const readOnlyInputStyle = {
     input: {
-      backgroundColor: '#f1f3f5',
-      cursor: 'not-allowed',
-    }
+      backgroundColor: "#f1f3f5",
+      cursor: "not-allowed",
+    },
   };
 
   useEffect(() => {
@@ -51,7 +58,7 @@ export default function IssMprDetail() {
         `${API_URL}/api/iss_mpr/${decryptedId}`,
         {
           headers: { Authorization: "Bearer " + user.token },
-        }
+        },
       );
 
       const mpr = data.data;
@@ -64,20 +71,22 @@ export default function IssMprDetail() {
 
         return {
           ...assign.user,
+          user_id: assign.user_id,
           approval_date: assign.assign_date,
           status_sign: assign.status_sign,
+          index: assign.index,
         };
       };
 
       setAssignments({
-        requested_by: mapAssignment(1),
-        approved_section_manager: mapAssignment(2),
-        approved_cm: mapAssignment(3),
-        concurred_pmo: mapAssignment(4),
-        concurred_yard_manager: mapAssignment(5),
-        concurred_by: mapAssignment(6),
-        acknowledged_by: mapAssignment(7),
-        approved_by: mapAssignment(8),
+        requested_by: mapAssignment(0),
+        approved_section_manager: mapAssignment(1),
+        approved_cm: mapAssignment(2),
+        concurred_pmo: mapAssignment(3),
+        concurred_yard_manager: mapAssignment(4),
+        concurred_by: mapAssignment(5),
+        acknowledged_by: mapAssignment(6),
+        approved_by: mapAssignment(7),
       });
 
       setLoading(false);
@@ -87,38 +96,295 @@ export default function IssMprDetail() {
     }
   };
 
-  // Assignment Box - Display Only
+  // Submit MPR
+  const handleSubmitMpr = async () => {
+    try {
+      const confirm = await showAlert(
+        "Are you sure?",
+        "question",
+        "Do you want to submit this Manpower Request?",
+        true,
+        null,
+        "Submit",
+        "Cancel",
+      );
+
+      if (!confirm.isConfirmed) return;
+
+      setSubmitting(true);
+      const decryptedId = decrypt(id);
+
+      await axios.patch(
+        `${API_URL}/api/iss_mpr/${decryptedId}/submit`,
+        {},
+        {
+          headers: { Authorization: "Bearer " + user.token },
+        },
+      );
+
+      await showAlert(
+        "Success",
+        "success",
+        "Manpower request submitted successfully",
+        false,
+        1500,
+      );
+
+      router.push("/iss_mpr/list/all");
+    } catch (err) {
+      console.error("Failed to submit MPR:", err);
+      showAlert(
+        "Error",
+        "error",
+        err.response?.data?.message || "Failed to submit MPR",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Approve MPR
+  const handleApproveMpr = async () => {
+    try {
+      const confirm = await showAlert(
+        "Approve Request?",
+        "question",
+        "Are you sure you want to approve this Manpower Request?",
+        true,
+        null,
+        "Approve",
+        "Cancel",
+      );
+
+      if (!confirm.isConfirmed) return;
+
+      setApproving(true);
+      const decryptedId = decrypt(id);
+
+      await axios.patch(
+        `${API_URL}/api/iss_mpr/${decryptedId}/approve`,
+        {},
+        {
+          headers: { Authorization: "Bearer " + user.token },
+        },
+      );
+
+      await showAlert(
+        "Success",
+        "success",
+        "Manpower request approved successfully",
+        false,
+        1500,
+      );
+
+      // Refresh data untuk menampilkan button di step berikutnya
+      fetchMprDetail();
+    } catch (err) {
+      console.error("Failed to approve MPR:", err);
+      showAlert(
+        "Error",
+        "error",
+        err.response?.data?.message || "Failed to approve MPR",
+      );
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  // Reject MPR
+  const handleRejectMpr = async () => {
+    try {
+      const confirm = await showAlert(
+        "Reject Request?",
+        "question",
+        "Are you sure you want to reject this Manpower Request?",
+        true,
+        null,
+        "Reject",
+        "Cancel",
+      );
+
+      if (!confirm.isConfirmed) return;
+
+      setRejecting(true);
+      const decryptedId = decrypt(id);
+
+      await axios.patch(
+        `${API_URL}/api/iss_mpr/${decryptedId}/reject`,
+        {},
+        {
+          headers: { Authorization: "Bearer " + user.token },
+        },
+      );
+
+      await showAlert(
+        "Success",
+        "success",
+        "Manpower request rejected",
+        false,
+        1200,
+      );
+
+      fetchMprDetail();
+    } catch (err) {
+      showAlert(
+        "Error",
+        "error",
+        err.response?.data?.message || "Failed to reject MPR",
+      );
+    } finally {
+      setRejecting(false);
+    }
+  };
+
+  /**
+   *  DYNAMIC ASSIGNMENT BOX
+   */
   const AssignmentBox = ({ title, employeeData }) => {
+    if (!employeeData) return null;
+
+    const isCurrentStep =
+      Number(mprData?.mpr_status) === 1 &&
+      Number(mprData?.index_sign) === Number(employeeData.index);
+
+    // Decrypt user ID untuk mendapatkan numeric ID
+    let currentUserId = null;
+    try {
+      if (user?.id) {
+        currentUserId = Number(decrypt(user.id));
+      }
+    } catch (error) {
+      console.error("Failed to decrypt user ID:", error);
+    }
+
+    // Cek apakah user yang login adalah user yang terdaftar di assignment ini
+    const isAuthorizedUser =
+      currentUserId && Number(currentUserId) === Number(employeeData.user_id);
+
+    const canApprove =
+      isCurrentStep &&
+      isAuthorizedUser &&
+      employeeData.status_sign !== 1 &&
+      employeeData.status_sign !== 2;
+
+    // Format tanggal dengan waktu
+    const formatDateTime = (date) => {
+      if (!date) return "-";
+      return new Date(date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+    };
+    const getSignatureStatus = (statusSign) => {
+      if (statusSign === 1) return { label: "Approved", color: "green" };
+      if (statusSign === 2) return { label: "Rejected", color: "red" };
+      return null;
+    };
+
     return (
       <Box
         style={{
-          border: "1px solid #dee2e6",
-          borderRadius: "6px",
-          padding: "12px",
-          marginBottom: "16px",
+          border: isCurrentStep ? "2px solid #228be6" : "1px solid #dee2e6",
+          borderRadius: 6,
+          padding: 12,
+          marginBottom: 16,
+          backgroundColor: isCurrentStep ? "#f0f8ff" : "white",
         }}
       >
-        <Text size="sm" fw={600} mb={8}>
-          {title}
-        </Text>
+        <div className="space-y-1">
+          <div className="flex">
+            <Text size="sm" fw={400} style={{ minWidth: "90px" }}>
+              Name
+            </Text>
+            <Text size="sm" fw={400} mr={8}>
+              :
+            </Text>
+            <Text size="sm">{employeeData.full_name ?? "-"}</Text>
+          </div>
 
-        <Text size="sm" c="dimmed">
-          Name: {employeeData?.full_name || "-"}
-        </Text>
-        <Text size="sm" c="dimmed">
-          Date:{" "}
-          {employeeData?.approval_date
-            ? new Date(employeeData.approval_date).toLocaleDateString()
-            : "-"}
-        </Text>
-        <Text size="sm" c="dimmed">
-          Status:{" "}
-          {employeeData?.status_sign === 1
-            ? "Approved"
-            : employeeData?.status_sign === 2
-            ? "Rejected"
-            : "Pending"}
-        </Text>
+          <div className="flex">
+            <Text size="sm" fw={400} style={{ minWidth: "90px" }}>
+              Date
+            </Text>
+            <Text size="sm" fw={400} mr={8}>
+              :
+            </Text>
+            <Text size="sm">
+              {employeeData.status_sign === 1 || employeeData.status_sign === 2
+                ? new Date(employeeData.approval_date).toLocaleDateString(
+                    "en-GB",
+                    {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    },
+                  )
+                : "-"}
+            </Text>
+          </div>
+
+          <div className="flex">
+            <Text size="sm" fw={400} style={{ minWidth: "90px" }}>
+              Signature
+            </Text>
+            <Text size="sm" fw={400} mr={8}>
+              :
+            </Text>
+            <div>
+              {employeeData.status_sign === 1 ||
+              employeeData.status_sign === 2 ? (
+                <>
+                  <Text size="sm" fw={400}>
+                    {employeeData.full_name}
+                  </Text>
+
+                  <Text size="xs" c="dimmed">
+                    {formatDateTime(employeeData.approval_date)}
+                  </Text>
+                  <Text
+                    size="xs"
+                    fw={600}
+                    c={getSignatureStatus(employeeData.status_sign)?.color}
+                  >
+                    {getSignatureStatus(employeeData.status_sign)?.label}
+                  </Text>
+                </>
+              ) : (
+                <Text size="sm">-</Text>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {canApprove && (
+          <div className="flex gap-2 mt-3 pt-3 border-t">
+            <Button
+              size="xs"
+              color="red"
+              variant="light"
+              onClick={handleRejectMpr}
+              loading={rejecting}
+              fullWidth
+            >
+              Reject
+            </Button>
+
+            <Button
+              size="xs"
+              color="green"
+              onClick={handleApproveMpr}
+              loading={approving}
+              fullWidth
+            >
+              Approve
+            </Button>
+          </div>
+        )}
       </Box>
     );
   };
@@ -149,15 +415,17 @@ export default function IssMprDetail() {
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
             {/* HEADER */}
-            <div className="px-4 py-3 border-b flex items-center gap-2">
-              <IconArrowLeft
-                size={20}
-                onClick={() => router.back()}
-                className="cursor-pointer hover:text-blue-600 transition-colors"
-              />
-              <h2 className="text-lg font-semibold">
-                MPR Detail - {mprData.mpr_no}
-              </h2>
+            <div className="px-4 py-3 border-b flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <IconArrowLeft
+                  size={20}
+                  onClick={() => router.back()}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold">
+                  MPR Detail - {mprData.mpr_no}
+                </h2>
+              </div>
             </div>
 
             {/* FORM CONTENT */}
@@ -210,10 +478,10 @@ export default function IssMprDetail() {
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
-                  <TextInput 
-                    label="Qty" 
-                    value={mprData.qty || "0"} 
-                    readOnly 
+                  <TextInput
+                    label="Qty"
+                    value={mprData.qty || "0"}
+                    readOnly
                     styles={readOnlyInputStyle}
                   />
                 </Grid.Col>
@@ -290,9 +558,9 @@ export default function IssMprDetail() {
                 <label className="block text-sm font-medium mb-2">
                   3. Years of Relevant Experience
                 </label>
-                <TextInput 
-                  value={mprData.experience_years || "-"} 
-                  readOnly 
+                <TextInput
+                  value={mprData.experience_years || "-"}
+                  readOnly
                   styles={readOnlyInputStyle}
                 />
               </div>
@@ -364,7 +632,11 @@ export default function IssMprDetail() {
                       readOnly
                       disabled={mprData.contract_type !== 2}
                       className="w-40"
-                      styles={mprData.contract_type === 2 ? readOnlyInputStyle : undefined}
+                      styles={
+                        mprData.contract_type === 2
+                          ? readOnlyInputStyle
+                          : undefined
+                      }
                     />
                     <span className="text-sm text-gray-600">Month</span>
                   </div>
@@ -507,8 +779,10 @@ export default function IssMprDetail() {
 
               <Divider my="lg" />
 
-              {/* Section 10: Assignment - Display Only */}
-              <h3 className="text-md font-semibold mb-4">Assignment</h3>
+              {/* Section 10: DYNAMIC APPROVAL FLOW */}
+              <div className="mb-4">
+                <h3 className="text-md font-semibold">Approval Remarks</h3>
+              </div>
 
               <Grid>
                 <Grid.Col span={{ base: 12, md: 4 }}>
@@ -577,6 +851,22 @@ export default function IssMprDetail() {
                   />
                 </Grid.Col>
               </Grid>
+
+              <Divider my="lg" />
+
+              {/* Submit Button - Only show if draft */}
+              {mprData.mpr_status === 0 && (
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSubmitMpr}
+                    loading={submitting}
+                    size="md"
+                    color="blue"
+                  >
+                    Submit Manpower Request
+                  </Button>
+                </div>
+              )}
             </div>
           </Paper>
         </div>
