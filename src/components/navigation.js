@@ -51,7 +51,7 @@ const navigation = [
     child: [
       {
         title: "Profile",
-        url: "/ess_profile/index",
+        url: "/ess_profile",
         icon: <IconUsers size={18} />,
       },
       {

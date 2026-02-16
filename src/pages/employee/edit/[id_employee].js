@@ -9,6 +9,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { employee } from "@/data/sidebar/employee";
+import { DateInput } from "@mantine/dates";
 
 Edit_Employee.title = "Edit Employee";
 
@@ -36,6 +37,7 @@ export default function Edit_Employee() {
       id_departement: "",
       id_project: "",
       id_company: "",
+      join_date: null,
     },
     validate: {
       badge_number: (value) =>
@@ -81,6 +83,8 @@ export default function Edit_Employee() {
           id_departement: data.departement?.id?.toString() || "",
           id_project: data.project?.id?.toString() || "",
           id_company: data.company?.id?.toString() || "",
+          join_date: data.join_date ? new Date(data.join_date) : null,
+
         });
       } catch (error) {
         showAlert("Error", "error", "Failed to load employee data");
@@ -114,6 +118,9 @@ export default function Edit_Employee() {
         id_departement: Number(values.id_departement),
         id_project: Number(values.id_project),
         id_company: Number(values.id_company),
+        join_date: values.join_date
+    ? values.join_date.toISOString()
+    : null,
       };
 
       const { data } = await axios.put(
@@ -240,7 +247,14 @@ export default function Edit_Employee() {
               searchable
               {...form.getInputProps("id_company")}
             />
-          </div>
+            {/* JOIN DATE */}
+            <DateInput
+            label="Join Date"
+            placeholder="Select join date"
+            withAsterisk
+            {...form.getInputProps("join_date")}
+            />
+            </div>
 
           {/* UPDATE BUTTON - FULL WIDTH */}
           <Button

@@ -4,7 +4,7 @@ import { employee } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
-import { Button, Paper, Badge } from "@mantine/core";
+import { Button, Paper, Badge, Select } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
 import { IconList, IconPencil, IconEye } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
@@ -12,6 +12,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
+import useSwal from "@/hooks/useSwal";
 
 export const getStaticPaths = async () => {
   return {
@@ -30,6 +31,7 @@ export default function IssMprList({ mpr_status }) {
   const router = useRouter();
   const { user } = useUser();
   const { encrypt } = useEncrypt();
+  const { showAlert } = useSwal();
   const API = useApi();
   const API_URL = API.API_URL;
 
@@ -110,7 +112,7 @@ export default function IssMprList({ mpr_status }) {
   // Helper function to get page title
   const getPageTitle = () => {
     const titleMap = {
-      all: "All MPR List",
+      all: "MPR List",
       draft: "Draft MPR List",
       pending: "Pending Approval MPR List",
       completed: "Completed MPR List",
@@ -165,28 +167,24 @@ export default function IssMprList({ mpr_status }) {
         cell: (info) => info.getValue() || "-",
       },
       {
-        header: "Qty",
-        columns: [
-          {
-            accessorFn: (row) => row.qty_request,
-            id: "qty_request",
-            header: "Request",
-            enableColumnFilter: false,
-            enableSorting: true,
-            cell: (info) => info.getValue() || 0,
-            size: 80,
-          },
-          {
-            accessorFn: (row) => row.qty_new_join,
-            id: "qty_new_join",
-            header: "New Join",
-            enableColumnFilter: false,
-            enableSorting: true,
-            cell: (info) => info.getValue() || 0,
-            size: 80,
-          },
-        ],
+        accessorFn: (row) => row.qty_request,
+        id: "qty_request",
+        header: "Request",
+        enableColumnFilter: false,
+        enableSorting: true,
+        cell: (info) => info.getValue() || 0,
+        size: 100,
       },
+      {
+        accessorFn: (row) => row.qty_new_join,
+        id: "qty_new_join",
+        header: "New Join",
+        enableColumnFilter: false,
+        enableSorting: true,
+        cell: (info) => info.getValue() || 0,
+        size: 100,
+      },
+
       {
         accessorFn: (row) => row.vacant_type,
         id: "vacant_type",
@@ -332,18 +330,77 @@ export default function IssMprList({ mpr_status }) {
         enableColumnFilter: true,
         enableSorting: true,
         cell: (info) => {
-          const val = info.getValue();
-          if (!val) return "-";
+          const row = info.row.original;
+          const currentStatus = info.getValue();
 
-          const statusInfo = recruitmentStatusMap[val] || {
-            label: val,
-            color: "gray",
+          const statusOptions = [
+            { value: "", label: "---" },
+            { value: 1, label: "Open" },
+            { value: 2, label: "Fulfillment in Progress" },
+            { value: 3, label: "Closed" },
+            { value: 4, label: "Cancel" },
+          ];
+
+          const handleStatusChange = async (newStatus) => {
+            try {
+              if (newStatus === "") return;
+
+              const confirm = await showAlert(
+                "Are you sure?",
+                "question",
+                "Do you want to update recruitment status?",
+                true,
+                null,
+                "Yes, Update",
+                "Cancel",
+              );
+
+              if (!confirm) return;
+
+              await axios.patch(
+                `${API_URL}/api/iss_mpr/${row.id}/recruitment-status`,
+                {
+                  recruitment_status: Number(newStatus),
+                },
+                {
+                  headers: { Authorization: "Bearer " + user.token },
+                },
+              );
+
+              await fetchData();
+
+              await showAlert(
+                "Success",
+                "success",
+                "Recruitment status updated successfully",
+                false,
+                1500,
+              );
+            } catch (err) {
+              console.error("Update error:", err);
+
+              await showAlert(
+                "Error",
+                "error",
+                err.response?.data?.message ||
+                  "Failed to update recruitment status",
+                false,
+                2000,
+              );
+            }
           };
 
           return (
-            <Badge color={statusInfo.color} variant="filled" size="sm">
-              {statusInfo.label}
-            </Badge>
+            <Select
+              value={currentStatus ? String(currentStatus) : ""}
+              onChange={(val) => handleStatusChange(val)}
+              data={statusOptions.map((opt) => ({
+                value: String(opt.value),
+                label: opt.label,
+              }))}
+              size="xs"
+              disabled={row.mpr_status !== 2}
+            />
           );
         },
       },
@@ -378,7 +435,7 @@ export default function IssMprList({ mpr_status }) {
         },
       },
     ],
-    [encrypt, router, mpr_status]
+    [encrypt, router, mpr_status],
   );
 
   // ======================
@@ -432,7 +489,7 @@ export default function IssMprList({ mpr_status }) {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
-        }
+        },
       );
 
       setData(data.data);
@@ -443,7 +500,15 @@ export default function IssMprList({ mpr_status }) {
       setData([]);
       setTotalPages(1);
     }
-  }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting, mpr_status, API_URL, user.token]);
+  }, [
+    columnFilters,
+    pagination.pageIndex,
+    pagination.pageSize,
+    sorting,
+    mpr_status,
+    API_URL,
+    user.token,
+  ]);
 
   useEffect(() => {
     fetchData();
