@@ -12,8 +12,13 @@ export const employee = [
     child: [
       { title: "List", href: "/employee/list", icon: <IconCaretRightFilled size={14} /> },
       {
+        title: "List Documents",
+        href: "/iss_documents/list",
+        icon: <IconCaretRightFilled size={14} />,
+      },
+      {
         title: "Worker Documents",
-        href: "/employee/document_worker",
+        href: "/iss_documents",
         icon: <IconCaretRightFilled size={14} />,
       },
     ],

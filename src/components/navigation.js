@@ -59,6 +59,11 @@ const navigation = [
         url: "/ess_leave/list",
         icon: <IconList size={18} />,
       },
+      {
+        title: "Documents",
+        url: "/ess_documents",
+        icon: <IconList size={18} />,
+      },
         {
         title: "Attendance",
         url: "/pss/attendance",

@@ -354,8 +354,7 @@ export default function IssMprList({ mpr_status }) {
                 "Yes, Update",
                 "Cancel",
               );
-
-              if (!confirm) return;
+if (!confirm?.isConfirmed) return;
 
               await axios.patch(
                 `${API_URL}/api/iss_mpr/${row.id}/recruitment-status`,

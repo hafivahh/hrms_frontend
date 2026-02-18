@@ -141,7 +141,7 @@ export default function List() {
       "Cancel"
     );
 
-    if (!confirm) return;
+     if (!confirm?.isConfirmed) return;
 
     try {
       await axios.delete(`${API_URL}/api/employee/${encryptedId}`, {

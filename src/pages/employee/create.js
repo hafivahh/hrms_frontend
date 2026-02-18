@@ -111,7 +111,7 @@ export default function Add_employee() {
       "Cancel"
     );
 
-    if (!confirm) return;
+    if (!confirm?.isConfirmed) return;
 
     const payload = {
       ...values,

@@ -177,7 +177,7 @@ export default function IssMprCreate() {
       "Cancel",
     );
 
-    if (!confirm) return;
+    if (!confirm?.isConfirmed) return;
 
     const payload = {
       ...formData,

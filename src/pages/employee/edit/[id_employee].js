@@ -108,7 +108,7 @@ export default function Edit_Employee() {
       "Cancel"
     );
 
-    if (!confirm) return;
+   if (!confirm?.isConfirmed) return;
 
     try {
       const payload = {
