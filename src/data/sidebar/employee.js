@@ -18,7 +18,7 @@ export const employee = [
       },
       {
         title: "Worker Documents",
-        href: "/iss_documents",
+        href: "/iss_documents/create",
         icon: <IconCaretRightFilled size={14} />,
       },
     ],

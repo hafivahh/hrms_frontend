@@ -22,7 +22,10 @@ import {
 import { IconArrowLeft, IconCheck, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import "react-quill/dist/quill.snow.css";
+import dynamic from "next/dynamic";
 
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 export default function IssMprDetail() {
   const router = useRouter();
   const { id } = router.query;
@@ -545,11 +548,15 @@ export default function IssMprDetail() {
                 <label className="block text-sm font-medium mb-2">
                   2. Job Description
                 </label>
-                <Textarea
-                  value={mprData.job_description || "-"}
-                  minRows={4}
-                  readOnly
-                  styles={readOnlyInputStyle}
+                <ReactQuill
+                  theme="snow"
+                  value={mprData.job_description || ""}
+                  readOnly={true}
+                  modules={{ toolbar: false }}
+                  style={{
+                    backgroundColor: "#f1f3f5",
+                    cursor: "not-allowed",
+                  }}
                 />
               </div>
 

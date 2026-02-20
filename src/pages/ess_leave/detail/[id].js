@@ -7,6 +7,7 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
 import { IconArrowLeft } from "@tabler/icons-react";
+import axios from "axios";
 
 export default function LeaveDetailPage() {
   const router = useRouter();
@@ -47,6 +48,30 @@ export default function LeaveDetailPage() {
       setLoading(false);
     }
   };
+const handleDownloadAttachment = async (leave) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/api/ess_leave/download/${leave.id}`,
+      {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", leave.attachment || "leave-file");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error("Download error:", error);
+    alert("Gagal download file");
+  }
+};
 
   useEffect(() => {
     fetchLeaveDetail();
@@ -156,26 +181,24 @@ export default function LeaveDetailPage() {
             <hr className="mx-6 border-gray-100" />
 
             {/* 2. ATTACHMENT */}
-            <div className="px-6 py-4">
-              <label className="text-sm font-semibold text-gray-600 mb-2 block">
-                Attachment
-              </label>
-              {leave.attachment ? (
-                <a
-                  // Gabungkan URL API + Folder + Nama File
-                  href={`${API_URL}/uploads/${leave.attachment}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center px-4 py-2 border rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
-                >
-                  View Attachment File
-                </a>
-              ) : (
-                <div className="text-gray-400 italic text-sm p-2 border border-dashed rounded bg-gray-50">
-                  No attachment provided
-                </div>
-              )}
-            </div>
+           <div className="px-6 py-4">
+  <label className="text-sm font-semibold text-gray-600 mb-2 block">
+    Attachment
+  </label>
+  {leave.attachment ? (
+    <button
+      onClick={() => handleDownloadAttachment(leave)}
+      className="inline-flex items-center px-4 py-2 border rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
+    >
+      Download Attachment
+    </button>
+  ) : (
+    <div className="text-gray-400 italic text-sm p-2 border border-dashed rounded bg-gray-50">
+      No attachment provided
+    </div>
+  )}
+</div>
+
 
             {/* 3. REMARK */}
             <div className="px-6 pb-8">

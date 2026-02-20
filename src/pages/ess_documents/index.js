@@ -23,6 +23,30 @@ export default function IssDocumentsList() {
     pageSize: 10,
   });
   const [totalPages, setTotalPages] = useState(1);
+const handleDownload = async (doc) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/api/ess_documents/download/${doc.id}`,
+      {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", doc.file_name || "document");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error("Download error:", error);
+    alert("Gagal download file");
+  }
+};
 
   // ======================
   // TABLE COLUMNS
@@ -75,16 +99,16 @@ export default function IssDocumentsList() {
         cell: ({ row }) => {
           const doc = row.original;
           return (
-            <Button
-              size="xs"
-              color="blue"
-              leftSection={<IconDownload size={16} />}
-              component="a"
-              href={`${API_URL}/${doc.file_path}`}
-              target="_blank"
-            >
-              Download
-            </Button>
+           <Button
+  size="xs"
+  color="blue"
+  leftSection={<IconDownload size={16} />}
+  onClick={() => handleDownload(doc)}
+>
+  Download
+</Button>
+
+
           );
         },
       },

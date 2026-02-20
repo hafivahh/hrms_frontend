@@ -1,3 +1,4 @@
+
 import AuthLayout from "@/components/layout/authLayout";
 import { employee } from "@/data/sidebar/employee";
 import ManagerSelect from "@/components/ManagerSelect";
@@ -23,6 +24,12 @@ import { DateInput } from "@mantine/dates";
 import { IconArrowLeft, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import "react-quill/dist/quill.snow.css";
+import dynamic from "next/dynamic";
+
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+});
 
 const employee_status = [
   { value: "1", label: "In Direct" },
@@ -159,14 +166,14 @@ export default function IssMprCreate() {
     }));
   };
 
- // ✅ Helper untuk normalize user ID dari ManagerSelect
+  // ✅ Helper untuk normalize user ID dari ManagerSelect
   const normalizeUserId = (val) => {
     if (!val) return null;
     if (typeof val === "object") return val.id_user ?? null;
     return Number(val);
   };
 
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     const confirm = await showAlert(
       "Are you sure?",
       "question",
@@ -333,7 +340,7 @@ export default function IssMprCreate() {
         .filter(
           (u) =>
             u.badge_number?.toLowerCase().includes(query) ||
-            u.full_name?.toLowerCase().includes(query)
+            u.full_name?.toLowerCase().includes(query),
         )
         .slice(0, 20) // Limit to 20 results
         .map((u) => ({
@@ -412,7 +419,7 @@ export default function IssMprCreate() {
     );
   };
 
-return (
+  return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
@@ -563,19 +570,26 @@ return (
               </div>
 
               {/* Section 4: Job Description */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                  2. Job Description <span className="text-red-500">*</span>
-                </label>
-                <Textarea
-                  placeholder="Input Job Description"
-                  minRows={4}
-                  value={formData.job_description}
-                  onChange={(e) =>
-                    handleInputChange("job_description", e.target.value)
-                  }
-                />
-              </div>
+<div className="mb-4">
+  <label className="block text-sm font-medium mb-2">
+    2. Job Description <span className="text-red-500">*</span>
+  </label>
+
+  <ReactQuill
+    theme="snow"
+    value={formData.job_description}
+    onChange={(value) =>
+      handleInputChange("job_description", value)
+    }
+    modules={{
+      toolbar: [
+        ["bold", "italic", "underline"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["clean"],
+      ],
+    }}
+  />
+</div>
 
               {/* Section 5: Years of Relevant Experience */}
               <div className="mb-6">
@@ -873,7 +887,10 @@ return (
                       <ManagerSelect
                         value={formData.requested_by}
                         onChange={(val) =>
-                          handleInputChange("requested_by", normalizeUserId(val))
+                          handleInputChange(
+                            "requested_by",
+                            normalizeUserId(val),
+                          )
                         }
                       />
                     </Table.Td>
@@ -887,7 +904,10 @@ return (
                         <ManagerSelect
                           value={formData.approved_section_manager}
                           onChange={(val) =>
-                            handleInputChange("approved_section_manager", normalizeUserId(val))
+                            handleInputChange(
+                              "approved_section_manager",
+                              normalizeUserId(val),
+                            )
                           }
                         />
                       </Table.Td>
@@ -902,7 +922,10 @@ return (
                         <ManagerSelect
                           value={formData.approved_cm}
                           onChange={(val) =>
-                            handleInputChange("approved_cm", normalizeUserId(val))
+                            handleInputChange(
+                              "approved_cm",
+                              normalizeUserId(val),
+                            )
                           }
                         />
                       </Table.Td>
@@ -917,7 +940,10 @@ return (
                         <ManagerSelect
                           value={formData.concurred_pmo}
                           onChange={(val) =>
-                            handleInputChange("concurred_pmo", normalizeUserId(val))
+                            handleInputChange(
+                              "concurred_pmo",
+                              normalizeUserId(val),
+                            )
                           }
                         />
                       </Table.Td>
@@ -932,7 +958,10 @@ return (
                         <ManagerSelect
                           value={formData.concurred_yard_manager}
                           onChange={(val) =>
-                            handleInputChange("concurred_yard_manager", normalizeUserId(val))
+                            handleInputChange(
+                              "concurred_yard_manager",
+                              normalizeUserId(val),
+                            )
                           }
                         />
                       </Table.Td>
@@ -947,7 +976,10 @@ return (
                         <ManagerSelect
                           value={formData.concurred_by}
                           onChange={(val) =>
-                            handleInputChange("concurred_by", normalizeUserId(val))
+                            handleInputChange(
+                              "concurred_by",
+                              normalizeUserId(val),
+                            )
                           }
                         />
                       </Table.Td>
@@ -961,7 +993,10 @@ return (
                       <ManagerSelect
                         value={formData.acknowledged_by}
                         onChange={(val) =>
-                          handleInputChange("acknowledged_by", normalizeUserId(val))
+                          handleInputChange(
+                            "acknowledged_by",
+                            normalizeUserId(val),
+                          )
                         }
                       />
                     </Table.Td>

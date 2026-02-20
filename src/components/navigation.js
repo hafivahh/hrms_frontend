@@ -42,6 +42,11 @@ const navigation = [
         url: "/iss_mpr/list/all",
         icon: <IconList size={18} />,
       },
+      {
+      title: "Create",
+      url: "/iss_mpr/create",
+      icon: <IconList size={14} />,
+    },
     ],
   },
   {
@@ -78,7 +83,7 @@ const navigation = [
     child: [
       {
         title: "Dashboard",
-        url: "/pss/attendance",
+        url: "/pss_recruitment",
         icon: <IconAccessible size={18} />,
       },
     ],

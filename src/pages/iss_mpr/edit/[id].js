@@ -25,7 +25,11 @@ import { IconArrowLeft, IconDeviceFloppy, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import useSwal from "@/hooks/useSwal";
+// Tambahkan di import atas (sama seperti create)
+import "react-quill/dist/quill.snow.css";
+import dynamic from "next/dynamic";
 
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 export default function IssMprEdit() {
   const router = useRouter();
   const { id } = router.query;
@@ -614,142 +618,7 @@ export default function IssMprEdit() {
     );
   }
 
-  //   const [localQuery, setLocalQuery] = useState("");
-  //   const [allUsers, setAllUsers] = useState([]);
-  //   const [filteredOptions, setFilteredOptions] = useState([]);
-  //   const [isLoading, setIsLoading] = useState(false);
-  //   const [selectedUser, setSelectedUser] = useState(null);
 
-  //   // ✅ Fetch all users saat component mount
-  //   useEffect(() => {
-  //     const fetchUsers = async () => {
-  //       try {
-  //         setIsLoading(true);
-  //         const res = await axios.get(`${API_URL}/api/user/list`, {
-  //           headers: { Authorization: "Bearer " + user.token },
-  //         });
-
-  //         // Asumsi response format: array of users
-  //         const users = res.data || [];
-  //         setAllUsers(users);
-  //       } catch (err) {
-  //         console.error("Failed to fetch users:", err);
-  //         showAlert("Error", "error", "Failed to load user list");
-  //       } finally {
-  //         setIsLoading(false);
-  //       }
-  //     };
-
-  //     fetchUsers();
-  //   }, []);
-
-  //   // ✅ Load selected user saat value berubah
-  //   useEffect(() => {
-  //     if (value && allUsers.length > 0) {
-  //       const user = allUsers.find((u) => u.id_user === value);
-  //       if (user) {
-  //         setSelectedUser({
-  //           id_user: user.id_user,
-  //           badge_number: user.badge_number,
-  //           full_name: user.full_name,
-  //           label: `${user.badge_number} - ${user.full_name}`,
-  //         });
-  //       }
-  //     } else if (!value) {
-  //       setSelectedUser(null);
-  //     }
-  //   }, [value, allUsers]);
-
-  //   // ✅ Filter users berdasarkan query (client-side)
-  //   useEffect(() => {
-  //     if (!localQuery || localQuery.trim().length === 0) {
-  //       setFilteredOptions([]);
-  //       return;
-  //     }
-
-  //     const query = localQuery.toLowerCase();
-  //     const filtered = allUsers
-  //       .filter(
-  //         (u) =>
-  //           u.badge_number?.toLowerCase().includes(query) ||
-  //           u.full_name?.toLowerCase().includes(query)
-  //       )
-  //       .slice(0, 20) // Limit to 20 results
-  //       .map((u) => ({
-  //         id_user: u.id_user,
-  //         badge_number: u.badge_number,
-  //         full_name: u.full_name,
-  //         label: `${u.badge_number} - ${u.full_name}`,
-  //       }));
-
-  //     setFilteredOptions(filtered);
-  //   }, [localQuery, allUsers]);
-
-  //   const displayValue = selectedUser?.label || "";
-
-  //   return (
-  //     <div style={{ position: "relative" }}>
-  //       <Autocomplete
-  //         placeholder="Type badge number or full name"
-  //         value={localQuery || displayValue}
-  //         data={filteredOptions.map((o) => o.label)}
-  //         onChange={(val) => {
-  //           setLocalQuery(val);
-
-  //           const selected = filteredOptions.find((o) => o.label === val);
-
-  //           if (selected) {
-  //             // ✅ Simpan id_user (number) ke formData
-  //             onChange(selected.id_user);
-  //             setSelectedUser(selected);
-  //             setLocalQuery("");
-  //           }
-
-  //           // Kalau user hapus manual isi input
-  //           if (!val || val.trim() === "") {
-  //             onChange(null);
-  //             setSelectedUser(null);
-  //             setLocalQuery("");
-  //           }
-  //         }}
-  //         limit={20}
-  //         nothingFoundMessage={
-  //           isLoading
-  //             ? "Loading users..."
-  //             : localQuery.trim().length > 0
-  //               ? "No user found"
-  //               : "Start typing to search"
-  //         }
-  //         disabled={isLoading}
-  //       />
-
-  //       {/* Tombol hapus user */}
-  //       {selectedUser && (
-  //         <ActionIcon
-  //           size="sm"
-  //           color="red"
-  //           variant="light"
-  //           radius="xl"
-  //           onClick={() => {
-  //             setSelectedUser(null);
-  //             setLocalQuery("");
-  //             setFilteredOptions([]);
-  //             onChange(null);
-  //           }}
-  //           style={{
-  //             position: "absolute",
-  //             right: 8,
-  //             top: "50%",
-  //             transform: "translateY(-50%)",
-  //             zIndex: 2,
-  //           }}
-  //         >
-  //           <IconX size={14} />
-  //         </ActionIcon>
-  //       )}
-  //     </div>
-  //   );
-  // };
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -908,21 +777,24 @@ export default function IssMprEdit() {
                   />
                 </div>
               </div>
-
-              {/* Section 4: Job Description */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                  2. Job Description
-                </label>
-                <Textarea
-                  value={formData.job_description}
-                  onChange={(e) =>
-                    handleInputChange("job_description", e.target.value)
-                  }
-                  minRows={4}
-                  styles={editableInputStyle}
-                />
-              </div>
+{/* Section 4: Job Description */}
+<div className="mb-4">
+  <label className="block text-sm font-medium mb-2">
+    2. Job Description
+  </label>
+  <ReactQuill
+    theme="snow"
+    value={formData.job_description}
+    onChange={(value) => handleInputChange("job_description", value)}
+    modules={{
+      toolbar: [
+        ["bold", "italic", "underline"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["clean"],
+      ],
+    }}
+  />
+</div>
 
               {/* Section 5: Experience */}
               <div className="mb-6">
