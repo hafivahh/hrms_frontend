@@ -118,4 +118,36 @@ export const employee = [
     },
   ],
 },
+{
+  title: "Recruitment",
+  href: "",
+  icon: <IconListLetters size={14} />,
+  child: [
+    {
+      title: "All",
+      href: "/iss_recruitment/list/all",
+      icon: <IconCaretRightFilled size={14} />,
+    },
+    {
+      title: "Open",
+      href: "/iss_recruitment/list/open",
+      icon: <IconCaretRightFilled size={14} />,
+    },
+    {
+      title: "Fulfillment in Progress",
+      href: "/iss_recruitment/list/fulfillment",
+      icon: <IconCaretRightFilled size={14} />,
+    },
+    {
+      title: "Closed",
+      href: "/iss_recruitment/list/closed",
+      icon: <IconCaretRightFilled size={14} />,
+    },
+    {
+      title: "Cancel",
+      href: "/iss_recruitment/list/cancel",
+      icon: <IconCaretRightFilled size={14} />,
+    },
+  ],
+},
 ];

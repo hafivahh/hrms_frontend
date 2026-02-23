@@ -1,50 +1,26 @@
 import {
   IconList,
   IconListLetters,
-  IconDoorExit,
+  IconCaretRightFilled ,
   IconFileLambda,
 } from "@tabler/icons-react";
 export const ess = [
-//   {
-//     title: "Employee",
-//     href: "",
-//     icon: <IconListLetters size={18} />,
-//     child: [
-//       { title: "List", href: "/ess_/list", icon: <IconList size={18} /> },
-//       {
-//         title: "Worker Documents",
-//         href: "/ess_/document_worker",
-//         icon: <IconFileLambda size={18} />,
-//       },
-//     ],
-//   },
   {
-    title: "Attandance",
+    title: "ESS",
     href: "",
-    icon: <IconListLetters size={18} />,
+    icon: <IconListLetters size={14} />,
     child: [
-      { title: "List", href: "/ess_/list", icon: <IconList size={18} /> },
+      { title: "Work Document", href: "/ess_documents", icon: <IconCaretRightFilled size={14} /> },
+     
       {
-        title: "Worker Documents",
-        href: "/ess_/document_worker",
-        icon: <IconFileLambda size={18} />,
+        title: "Profile",
+        href: "/ess_profile",
+        icon: <IconCaretRightFilled size={14} />,
       },
-    ],
-  },
-  {
-    title: "Leave",
-    href: "",
-    icon: <IconListLetters size={18} />,
-    child: [
-      {
-        title: "List Leave",
+       {
+        title: "Leave",
         href: "/ess_leave/list",
-        icon: <IconDoorExit size={18} />,
-      },
-      {
-        title: "Request Leave",
-        href: "/leave_manage/list/draft",
-        icon: <IconDoorExit size={18} />,
+        icon: <IconCaretRightFilled size={14} />,
       },
     ],
   },

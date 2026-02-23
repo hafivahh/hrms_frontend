@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { TextInput, Button, Badge, Loader, Select } from "@mantine/core";
 import { IconSearch, IconUsers } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -5,18 +6,21 @@ import axios from "axios";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { useRouter } from "next/router";
+import useEncrypt from "@/hooks/useEncrypt";
 
 // ── STATUS MAP ─────────────────────────────────────────────────
 const recruitmentStatusMap = {
   1: { label: "Open", color: "green" },
-  3: { label: "Closed", color: "red" },
+  2: { label: "Open", color: "green" },
 };
 
 export default function PssRecruitmentList() {
   const { user } = useUser();
+  const { encrypt } = useEncrypt();
   const API = useApi();
   const API_URL = API.API_URL;
   const router = useRouter();
+  const [showAll, setShowAll] = useState(false);
 
   const [data, setData] = useState([]);
   const [positions, setPositions] = useState([]);
@@ -58,12 +62,17 @@ export default function PssRecruitmentList() {
   useEffect(() => {
     fetchData();
     fetchPositions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ================= CLIENT-SIDE FILTER =================
   // keyword → cocok ke position name
   // position → cocok ke id_position (dari dropdown)
+  // ================= CLIENT-SIDE FILTER =================
   const filteredData = data.filter((item) => {
+    // Sembunyikan yang closed (status 3)
+    if (item.recruitment_status === 3) return false;
+
     const matchKeyword =
       keyword === "" ||
       item.position?.toLowerCase().includes(keyword.toLowerCase());
@@ -75,6 +84,8 @@ export default function PssRecruitmentList() {
 
     return matchKeyword && matchPosition;
   });
+
+  const displayedData = showAll ? filteredData : filteredData.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-white">
@@ -139,7 +150,7 @@ export default function PssRecruitmentList() {
         )}
 
         {!loading &&
-          filteredData.map((item) => {
+          displayedData.map((item) => {
             const status = recruitmentStatusMap[item.recruitment_status] ?? {
               label: "Unknown",
               color: "gray",
@@ -155,7 +166,11 @@ export default function PssRecruitmentList() {
                   {/* Position name */}
                   <div
                     className="text-xl font-semibold text-blue-600 cursor-pointer hover:underline"
-                    onClick={() => router.push(`/pss_recruitment/${item.id}`)}
+                    onClick={() =>
+                      router.push(
+                        `/pss_recruitment/detail/${encrypt(String(item.id))}`,
+                      )
+                    }
                   >
                     {item.position || "-"}
                   </div>
@@ -175,10 +190,26 @@ export default function PssRecruitmentList() {
                 </div>
 
                 {/* RIGHT: Apply button */}
-                <Button variant="outline">Apply</Button>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    router.push(
+                      `/pss_recruitment/detail/${encrypt(String(item.id))}`,
+                    )
+                  }
+                >
+                  Apply
+                </Button>
               </div>
             );
           })}
+        {!loading && filteredData.length > 3 && (
+          <div className="flex justify-center mt-6">
+            <Button variant="light" onClick={() => setShowAll(!showAll)}>
+              {showAll ? "Show Less" : "Show More"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

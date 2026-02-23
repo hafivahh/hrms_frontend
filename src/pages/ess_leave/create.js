@@ -1,5 +1,5 @@
 import AuthLayout from "@/components/layout/authLayout";
-import { employee } from "@/data/sidebar/employee";
+import { ess } from "@/data/sidebar/ess";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
@@ -270,7 +270,7 @@ export default function ESSLeaveCreate() {
     !loading;
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={ess}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="md" withBorder shadow="xs">

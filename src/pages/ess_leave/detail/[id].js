@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Paper, Badge, Loader } from "@mantine/core";
 import AuthLayout from "@/components/layout/authLayout";
-import { employee as sidebarData } from "@/data/sidebar/employee";
+import { ess as sidebarData } from "@/data/sidebar/ess";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";

@@ -1,6 +1,6 @@
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { employee } from "@/data/sidebar/employee";
+import { ess } from "@/data/sidebar/ess"
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { Paper, Button } from "@mantine/core";
@@ -111,6 +111,7 @@ export default function IssDocumentsList() {
         },
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [API_URL],
   );
 
@@ -188,7 +189,7 @@ export default function IssDocumentsList() {
   }, [fetchData]);
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={ess}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

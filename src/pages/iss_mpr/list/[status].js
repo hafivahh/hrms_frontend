@@ -62,6 +62,7 @@ export default function IssMprList({ mpr_status }) {
       });
       return;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mpr_status, router]);
 
   const [data, setData] = useState([]);
@@ -100,14 +101,6 @@ export default function IssMprList({ mpr_status }) {
     7: { label: "Pending Approval President", color: "grape" },
   };
 
-  // STATUS MAP untuk Recruitment Status
-  const recruitmentStatusMap = {
-    open: { label: "Open", color: "blue" },
-    in_progress: { label: "In Progress", color: "yellow" },
-    on_hold: { label: "On Hold", color: "orange" },
-    closed: { label: "Closed", color: "green" },
-    cancelled: { label: "Cancelled", color: "red" },
-  };
 
   // Helper function to get page title
   const getPageTitle = () => {
@@ -354,7 +347,7 @@ export default function IssMprList({ mpr_status }) {
                 "Yes, Update",
                 "Cancel",
               );
-if (!confirm?.isConfirmed) return;
+              if (!confirm?.isConfirmed) return;
 
               await axios.patch(
                 `${API_URL}/api/iss_mpr/${row.id}/recruitment-status`,
@@ -434,6 +427,7 @@ if (!confirm?.isConfirmed) return;
         },
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [encrypt, router, mpr_status],
   );
 

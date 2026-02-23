@@ -51,6 +51,7 @@ export default function IssMprDetail() {
     if (id) {
       fetchMprDetail();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchMprDetail = async () => {

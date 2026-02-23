@@ -43,10 +43,10 @@ const navigation = [
         icon: <IconList size={18} />,
       },
       {
-      title: "Create",
-      url: "/iss_mpr/create",
-      icon: <IconList size={14} />,
-    },
+        title: "Recruitment",
+        url: "/iss_recruitment",
+        icon: <IconList size={14} />,
+      },
     ],
   },
   {
@@ -69,7 +69,7 @@ const navigation = [
         url: "/ess_documents",
         icon: <IconList size={18} />,
       },
-        {
+      {
         title: "Attendance",
         url: "/pss/attendance",
         icon: <IconAccessible size={18} />,
@@ -211,7 +211,7 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop & tablet navbar */}
-      <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-blue-600 px-4 py-2 hidden md:flex">
+      <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-blue-600 px-4 py-2 hidden">
         <div className="flex items-center gap-2">
           <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
             <IconMenu2 color="white" />
