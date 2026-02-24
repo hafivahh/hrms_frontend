@@ -191,7 +191,6 @@ export default function PssRecruitmentList() {
 
                 {/* RIGHT: Apply button */}
                 <Button
-                  variant="outline"
                   onClick={() =>
                     router.push(
                       `/pss_recruitment/detail/${encrypt(String(item.id))}`,

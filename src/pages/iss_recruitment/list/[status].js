@@ -1,3 +1,10 @@
+// pages/iss_recruitment/list/[status].js
+
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
+import axios from "axios";
+import Swal from "sweetalert2";
+
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
 import { employee } from "@/data/sidebar/employee";
@@ -5,25 +12,16 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
 import useSwal from "@/hooks/useSwal";
+
 import { Button, Paper, Select } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconList, IconEye } from "@tabler/icons-react";
+import { IconList } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import axios from "axios";
-import { useRouter } from "next/router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import Swal from "sweetalert2";
 
-export const getStaticPaths = async () => {
-  return { paths: [], fallback: "blocking" };
-};
-
-export const getStaticProps = async (context) => {
-  return { props: { recruitment_status: context.params.status } };
-};
-
-export default function IssRecruitmentList({ recruitment_status }) {
+export default function IssRecruitmentList() {
   const router = useRouter();
+  const { status } = router.query;
+
   const { user } = useUser();
   const { encrypt } = useEncrypt();
   const { showAlert } = useSwal();
@@ -32,43 +30,49 @@ export default function IssRecruitmentList({ recruitment_status }) {
 
   const allowedStatus = ["all", "open", "fulfillment", "closed", "cancel"];
 
+  /* ================= VALIDATE STATUS ================= */
   useEffect(() => {
-    if (!allowedStatus.includes(recruitment_status)) {
-      router.back();
-      Swal.fire({
-        text: `Invalid status: "${recruitment_status}"`,
-        icon: "error",
-        confirmButtonText: "OK",
-        timer: 2000,
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recruitment_status]);
+    if (!status) return;
 
-  // ================= PAGE TITLE =================
-  const getPageTitle = () => {
+    if (!allowedStatus.includes(status)) {
+      Swal.fire({
+        text: `Invalid status: "${status}"`,
+        icon: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      router.replace("/iss_recruitment/list/all");
+    }
+  }, [status, router]);
+
+  /* ================= PAGE TITLE ================= */
+  const pageTitle = useMemo(() => {
     const titleMap = {
-      all: "All Recruitment",
+      all: "Recruitment",
       open: "Open Recruitment",
       fulfillment: "Fulfillment in Progress",
       closed: "Closed Recruitment",
       cancel: "Cancelled Recruitment",
     };
-    return titleMap[recruitment_status] || "Recruitment List";
-  };
+    return titleMap[status] || "Recruitment List";
+  }, [status]);
 
+  /* ================= STATES ================= */
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalPages, setTotalPages] = useState(1);
 
-  // ================= FETCH DATA =================
+  /* ================= FETCH DATA ================= */
   const fetchData = useCallback(async () => {
+    if (!status || !user?.token) return;
+
     try {
       const searchQuery = {};
       columnFilters.forEach((filter) => {
-        if (filter.value != null && filter.value !== "") {
+        if (filter.value) {
           searchQuery[filter.id] = filter.value;
         }
       });
@@ -84,149 +88,167 @@ export default function IssRecruitmentList({ recruitment_status }) {
           : "";
 
       const { data } = await axios.post(
-        `${API_URL}/api/iss_recruitment/serverside/${recruitment_status}?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
+        `${API_URL}/api/iss_recruitment/serverside/${status}?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
         {},
-        { headers: { Authorization: `Bearer ${user.token}` } },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
 
       setData(data.data);
       setTotalPages(data.total_pages);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Fetch error:", error);
       setData([]);
       setTotalPages(1);
     }
   }, [
+    status,
     columnFilters,
+    sorting,
     pagination.pageIndex,
     pagination.pageSize,
-    sorting,
-    recruitment_status,
     API_URL,
-    user.token,
+    user?.token,
   ]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // ================= COLUMNS =================
+  /* ================= COLUMNS ================= */
   const columns = useMemo(
     () => [
       {
-        accessorFn: (row) => row.mpr_no,
-        id: "mpr_no",
+        accessorKey: "mpr_no",
         header: "MPR No.",
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => info.getValue() || "-",
       },
       {
-        accessorFn: (row) => row.department,
-        id: "department",
+        accessorKey: "department",
         header: "Department",
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => info.getValue() || "-",
       },
       {
-        accessorFn: (row) => row.project,
-        id: "project",
+        accessorKey: "project",
         header: "Project",
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => info.getValue() || "-",
       },
       {
-        accessorFn: (row) => row.position,
-        id: "position",
+        accessorKey: "position",
         header: "Position",
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => info.getValue() || "-",
       },
       {
-        accessorFn: (row) => row.qty_request,
-        id: "qty_request",
+        accessorKey: "qty_request",
         header: "Request",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 100,
-        cell: (info) => info.getValue() ?? 0,
+        size: 80,
       },
-      {
-        accessorFn: (row) => row.recruitment_status,
-        id: "recruitment_status",
-        header: () => (
-          <span className="flex flex-col text-center">
-            <span>Recruitment</span>
-            <span>Status</span>
-          </span>
-        ),
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => {
-          const row = info.row.original;
-          const currentStatus = info.getValue();
+{
+  accessorKey: "recruitment_status",
+  header: "Recruitment Status",
+  cell: ({ row }) => {
+    const currentStatus = row.original.recruitment_status;
 
-          const statusOptions = [
-            { value: "", label: "---" },
-            { value: "1", label: "Open" },
-            { value: "2", label: "Fulfillment in Progress" },
-            { value: "3", label: "Closed" },
-            { value: "4", label: "Cancel" },
-          ];
+    const statusOptions = [
+      { value: "", label: "---", color: "gray" },
+      { value: "1", label: "Open", color: "green" },
+      { value: "2", label: "Fulfillment in Progress", color: "blue" },
+      { value: "3", label: "Closed", color: "gray" },
+      { value: "4", label: "Cancel", color: "red" },
+    ];
 
-          const handleStatusChange = async (newStatus) => {
-            if (!newStatus) return;
-            try {
-              const confirm = await showAlert(
-                "Are you sure?",
-                "question",
-                "Do you want to update recruitment status?",
-                true,
-                null,
-                "Yes, Update",
-                "Cancel",
-              );
-              if (!confirm?.isConfirmed) return;
+    const selectedOption = statusOptions.find(
+      (opt) => opt.value === String(currentStatus)
+    );
 
-              await axios.patch(
-                `${API_URL}/api/iss_mpr/${row.id}/recruitment-status`,
-                { recruitment_status: Number(newStatus) },
-                { headers: { Authorization: `Bearer ${user.token}` } },
-              );
+    const statusColor = selectedOption?.color || "gray";
 
-              await fetchData();
-              await showAlert("Success", "success", "Recruitment status updated successfully", false, 1500);
-            } catch (err) {
-              await showAlert("Error", "error", err.response?.data?.message || "Failed to update", false, 2000);
-            }
-          };
+    const handleStatusChange = async (newStatus) => {
+      if (!newStatus) return;
 
-          return (
-            <Select
-              value={currentStatus ? String(currentStatus) : ""}
-              onChange={handleStatusChange}
-              data={statusOptions}
-              size="xs"
-              disabled={row.mpr_status !== 2}
-            />
-          );
-        },
-      },
+      const confirm = await showAlert(
+        "Are you sure?",
+        "question",
+        "Update recruitment status?",
+        true,
+        null,
+        "Yes, Update",
+        "Cancel"
+      );
+
+      if (!confirm?.isConfirmed) return;
+
+      try {
+        await axios.patch(
+          `${API_URL}/api/iss_mpr/${row.original.id}/recruitment-status`,
+          { recruitment_status: Number(newStatus) },
+          {
+            headers: { Authorization: `Bearer ${user.token}` },
+          }
+        );
+
+        await fetchData();
+        await showAlert("Success", "success", "Status updated", false, 1500);
+      } catch (err) {
+        await showAlert(
+          "Error",
+          "error",
+          err.response?.data?.message || "Update failed",
+          false,
+          2000
+        );
+      }
+    };
+
+   return (
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <Select
+          size="xs"
+          value={currentStatus ? String(currentStatus) : ""}
+          onChange={handleStatusChange}
+          data={statusOptions}
+          disabled={row.original.mpr_status !== 2}
+          styles={{
+            input: {
+              textAlign: "center",
+              textAlignLast: "center",
+              fontWeight: 600,
+              backgroundColor:
+                statusColor === "green"
+                  ? "#d3f9d8"
+                  : statusColor === "blue"
+                  ? "#d0ebff"
+                  : statusColor === "red"
+                  ? "#ffc9c9"
+                  : "#e9ecef",
+              color:
+                statusColor === "green"
+                  ? "#2b8a3e"
+                  : statusColor === "blue"
+                  ? "#1864ab"
+                  : statusColor === "red"
+                  ? "#c92a2a"
+                  : "#495057",
+              border: "1px solid transparent",
+            },
+          }}
+        />
+      </div>
+    );
+  },
+},
       {
         id: "actions",
         header: "Action",
-        enableSorting: false,
         cell: ({ row }) => {
-          const encryptedId = encrypt(String(row.original?.id));
+          const encryptedId = encrypt(String(row.original.id));
+
           return (
             <Button
               size="xs"
-              color="blue"
-              leftSection={<IconList size={16} />}
-              onClick={() => router.push(`/iss_recruitment/detail/${encryptedId}`)}
+               leftSection={<IconList size={16} />}
+              onClick={() =>
+                router.push(`/iss_recruitment/detail/${encryptedId}`)
+              }
             >
               Detail
             </Button>
@@ -234,24 +256,24 @@ export default function IssRecruitmentList({ recruitment_status }) {
         },
       },
     ],
-    [showAlert, API_URL, user.token, fetchData, encrypt, router],
+    [encrypt, router, showAlert, fetchData, API_URL, user?.token]
   );
 
-  // ================= TABLE =================
+  /* ================= TABLE ================= */
   const table = useReactTable({
     data,
     columns,
-    filterFns: {},
     state: { columnFilters, sorting, pagination },
     onColumnFiltersChange: setColumnFilters,
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    manualSorting: true,
     manualFiltering: true,
+    manualSorting: true,
     manualPagination: true,
   });
 
+  /* ================= RENDER ================= */
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -260,9 +282,10 @@ export default function IssRecruitmentList({ recruitment_status }) {
             <div className="px-4 py-3 border-b flex items-center gap-2">
               <IconList size={20} />
               <h2 className="text-lg font-semibold uppercase">
-                {getPageTitle()}
+                {pageTitle}
               </h2>
             </div>
+
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} />
             </div>

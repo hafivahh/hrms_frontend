@@ -62,7 +62,7 @@ export default function IssMprList({ mpr_status }) {
       });
       return;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mpr_status, router]);
 
   const [data, setData] = useState([]);
@@ -100,7 +100,6 @@ export default function IssMprList({ mpr_status }) {
     6: { label: "Pending Acknowledge (HR)", color: "cyan" },
     7: { label: "Pending Approval President", color: "grape" },
   };
-
 
   // Helper function to get page title
   const getPageTitle = () => {
@@ -327,12 +326,17 @@ export default function IssMprList({ mpr_status }) {
           const currentStatus = info.getValue();
 
           const statusOptions = [
-            { value: "", label: "---" },
-            { value: 1, label: "Open" },
-            { value: 2, label: "Fulfillment in Progress" },
-            { value: 3, label: "Closed" },
-            { value: 4, label: "Cancel" },
+            { value: "", label: "---", color: "gray" },
+            { value: "1", label: "Open", color: "green" },
+            { value: "2", label: "Fulfillment in Progress", color: "blue" },
+            { value: "3", label: "Closed", color: "gray" },
+            { value: "4", label: "Cancel", color: "red" },
           ];
+          const selectedOption = statusOptions.find(
+            (opt) => opt.value === String(currentStatus),
+          );
+
+          const statusColor = selectedOption?.color || "gray";
 
           const handleStatusChange = async (newStatus) => {
             try {
@@ -385,13 +389,39 @@ export default function IssMprList({ mpr_status }) {
           return (
             <Select
               value={currentStatus ? String(currentStatus) : ""}
-              onChange={(val) => handleStatusChange(val)}
-              data={statusOptions.map((opt) => ({
-                value: String(opt.value),
-                label: opt.label,
-              }))}
+              onChange={handleStatusChange}
+              data={statusOptions}
               size="xs"
               disabled={row.mpr_status !== 2}
+              styles={{
+                input: {
+                  textAlign: "center",
+                  textAlignLast: "center",
+                  fontWeight: 600,
+                  backgroundColor:
+                    statusColor === "green"
+                      ? "#d3f9d8"
+                      : statusColor === "blue"
+                        ? "#d0ebff"
+                        : statusColor === "red"
+                          ? "#ffc9c9"
+                          : statusColor === "dark"
+                            ? "#343a40"
+                            : "#e9ecef",
+                  color:
+                    statusColor === "green"
+                      ? "#2b8a3e"
+                      : statusColor === "blue"
+                        ? "#1864ab"
+                        : statusColor === "red"
+                          ? "#c92a2a"
+                          : statusColor === "dark"
+                            ? "#ffffff"
+                            : "#495057",
+                  fontWeight: 600,
+                  border: "1px solid transparent",
+                },
+              }}
             />
           );
         },

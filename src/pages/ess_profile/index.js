@@ -28,7 +28,7 @@ export default function EssProfile() {
 
   const fetchProfile = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/ess-profile/me`, {
+      const { data } = await axios.get(`${API_URL}/api/ess_profile/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -84,9 +84,7 @@ export default function EssProfile() {
                       {profile.full_name}
                     </Text>
 
-                    <Text size="sm" c="dimmed">
-                      {profile.position?.name || "-"}
-                    </Text>
+                    
 
                     <Badge
                       mt="xs"

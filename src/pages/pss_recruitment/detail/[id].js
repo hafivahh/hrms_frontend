@@ -1,5 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
-import { Badge, Loader, Button, Divider } from "@mantine/core";
+import {
+  Badge,
+  Loader,
+  Button,
+  Divider,
+  Modal,
+  TextInput,
+  Textarea,
+  FileInput,
+  Group,
+} from "@mantine/core";
 import {
   IconArrowLeft,
   IconUsers,
@@ -8,13 +18,14 @@ import {
   IconClock,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { useForm } from "@mantine/form";
 import axios from "axios";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { useRouter } from "next/router";
 import useDecrypt from "@/hooks/useDecrypt";
-import "react-quill/dist/quill.snow.css";
 import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -27,18 +38,34 @@ export default function PssRecruitmentDetail() {
   const { user } = useUser();
   const API = useApi();
   const API_URL = API.API_URL;
-  const router = useRouter(); 
-  const { id } = router.query; 
-  const { decrypt } = useDecrypt(); 
+  const router = useRouter();
+  const { id } = router.query;
+  const { decrypt } = useDecrypt();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [opened, setOpened] = useState(false);
+
+  const form = useForm({
+    initialValues: {
+      name: "",
+      address: "",
+      phone: "",
+      file: null,
+    },
+    validate: {
+      name: (value) => (!value ? "Name is required" : null),
+      address: (value) => (!value ? "Address is required" : null),
+      phone: (value) => (!value ? "Phone number is required" : null),
+      file: (value) => (!value ? "File is required" : null),
+    },
+  });
 
   const fetchDetail = async () => {
     if (!id) return;
     try {
       setLoading(true);
-      const decryptedId = decrypt(id); 
+      const decryptedId = decrypt(id);
       const res = await axios.get(
         `${API_URL}/api/pss_recruitment/${decryptedId}`,
         {
@@ -53,9 +80,39 @@ export default function PssRecruitmentDetail() {
     }
   };
 
+  const handleApply = async (values) => {
+    try {
+      const decryptedId = decrypt(id);
+
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("address", values.address);
+      formData.append("phone", values.phone);
+      formData.append("file", values.file);
+
+      await axios.post(
+        `${API_URL}/api/pss_recruitment/${decryptedId}/apply`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      form.reset();
+      setOpened(false);
+      alert("Application submitted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit application");
+    }
+  };
+
   useEffect(() => {
     fetchDetail();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (loading) {
@@ -78,6 +135,7 @@ export default function PssRecruitmentDetail() {
     label: "Unknown",
     color: "gray",
   };
+
   const educationDetails = data.education_details ?? [];
 
   return (
@@ -106,7 +164,7 @@ export default function PssRecruitmentDetail() {
           <IconArrowLeft size={16} /> Back to List
         </button>
 
-        {/* Header Info — tanpa border, pakai Divider sebagai pembatas */}
+        {/* Header */}
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-2xl font-bold text-blue-700">
@@ -124,13 +182,13 @@ export default function PssRecruitmentDetail() {
 
         <Divider />
 
-        {/* 1. Job Description */}
+        {/* Job Description */}
         <Section icon={<IconBriefcase size={20} />} title="Job Description">
           <div className="border rounded-lg bg-gray-50 overflow-hidden">
             <ReactQuill
               theme="snow"
               value={data.job_description || ""}
-              readOnly={true}
+              readOnly
               modules={{ toolbar: false }}
               style={{ backgroundColor: "#f1f3f5" }}
             />
@@ -139,18 +197,20 @@ export default function PssRecruitmentDetail() {
 
         <Divider />
 
-        {/* 2. Experience Required */}
+        {/* Experience */}
         <Section icon={<IconClock size={20} />} title="Experience Required">
           <p className="text-gray-700">
             {data.experience_years != null
-              ? `${data.experience_years} year${data.experience_years !== 1 ? "s" : ""}`
+              ? `${data.experience_years} year${
+                  data.experience_years !== 1 ? "s" : ""
+                }`
               : "-"}
           </p>
         </Section>
 
         <Divider />
 
-        {/* 3. Educational Background */}
+        {/* Education */}
         <Section icon={<IconBook size={20} />} title="Educational Background">
           {educationDetails.length === 0 ? (
             <p className="text-gray-400">
@@ -168,13 +228,62 @@ export default function PssRecruitmentDetail() {
 
         <Divider />
 
-        {/* Apply Button — paling bawah kanan */}
+        {/* Apply Button */}
         <div className="flex justify-end">
-          <Button size="md" disabled={data.recruitment_status !== 1}>
+          <Button
+            size="md"
+            disabled={data.recruitment_status !== 1}
+            onClick={() => setOpened(true)}
+          >
             Apply Now
           </Button>
         </div>
       </div>
+
+      {/* Modal */}
+      <Modal
+        opened={opened}
+        onClose={() => setOpened(false)}
+        title="Apply for this Position"
+        centered
+        size={700}
+      >
+        <form onSubmit={form.onSubmit(handleApply)}>
+          <TextInput
+            label="Email"
+            placeholder="Email address"
+            {...form.getInputProps("name")}
+            mb="sm"
+          />
+
+           <TextInput
+            label="Name"
+            placeholder="Your full name"
+            {...form.getInputProps("name")}
+            mb="sm"
+          />
+
+
+          <TextInput
+            label="Phone Number"
+            placeholder="08xxxxxxxxxx"
+            {...form.getInputProps("phone")}
+            mb="sm"
+          />
+
+          <FileInput
+            label="Upload CV"
+            placeholder="Choose file"
+            accept="application/pdf"
+            {...form.getInputProps("file")}
+            mb="md"
+          />
+
+          <Group justify="flex-end">
+            <Button type="submit">Submit</Button>
+          </Group>
+        </form>
+      </Modal>
     </div>
   );
 }

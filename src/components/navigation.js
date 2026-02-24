@@ -44,7 +44,7 @@ const navigation = [
       },
       {
         title: "Recruitment",
-        url: "/iss_recruitment",
+        url: "/iss_recruitment/list/all",
         icon: <IconList size={14} />,
       },
     ],
