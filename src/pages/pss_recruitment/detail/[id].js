@@ -17,6 +17,8 @@ import {
   IconBook,
   IconClock,
 } from "@tabler/icons-react";
+import useSwal from "@/hooks/useSwal";
+
 import { useEffect, useState } from "react";
 import { useForm } from "@mantine/form";
 import axios from "axios";
@@ -38,6 +40,7 @@ export default function PssRecruitmentDetail() {
   const { user } = useUser();
   const API = useApi();
   const API_URL = API.API_URL;
+  const { showAlert } = useSwal();
   const router = useRouter();
   const { id } = router.query;
   const { decrypt } = useDecrypt();
@@ -47,19 +50,20 @@ export default function PssRecruitmentDetail() {
   const [opened, setOpened] = useState(false);
 
   const form = useForm({
-    initialValues: {
-      name: "",
-      address: "",
-      phone: "",
-      file: null,
-    },
-    validate: {
-      name: (value) => (!value ? "Name is required" : null),
-      address: (value) => (!value ? "Address is required" : null),
-      phone: (value) => (!value ? "Phone number is required" : null),
-      file: (value) => (!value ? "File is required" : null),
-    },
-  });
+  initialValues: {
+    email: "",
+    name: "",
+    phone: "",
+    file: null,
+  },
+  validate: {
+    email: (value) =>
+      /^\S+@\S+$/.test(value) ? null : "Invalid email",
+    name: (value) => (!value ? "Name is required" : null),
+    phone: (value) => (!value ? "Phone number is required" : null),
+    file: (value) => (!value ? "CV is required" : null),
+  },
+});
 
   const fetchDetail = async () => {
     if (!id) return;
@@ -80,36 +84,73 @@ export default function PssRecruitmentDetail() {
     }
   };
 
-  const handleApply = async (values) => {
-    try {
-      const decryptedId = decrypt(id);
+const handleApply = async (values) => {
+  const decryptedId = decrypt(id);
 
-      const formData = new FormData();
-      formData.append("name", values.name);
-      formData.append("address", values.address);
-      formData.append("phone", values.phone);
-      formData.append("file", values.file);
+  const confirm = await showAlert(
+    "Are You Sure?",
+    "question",
+    `You are about to upload 1 file. Continue?`,
+    true,
+    null,
+    "Upload",
+    "Cancel"
+  );
 
-      await axios.post(
-        `${API_URL}/api/pss_recruitment/${decryptedId}/apply`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-            "Content-Type": "multipart/form-data",
-          },
+  if (!confirm?.isConfirmed) return;
+
+  try {
+    setLoading(true);
+
+    const formData = new FormData();
+
+    // file
+    formData.append("file", values.file);
+
+    // data lain
+    formData.append("mpr_id", decryptedId);
+    formData.append("mpr_no", data.mpr_no);
+    if (data.id_project) {
+  formData.append("id_project", data.id_project);
+}
+    formData.append("email", values.email);
+    formData.append("full_name", values.name);
+    formData.append("phone_number", values.phone);
+
+    await axios.post(
+      `${API_URL}/api/pss_recruitment/upload`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+          "Content-Type": "multipart/form-data",
         },
-      );
+      }
+    );
 
-      form.reset();
-      setOpened(false);
-      alert("Application submitted successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to submit application");
-    }
-  };
+    form.reset();
+    setOpened(false);
 
+    await showAlert(
+      "Success",
+      "success",
+      "Application submitted successfully!",
+      false,
+      1500
+    );
+  } catch (err) {
+    console.error(err);
+
+    await showAlert(
+      "Failed",
+      "error",
+      err?.response?.data?.message || "Failed to submit application",
+      false
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
     fetchDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -252,7 +293,7 @@ export default function PssRecruitmentDetail() {
           <TextInput
             label="Email"
             placeholder="Email address"
-            {...form.getInputProps("name")}
+            {...form.getInputProps("email")}
             mb="sm"
           />
 

@@ -4,7 +4,7 @@ import {
   IconCaretRightFilled ,
   IconFileLambda,
 } from "@tabler/icons-react";
-export const employee = [
+export const iss = [
   {
     title: "Employee",
     href: "",

@@ -172,7 +172,7 @@ export default function Add_employee() {
 <AuthLayout sidebarList={employee}>
   <div className="py-6">
     <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-      <Paper radius="md" withBorder shadow="xs">
+    <Paper radius="sm" mt="md" withBorder>
         
         {/* HEADER SECTION */}
         <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
@@ -270,17 +270,16 @@ export default function Add_employee() {
             />
           </div>
 
-          {/* SUBMIT BUTTON - Ukuran Disamakan */}
-          <Button
-            type="submit"
-            mt="2.5rem"
-            fullWidth
-            size="md"
-            leftSection={<IconSend size={18} />}
-            loading={loading}
-          >
-            Submit Employee Data
-          </Button>
+          {/* SUBMIT BUTTON */}
+<div className="flex justify-end mt-10">
+  <Button
+    type="submit"
+    size="md"
+    loading={loading}
+  >
+    Submit Employee Data
+  </Button>
+</div>
         </form>
 
       </Paper>

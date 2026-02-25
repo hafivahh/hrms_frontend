@@ -40,35 +40,6 @@ export default function AuthLayout({ children, sidebarList = [] }) {
     });
   }
 
-  // ======================================
-  // 3) ISS MODULE FILTER
-  // /employee/* → show only employee menu
-  // ======================================
-  const isEmployeeRoute = path.startsWith("/employee/");
-
-  if (isEmployeeRoute) {
-    finalSidebar = finalSidebar
-      .map((menu) => {
-        if (menu.title !== "Employee") return null;
-        return menu;
-      })
-      .filter(Boolean);
-  }
-
-  // ======================================
-  // 4) LEAVE MODULE FILTER
-  // /leave_manage/* → show only Leave menu
-  // ======================================
-  const isLeaveRoute = path.startsWith("/leave_manage/");
-
-  if (isLeaveRoute) {
-    finalSidebar = finalSidebar
-      .map((menu) => {
-        if (menu.title !== "Leave") return null;
-        return menu;
-      })
-      .filter(Boolean);
-  }
 
   return (
     <div className="flex flex-col min-h-screen">

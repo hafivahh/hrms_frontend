@@ -10,7 +10,6 @@ import {
   Textarea,
   FileInput,
   Text,
-  Autocomplete,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconArrowLeft, IconSend } from "@tabler/icons-react";
@@ -19,6 +18,7 @@ import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import ManagerSelect from "@/components/ManagerSelect";
 
 dayjs.extend(isSameOrBefore);
 
@@ -35,9 +35,13 @@ export default function ESSLeaveCreate() {
   const [partialDays, setPartialDays] = useState([]);
   const [details, setDetails] = useState([]);
 
-  const [supervisorQuery, setSupervisorQuery] = useState("");
-  const [supervisorOptions, setSupervisorOptions] = useState([]);
+  // const [supervisorQuery, setSupervisorQuery] = useState("");
+  // const [supervisorOptions, setSupervisorOptions] = useState([]);
+  // const [supervisorId, setSupervisorId] = useState(null);
+
+  // GANTI dengan:
   const [supervisorId, setSupervisorId] = useState(null);
+  const [supervisorName, setSupervisorName] = useState("");
 
   const [remarks, setRemarks] = useState("");
   const [file, setFile] = useState(null);
@@ -56,8 +60,8 @@ export default function ESSLeaveCreate() {
           res.data.map((i) => ({
             value: i.id.toString(),
             label: i.type_name,
-          }))
-        )
+          })),
+        ),
       )
       .catch((err) => console.error(err.response?.data || err.message));
   }, []);
@@ -76,14 +80,14 @@ export default function ESSLeaveCreate() {
             res.data.map((i) => ({
               value: i.id?.toString() || "",
               label: i.partial_days || i.name || "Unknown",
-            }))
+            })),
           );
         }
       })
       .catch((err) => {
         console.error(
           "Error fetching partial days:",
-          err.response?.data || err.message
+          err.response?.data || err.message,
         );
         setPartialDays([]);
       });
@@ -125,30 +129,30 @@ export default function ESSLeaveCreate() {
   // ======================
   // FETCH SUPERVISOR OPTIONS (search by badge/full_name)
   // ======================
-  useEffect(() => {
-    if (!supervisorQuery) {
-      setSupervisorOptions([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (!supervisorQuery) {
+  //     setSupervisorOptions([]);
+  //     return;
+  //   }
 
-    const timeout = setTimeout(() => {
-      axios
-        .get(`${API.API_URL}/api/employee`, {
-          headers: { Authorization: "Bearer " + user.token },
-          params: { search: supervisorQuery },
-        })
-        .then((res) => {
-          const options = res.data.map((i) => ({
-            badge_number: i.badge_number,
-            label: `${i.badge_number} - ${i.full_name}`,
-          }));
-          setSupervisorOptions(options);
-        })
-        .catch((err) => console.error(err.response?.data || err.message));
-    }, 300);
+  //   const timeout = setTimeout(() => {
+  //     axios
+  //       .get(`${API.API_URL}/api/employee`, {
+  //         headers: { Authorization: "Bearer " + user.token },
+  //         params: { search: supervisorQuery },
+  //       })
+  //       .then((res) => {
+  //         const options = res.data.map((i) => ({
+  //           badge_number: i.badge_number,
+  //           label: `${i.badge_number} - ${i.full_name}`,
+  //         }));
+  //         setSupervisorOptions(options);
+  //       })
+  //       .catch((err) => console.error(err.response?.data || err.message));
+  //   }, 300);
 
-    return () => clearTimeout(timeout);
-  }, [supervisorQuery]);
+  //   return () => clearTimeout(timeout);
+  // }, [supervisorQuery]);
 
   // ======================
   // SUBMIT
@@ -165,7 +169,7 @@ export default function ESSLeaveCreate() {
         "Supervisor Required",
         "question",
         "Please select a supervisor from the dropdown list!\n\nYou must click on one of the suggested options.",
-        false
+        false,
       );
       return;
     }
@@ -177,7 +181,7 @@ export default function ESSLeaveCreate() {
         "Leave Type Required",
         "question",
         `Please select leave type for ${missingLeaveType.dateDisplay}`,
-        false
+        false,
       );
       return;
     }
@@ -188,7 +192,7 @@ export default function ESSLeaveCreate() {
         "Attachment Required",
         "question",
         "Please upload an attachment before submitting the leave request.",
-        false
+        false,
       );
       return;
     }
@@ -198,7 +202,7 @@ export default function ESSLeaveCreate() {
       "Are you sure?",
       "question",
       `Do you want to submit this leave request?\n\nTotal Days: ${details.length}`,
-      true
+      true,
     );
 
     if (!confirm) {
@@ -229,7 +233,7 @@ export default function ESSLeaveCreate() {
             Authorization: "Bearer " + user.token,
             // "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       console.log("=== SUCCESS ===", response.data);
@@ -238,9 +242,9 @@ export default function ESSLeaveCreate() {
       await showAlert(
         "Success",
         "success",
-        `Leave request submitted successfully!\n\nTotal Days: ${totalDays}\nSupervisor: ${supervisorQuery}`,
+        `Leave request submitted successfully!\n\nTotal Days: ${totalDays}\nSupervisor: ${supervisorName}`,
         false,
-        1500
+        1500,
       );
 
       router.push("/ess_leave/list");
@@ -255,7 +259,7 @@ export default function ESSLeaveCreate() {
       await showAlert(
         data_error.message || "Error",
         "error",
-        data_error.error || err.message
+        data_error.error || err.message,
       );
     } finally {
       setLoading(false);
@@ -273,7 +277,7 @@ export default function ESSLeaveCreate() {
     <AuthLayout sidebarList={ess}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="md" withBorder shadow="xs">
+          <Paper radius="sm" mt="md" withBorder>
             <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <IconArrowLeft
@@ -384,37 +388,32 @@ export default function ESSLeaveCreate() {
               {/* ADDITIONAL INFORMATION SECTION */}
               <div className="space-y-5 border-t pt-6">
                 <div>
-                  <Autocomplete
-                    label="Supervisor (Approver)"
-                    placeholder="Type badge number or full name"
-                    value={supervisorQuery}
-                    data={supervisorOptions.map((o) => o.label)}
-                    onChange={(val) => {
-                      setSupervisorQuery(val);
-                      const selected = supervisorOptions.find(
-                        (o) => o.label === val
-                      );
-                      setSupervisorId(selected ? selected.badge_number : null);
-                    }}
-                    required
-                    limit={10}
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">
+                    Supervisor (Approver){" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <ManagerSelect
+                    value={supervisorId}
+                    onChange={(val) => setSupervisorId(val)}
+                    onSelect={(selected) =>
+                      setSupervisorName(selected?.label || "")
+                    }
                   />
 
-                  {/* Supervisor Status Indicators */}
                   {supervisorId && (
                     <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded flex flex-col">
                       <Text size="xs" c="green" fw={600}>
                         ✓ Supervisor Selected
                       </Text>
                       <Text size="xs" c="dimmed">
-                        Badge: {supervisorId}
+                        {supervisorName}
                       </Text>
                     </div>
                   )}
-                  {supervisorQuery && !supervisorId && (
+                  {!supervisorId && (
                     <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
                       <Text size="xs" c="orange" fw={500}>
-                        ⚠ Please select from the dropdown list
+                        ⚠ Please select a supervisor
                       </Text>
                     </div>
                   )}
@@ -427,6 +426,7 @@ export default function ESSLeaveCreate() {
                   onChange={setFile}
                   accept="image/*,.pdf,.doc,.docx"
                   required
+                  clearable
                 />
 
                 <Textarea
@@ -439,17 +439,16 @@ export default function ESSLeaveCreate() {
               </div>
 
               {/* SUBMIT BUTTON */}
-              <Button
-                mt="2.5rem"
-                fullWidth
-                size="md"
-                leftSection={<IconSend size={18} />}
-                onClick={onSubmit}
-                disabled={!isFormValid}
-                loading={loading}
-              >
-                Submit Leave Request
-              </Button>
+              <div className="flex justify-end mt-10">
+                <Button
+                  size="md"
+                  onClick={onSubmit}
+                  disabled={!isFormValid}
+                  loading={loading}
+                >
+                  Submit Leave Request
+                </Button>
+              </div>
             </div>
           </Paper>
         </div>

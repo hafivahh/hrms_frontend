@@ -6,7 +6,7 @@ import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
 import { Button, Paper } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconTrash, IconPencil, IconList  } from "@tabler/icons-react";
+import { IconTrash, IconPencil, IconList, IconPlus } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -107,6 +107,14 @@ export default function List() {
                 size="xs"
                 color="blue"
                 onClick={() => router.push(`/employee/edit/${encryptedId}`)}
+                leftSection={<IconList size={16} />}
+              >
+                Detail
+              </Button>
+              <Button
+                size="xs"
+                color="yellow"
+                onClick={() => router.push(`/employee/edit/${encryptedId}`)}
                 leftSection={<IconPencil size={16} />}
               >
                 Edit
@@ -125,7 +133,7 @@ export default function List() {
         },
       },
     ],
-    [encrypt]
+    [encrypt],
   );
 
   // Tambahkan ini supaya tidak error
@@ -138,10 +146,10 @@ export default function List() {
       true,
       null,
       "Delete",
-      "Cancel"
+      "Cancel",
     );
 
-     if (!confirm?.isConfirmed) return;
+    if (!confirm?.isConfirmed) return;
 
     try {
       await axios.delete(`${API_URL}/api/employee/${encryptedId}`, {
@@ -154,7 +162,7 @@ export default function List() {
         "success",
         "Employee deleted successfully",
         false,
-        1500
+        1500,
       );
 
       // Refresh data
@@ -212,7 +220,7 @@ export default function List() {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
-      }
+      },
     );
 
     setData(data.data);
@@ -244,20 +252,20 @@ export default function List() {
           >
             {/* JUDUL + ICON */}
             <div className="px-4 py-3 border-b flex items-center gap-2">
-              <IconList  size={20} />
+              <IconList size={20} />
               <h2 className="text-lg font-semibold">List Employee</h2>
             </div>
             <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/employee/create")}>
-                {" "}
+              <Button
+                size="xs"
+                leftSection={<IconPlus size={16} />}
+                onClick={() => router.push("/employee/create")}
+              >
                 Add Employee
               </Button>
-              <Button onClick={downloadExcel}> Download Excel</Button>
-              <Button onClick={downloadPdf}> Download PDF</Button>
-              <Button onClick={() => router.push("/employee/upload_sftp")}>
-                {" "}
-                Upload SFTP
-              </Button>
+              {/* <Button> Download Excel</Button> */}
+              {/* <Button> Download PDF</Button> */}
+              {/* <Button>Upload SFTP</Button> */}
             </div>
 
             <div className="p-4 overflow-x-auto">

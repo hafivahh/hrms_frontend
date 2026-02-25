@@ -4,7 +4,7 @@ import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
 import { Button, Paper, Text, TextInput, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconArrowLeft,IconDeviceFloppy } from "@tabler/icons-react";
+import { IconArrowLeft, IconDeviceFloppy } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -72,7 +72,7 @@ export default function Edit_Employee() {
       try {
         const { data } = await axios.get(
           `${API_URL}/api/employee/${id_employee}`,
-          { headers: { Authorization: `Bearer ${user.token}` } }
+          { headers: { Authorization: `Bearer ${user.token}` } },
         );
 
         form.setValues({
@@ -84,7 +84,6 @@ export default function Edit_Employee() {
           id_project: data.project?.id?.toString() || "",
           id_company: data.company?.id?.toString() || "",
           join_date: data.join_date ? new Date(data.join_date) : null,
-
         });
       } catch (error) {
         showAlert("Error", "error", "Failed to load employee data");
@@ -105,10 +104,10 @@ export default function Edit_Employee() {
       true,
       null,
       "Update", // btn confirm
-      "Cancel"
+      "Cancel",
     );
 
-   if (!confirm?.isConfirmed) return;
+    if (!confirm?.isConfirmed) return;
 
     try {
       const payload = {
@@ -118,15 +117,13 @@ export default function Edit_Employee() {
         id_departement: Number(values.id_departement),
         id_project: Number(values.id_project),
         id_company: Number(values.id_company),
-        join_date: values.join_date
-    ? values.join_date.toISOString()
-    : null,
+        join_date: values.join_date ? values.join_date.toISOString() : null,
       };
 
       const { data } = await axios.put(
         `${API_URL}/api/employee/${id_employee}`,
         payload,
-        { headers: { Authorization: `Bearer ${user.token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
       await showAlert(
@@ -134,7 +131,7 @@ export default function Edit_Employee() {
         "success",
         "Employee updated successfully",
         false,
-        1500
+        1500,
       );
       router.push("/employee/list");
     } catch (error) {
@@ -149,129 +146,121 @@ export default function Edit_Employee() {
   if (loading) return <p className="p-4">Loading...</p>;
 
   return (
-<AuthLayout sidebarList={employee}>
-  <div className="py-6">
-    <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-      <Paper radius="md" withBorder shadow="xs">
-        
-        {/* HEADER SECTION */}
-        <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <IconArrowLeft
-              size={18}
-              onClick={() => router.push("/employee/list")}
-              className="cursor-pointer hover:text-blue-600 transition-colors"
-            />
-            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
-              Edit Employee
-            </h2>
-          </div>
-        </div>
-
-        {/* CONTENT SECTION */}
-        <form onSubmit={form.onSubmit(handleSubmit)} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* BADGE NUMBER */}
-            <TextInput
-              label="Badge Number"
-              withAsterisk
-              placeholder="Input Badge Number"
-              {...form.getInputProps("badge_number")}
-            />
-
-            {/* FULL NAME */}
-            <TextInput
-              label="Full Name"
-              withAsterisk
-              placeholder="Input Full Name"
-              {...form.getInputProps("full_name")}
-            />
-
-            {/* GENDER */}
-            <Select
-              label="Gender"
-              placeholder="Select gender"
-              data={[
-                { value: "1", label: "Laki-Laki" },
-                { value: "2", label: "Perempuan" },
-              ]}
-              searchable
-              {...form.getInputProps("gender")}
-            />
-
-            {/* POSITION */}
-            <Select
-              label="Position"
-              placeholder="Select position"
-              data={positions.map((p) => ({
-                value: p.id.toString(),
-                label: p.position_name,
-              }))}
-              searchable
-              {...form.getInputProps("id_position")}
-            />
-
-            {/* DEPARTEMENT */}
-            <Select
-              label="Departement"
-              placeholder="Select departement"
-              data={departments.map((d) => ({
-                value: d.id.toString(),
-                label: d.departement_name,
-              }))}
-              searchable
-              {...form.getInputProps("id_departement")}
-            />
-
-            {/* PROJECT */}
-            <Select
-              label="Project"
-              placeholder="Select project"
-              data={projects.map((p) => ({
-                value: p.id.toString(),
-                label: p.project_name,
-              }))}
-              searchable
-              {...form.getInputProps("id_project")}
-            />
-
-            {/* COMPANY */}
-            <Select
-              label="Company"
-              placeholder="Select company"
-              data={companies.map((c) => ({
-                value: c.id.toString(),
-                label: c.company_name,
-              }))}
-              searchable
-              {...form.getInputProps("id_company")}
-            />
-            {/* JOIN DATE */}
-            <DateInput
-            label="Join Date"
-            placeholder="Select join date"
-            withAsterisk
-            {...form.getInputProps("join_date")}
-            />
+    <AuthLayout sidebarList={employee}>
+      <div className="py-6">
+        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+          <Paper radius="sm" mt="md" withBorder>
+            {/* HEADER SECTION */}
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconArrowLeft
+                  size={18}
+                  onClick={() => router.push("/employee/list")}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                  Edit Employee
+                </h2>
+              </div>
             </div>
 
-          {/* UPDATE BUTTON - FULL WIDTH */}
-          <Button
-            type="submit"
-            mt="2.5rem"
-            fullWidth
-            size="md"
-            leftSection={<IconDeviceFloppy size={18} />}
-            loading={loading} // Pastikan state loading sudah didefinisikan
-          >
-            Update Employee Data
-          </Button>
-        </form>
+            {/* CONTENT SECTION */}
+            <form onSubmit={form.onSubmit(handleSubmit)} className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* BADGE NUMBER */}
+                <TextInput
+                  label="Badge Number"
+                  withAsterisk
+                  placeholder="Input Badge Number"
+                  {...form.getInputProps("badge_number")}
+                />
 
-      </Paper>
-    </div>
-  </div>
-</AuthLayout>
+                {/* FULL NAME */}
+                <TextInput
+                  label="Full Name"
+                  withAsterisk
+                  placeholder="Input Full Name"
+                  {...form.getInputProps("full_name")}
+                />
+
+                {/* GENDER */}
+                <Select
+                  label="Gender"
+                  placeholder="Select gender"
+                  data={[
+                    { value: "1", label: "Laki-Laki" },
+                    { value: "2", label: "Perempuan" },
+                  ]}
+                  searchable
+                  {...form.getInputProps("gender")}
+                />
+
+                {/* POSITION */}
+                <Select
+                  label="Position"
+                  placeholder="Select position"
+                  data={positions.map((p) => ({
+                    value: p.id.toString(),
+                    label: p.position_name,
+                  }))}
+                  searchable
+                  {...form.getInputProps("id_position")}
+                />
+
+                {/* DEPARTEMENT */}
+                <Select
+                  label="Departement"
+                  placeholder="Select departement"
+                  data={departments.map((d) => ({
+                    value: d.id.toString(),
+                    label: d.departement_name,
+                  }))}
+                  searchable
+                  {...form.getInputProps("id_departement")}
+                />
+
+                {/* PROJECT */}
+                <Select
+                  label="Project"
+                  placeholder="Select project"
+                  data={projects.map((p) => ({
+                    value: p.id.toString(),
+                    label: p.project_name,
+                  }))}
+                  searchable
+                  {...form.getInputProps("id_project")}
+                />
+
+                {/* COMPANY */}
+                <Select
+                  label="Company"
+                  placeholder="Select company"
+                  data={companies.map((c) => ({
+                    value: c.id.toString(),
+                    label: c.company_name,
+                  }))}
+                  searchable
+                  {...form.getInputProps("id_company")}
+                />
+                {/* JOIN DATE */}
+                <DateInput
+                  label="Join Date"
+                  placeholder="Select join date"
+                  withAsterisk
+                  {...form.getInputProps("join_date")}
+                />
+              </div>
+
+              {/* UPDATE BUTTON */}
+              <div className="flex justify-end mt-10">
+                <Button type="submit" size="md" loading={loading}>
+                  Update Employee Data
+                </Button>
+              </div>
+            </form>
+          </Paper>
+        </div>
+      </div>
+    </AuthLayout>
   );
 }

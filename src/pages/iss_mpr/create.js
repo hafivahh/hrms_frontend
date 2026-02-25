@@ -1,4 +1,3 @@
-
 import AuthLayout from "@/components/layout/authLayout";
 import { employee } from "@/data/sidebar/employee";
 import ManagerSelect from "@/components/ManagerSelect";
@@ -173,7 +172,7 @@ export default function IssMprCreate() {
     return Number(val);
   };
 
-    const handleSubmit = async () => {
+  const handleSubmit = async () => {
     const confirm = await showAlert(
       "Are you sure?",
       "question",
@@ -570,26 +569,26 @@ export default function IssMprCreate() {
               </div>
 
               {/* Section 4: Job Description */}
-<div className="mb-4">
-  <label className="block text-sm font-medium mb-2">
-    2. Job Description <span className="text-red-500">*</span>
-  </label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                  2. Job Description <span className="text-red-500">*</span>
+                </label>
 
-  <ReactQuill
-    theme="snow"
-    value={formData.job_description}
-    onChange={(value) =>
-      handleInputChange("job_description", value)
-    }
-    modules={{
-      toolbar: [
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["clean"],
-      ],
-    }}
-  />
-</div>
+                <ReactQuill
+                  theme="snow"
+                  value={formData.job_description}
+                  onChange={(value) =>
+                    handleInputChange("job_description", value)
+                  }
+                  modules={{
+                    toolbar: [
+                      ["bold", "italic", "underline"],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                      ["clean"],
+                    ],
+                  }}
+                />
+              </div>
 
               {/* Section 5: Years of Relevant Experience */}
               <div className="mb-6">

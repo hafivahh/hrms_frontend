@@ -243,15 +243,22 @@ export default function IssRecruitmentList() {
           const encryptedId = encrypt(String(row.original.id));
 
           return (
-            <Button
-              size="xs"
-               leftSection={<IconList size={16} />}
-              onClick={() =>
-                router.push(`/iss_recruitment/detail/${encryptedId}`)
-              }
-            >
-              Detail
-            </Button>
+           <Button
+        size="xs"
+        leftSection={<IconList size={16} />}
+        onClick={() =>
+          router.push({
+            pathname: `/iss_recruitment/detail/${encryptedId}`,
+            query: {
+              mpr_id: row.original.id,        // ← ID asli untuk fetch applicants
+              mpr_no: row.original.mpr_no,    // ← untuk ditampilkan di header
+              position: row.original.position, // ← untuk ditampilkan di header
+            },
+          })
+        }
+      >
+        Detail
+      </Button>
           );
         },
       },

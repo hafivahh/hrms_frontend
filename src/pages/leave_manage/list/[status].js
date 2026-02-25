@@ -16,12 +16,7 @@ import useSwal from "@/hooks/useSwal";
 // import { formatDateTime } from "@/lib/utils";
 
 export async function getStaticPaths() {
-  const statuses = [
-    "pending_approval",
-    "completed",
-    "rejected",
-    "all",
-  ];
+  const statuses = ["pending_approval", "completed", "rejected", "all"];
   const paths = statuses.map((status) => ({ params: { status } }));
   return { paths, fallback: false };
 }
@@ -64,9 +59,9 @@ export default function ListLeaveByStatus({ status }) {
   const statusMap = {
     0: { label: "Draft", color: "gray" },
     1: { label: "Pending Approval", color: "yellow" },
-    2: { label: "Approved", color: "blue" }, 
+    2: { label: "Approved", color: "blue" },
     3: { label: "Rejected", color: "red" },
-    4: { label: "Completed", color: "green" }, 
+    4: { label: "Completed", color: "green" },
   };
 
   const getActionsByStatus = (statusId) => {
@@ -81,7 +76,7 @@ export default function ListLeaveByStatus({ status }) {
 
   const columns = useMemo(
     () => [
-        {
+      {
         accessorFn: (row) => row.request_date,
         id: "request_date",
         header: "Request Date",
@@ -150,28 +145,22 @@ export default function ListLeaveByStatus({ status }) {
         cell: ({ row }) => {
           const statusId = Number(row.original.leave_status);
           const actions = getActionsByStatus(statusId);
-          // 1. ENKRIPSI ID
           const rawId = String(row.original.header_id || row.original.id);
           const encryptedId = encrypt(rawId);
 
           return (
             <Button.Group>
               {actions.includes("detail") && (
-                <Button.Group>
-                  {actions.includes("detail") && (
-                    <Button
-                      size="xs"
-                      color="blue"
-                      leftSection={<IconList size={16} />}
-                      onClick={() => {
-                    // 2. NAVIGASI DENGAN ID TERENKRIPSI
-                    router.push(`/leave_manage/detail/${encryptedId}`);
-                  }}
+                <Button
+                  size="xs"
+                  color="blue"
+                  leftSection={<IconList size={16} />}
+                  onClick={() =>
+                    router.push(`/leave_manage/detail/${encryptedId}`)
+                  }
                 >
                   Detail
                 </Button>
-                  )}
-                </Button.Group>
               )}
               {actions.includes("delete") && (
                 <Button
@@ -188,7 +177,7 @@ export default function ListLeaveByStatus({ status }) {
         },
       },
     ],
-    [encrypt, router]
+    [encrypt, router],
   );
 
   const table = useReactTable({
@@ -226,7 +215,7 @@ export default function ListLeaveByStatus({ status }) {
           pagination.pageSize
         }&sort=${sort}`,
         {},
-        { headers: { Authorization: `Bearer ${user.token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
       setData(data.data);

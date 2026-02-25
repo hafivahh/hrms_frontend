@@ -7,7 +7,12 @@ import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
 import { Button, Paper, Badge } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconList, IconPlus, IconCalendar, IconPencil } from "@tabler/icons-react";
+import {
+  IconList,
+  IconPlus,
+  IconCalendar,
+  IconPencil,
+} from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -196,23 +201,14 @@ export default function ESSLeaveList() {
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
-            {/* Header - Hanya Title dan Button Add Leave */}
-            <div className="px-4 py-3 border-b flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <IconList size={20} />
-                <h2 className="text-lg font-semibold">Leave List</h2>
-              </div>
-              <Button
-                size="xs"
-                leftSection={<IconPlus size={16} />}
-                onClick={() => router.push("/ess_leave/create")}
-              >
-                Add Leave
-              </Button>
+            {/* Header - Title */}
+            <div className="px-4 py-3 border-b flex items-center gap-2">
+              <IconList size={20} />
+              <h2 className="text-lg font-semibold">Leave List</h2>
             </div>
 
-            {/*Saldo Cuti - Di atas tabel, sebelum kolom Start Date */}
-            <div className="px-4 pt-4 pb-2">
+            {/* Saldo Cuti + Button Add */}
+            <div className="px-4 pt-4 pb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <IconCalendar size={16} className="text-gray-600" />
                 <span className="text-sm text-gray-600">
@@ -232,6 +228,13 @@ export default function ESSLeaveList() {
                   {leaveBalance} days
                 </Badge>
               </div>
+              <Button
+                size="xs"
+                leftSection={<IconPlus size={16} />}
+                onClick={() => router.push("/ess_leave/create")}
+              >
+                Add Leave
+              </Button>
             </div>
 
             {/* Tabel */}

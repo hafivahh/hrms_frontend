@@ -59,61 +59,6 @@ export default function LeaveDetailPage() {
     fetchLeaveDetail();
   }, [id]);
 
-  // ====== APPROVE / REJECT PER ITEM ======
-  const handleApproveItem = async (itemId) => {
-    const confirmed = await showConfirm(
-      "Approve this leave?",
-      "Are you sure you want to approve this leave date?"
-    );
-    if (!confirmed) return;
-
-    setActionLoading(true);
-    try {
-      await fetch(`${API_URL}/api/leave/item/approve/${itemId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ status: 2 }),
-      });
-
-      showAlert("success", "Leave item approved");
-      fetchLeaveDetail();
-    } catch (err) {
-      showAlert("error", err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleRejectItem = async (itemId) => {
-    const confirmed = await showConfirm(
-      "Reject this leave?",
-      "Are you sure you want to reject this leave date?"
-    );
-    if (!confirmed) return;
-
-    setActionLoading(true);
-    try {
-      await fetch(`${API_URL}/api/leave/item/reject/${itemId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ status: 3 }),
-      });
-
-      showAlert("success", "Leave item rejected");
-      fetchLeaveDetail();
-    } catch (err) {
-      showAlert("error", err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleApproval = async (itemId, payload) => {
     setActionLoading(true);
     try {
@@ -121,7 +66,7 @@ export default function LeaveDetailPage() {
       await axios.post(
         `${API_URL}/api/leave-record-detail/${itemId}/update`,
         payload,
-        { headers: { Authorization: `Bearer ${user.token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
       await showAlert(
@@ -129,7 +74,7 @@ export default function LeaveDetailPage() {
         "success",
         "Item processed successfully",
         false,
-        1000
+        1000,
       );
 
       // 2. REFRESH DATA (Crucial!)
@@ -162,12 +107,39 @@ export default function LeaveDetailPage() {
       true,
       null,
       "Yes, proceed",
-      "Cancel"
+      "Cancel",
     ).then((confirmed) => {
       if (confirmed) {
         handleApproval(id, payload);
       }
     });
+  };
+  const handleDownloadAttachment = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/leave/attachment/${id}`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        },
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        leave.attachment.split("/").pop() || "attachment",
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Gagal download attachment");
+    }
   };
 
   if (loading)
@@ -199,12 +171,16 @@ export default function LeaveDetailPage() {
       />
     </div>
   );
+  const isSupervisor =
+    leave?.supervisor_badge &&
+    user?.badge_number &&
+    String(leave.supervisor_badge) === String(user.badge_number);
 
   return (
     <AuthLayout sidebarList={sidebarList}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="md" withBorder shadow="xs">
+          <Paper radius="sm" mt="md" withBorder>
             {/* HEADER */}
             <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center gap-2">
               <IconArrowLeft
@@ -217,6 +193,7 @@ export default function LeaveDetailPage() {
                 Leave Request Detail
               </h2>
             </div>
+
             {/* FORM INFO USER */}
             <div className="px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Name" value={leave.full_name} />
@@ -236,26 +213,26 @@ export default function LeaveDetailPage() {
                 </Badge>
               </div>
             </div>
+
             {/* ATTACHMENT */}
             <div className="px-6 pb-4">
               <label className="text-sm font-semibold text-gray-600 mb-1 block">
                 Attachment
               </label>
               {leave.attachment ? (
-                <a
-                  href={`${API_URL}/uploads/${leave.attachment}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={handleDownloadAttachment}
                   className="inline-block px-3 py-2 border rounded bg-gray-50 hover:bg-gray-100 text-blue-600 font-medium"
                 >
-                  View Attachment File
-                </a>
+                  Download Attachment File
+                </button>
               ) : (
                 <div className="text-gray-400 italic text-sm">
                   No attachment
                 </div>
               )}
             </div>
+
             {/* REMARK */}
             <div className="px-6 pb-6">
               <label className="text-sm font-semibold text-gray-600 mb-1 block">
@@ -268,6 +245,7 @@ export default function LeaveDetailPage() {
                 rows={4}
               />
             </div>
+
             {/* TABLE DATE DETAIL */}
             <div className="px-6 pb-6">
               <table className="w-full border-collapse">
@@ -299,37 +277,33 @@ export default function LeaveDetailPage() {
 
                       <td className="p-3 text-center">
                         <div className="flex justify-center space-x-2">
-                          {/* 1. Tampilkan Tombol jika status masih Pending (1) */}
-                          {Number(item.leave_status) === 1 &&
-                            String(leave?.supervisor_badge) ===
-                              String(user?.badge_number) && (
-                              <>
-                                <Button
-                                  size="xs"
-                                  color="green"
-                                  onClick={() =>
-                                    handleAlert(item.id, { leave_status: 2 })
-                                  }
-                                  loading={actionLoading}
-                                >
-                                  Approve
-                                </Button>
+                          {/* Jika status Pending DAN user adalah supervisor */}
+                          {Number(item.leave_status) === 1 && isSupervisor ? (
+                            <>
+                              <Button
+                                size="xs"
+                                color="green"
+                                onClick={() =>
+                                  handleAlert(item.id, { leave_status: 2 })
+                                }
+                                loading={actionLoading}
+                              >
+                                Approve
+                              </Button>
 
-                                <Button
-                                  size="xs"
-                                  color="red"
-                                  onClick={() =>
-                                    handleAlert(item.id, { leave_status: 3 })
-                                  }
-                                  loading={actionLoading}
-                                >
-                                  Reject
-                                </Button>
-                              </>
-                            )}
-
-                          {/* 2. Tampilkan Badge jika status SUDAH BUKAN Pending (bukan 1) */}
-                          {Number(item.leave_status) !== 1 && (
+                              <Button
+                                size="xs"
+                                color="red"
+                                onClick={() =>
+                                  handleAlert(item.id, { leave_status: 3 })
+                                }
+                                loading={actionLoading}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          ) : (
+                            /* Jika bukan pending ATAU bukan supervisor → tampilkan badge */
                             <Badge
                               color={statusMap[item.leave_status]?.color}
                               variant="filled"

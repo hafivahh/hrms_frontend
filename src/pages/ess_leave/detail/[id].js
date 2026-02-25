@@ -97,7 +97,7 @@ const handleDownloadAttachment = async (leave) => {
     <AuthLayout sidebarList={sidebarList}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="md" withBorder shadow="xs">
+          <Paper radius="sm" mt="md" withBorder>
             {/* HEADER */}
             <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
               <div className="flex items-center gap-2">
