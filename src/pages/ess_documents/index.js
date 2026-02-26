@@ -101,7 +101,7 @@ export default function IssDocumentsList() {
           return (
             <Button
               size="xs"
-              color="blue"
+              color="green"
               leftSection={<IconDownload size={16} />}
               onClick={() => handleDownload(doc)}
             >
