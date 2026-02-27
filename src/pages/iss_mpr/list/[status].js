@@ -973,7 +973,7 @@ export default function IssMprList({ mpr_status }) {
                 <Button
                   size="xs"
                   leftSection={<IconPlus size={16} />}
-                  onClick={() => router.push("/employee/create")}
+                  onClick={() => router.push("/iss_mpr/create")}
                 >
                   Add Manpower Request
                 </Button>

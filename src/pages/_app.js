@@ -14,6 +14,7 @@ import "@/styles/globals.css";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import useApi from "@/hooks/useApi";
+import { usePathname } from "next/navigation";
 
 const COOKIE_EXPIRE_TIME = 86400;
 
@@ -23,20 +24,18 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
   const { encrypt } = useEncrypt();
   const { decrypt } = useDecrypt();
-  const API         = useApi()
-  const API_URL     = API.API_URL
-  const PORTAL_API  = API.LINK_PORTAL
+  const pathname = usePathname();
+  const API = useApi();
+  const API_URL = API.API_URL;
+  const PORTAL_API = API.LINK_PORTAL;
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const validateUser = async (userId) => {
     try {
-      const { data } = await axios.post(
-        `${API_URL}/api/auth/validate`,
-        {
-          id_user: userId,
-        }
-      );
+      const { data } = await axios.post(`${API_URL}/api/auth/validate`, {
+        id_user: userId,
+      });
 
       if (data.success) {
         return data;
@@ -75,16 +74,19 @@ export default function App({ Component, pageProps }) {
           });
 
           setIsAuthenticated(true);
-          router.push('/')
-          return;
+          // router.push('/')
+          // return;
+          router.replace(pathname);
+
+          console.log(pathname)
         } else {
-           router.push(`${PORTAL_API}`);
+          router.push(`${PORTAL_API}`);
         }
       } else {
         const cookieValue = Cookies.get("portal_user");
 
         if (!cookieValue) {
-           router.push(`${PORTAL_API}`);
+          router.push(`${PORTAL_API}`);
         } else {
           idUser = cookieValue;
         }
@@ -103,7 +105,7 @@ export default function App({ Component, pageProps }) {
           });
           setIsAuthenticated(true);
         } else {
-           router.push(`${PORTAL_API}`);
+          router.push(`${PORTAL_API}`);
         }
       }
     };
@@ -122,9 +124,7 @@ export default function App({ Component, pageProps }) {
         {!isAuthenticated}
         <>
           <Head>
-            <title>
-              {process.env.NEXT_PUBLIC_APP_NAME}
-            </title>
+            <title>{process.env.NEXT_PUBLIC_APP_NAME}</title>
           </Head>
           <LoadingOverlay visible={!isAuthenticated} />
         </>
@@ -132,7 +132,8 @@ export default function App({ Component, pageProps }) {
           <>
             <Head>
               <title>
-                {Component.title ? Component.title : 'Default Title'} - {process.env.NEXT_PUBLIC_APP_NAME}
+                {Component.title ? Component.title : "Default Title"} -{" "}
+                {process.env.NEXT_PUBLIC_APP_NAME}
               </title>
             </Head>
             <Component {...pageProps} />

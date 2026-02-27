@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Paper, Badge, Loader } from "@mantine/core";
+import { Paper, Badge, Loader, Button } from "@mantine/core";
 import AuthLayout from "@/components/layout/authLayout";
 import { ess as sidebarData } from "@/data/sidebar/ess";
 import useApi from "@/hooks/useApi";
@@ -48,31 +48,74 @@ export default function LeaveDetailPage() {
       setLoading(false);
     }
   };
-const handleDownloadAttachment = async (leave) => {
-  try {
-    const response = await axios.get(
-      `${API_URL}/api/ess_leave/download/${leave.id}`,
-      {
-        responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${user.token}`,
+
+  const handleDownloadAttachment = async (leave) => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/ess_leave/download/${leave.id}`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         },
-      }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", leave.attachment || "leave-file");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Gagal download file");
+    }
+  };
+
+  const handleSubmitRequest = async () => {
+    const confirm = await showAlert(
+      "Submit Request?",
+      "question",
+      "This will submit your leave for approval.",
+      true,
     );
 
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", leave.attachment || "leave-file");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } catch (error) {
-    console.error("Download error:", error);
-    alert("Gagal download file");
-  }
-};
+    if (!confirm) return;
 
+    try {
+      setLoading(true);
+
+      await axios.put(
+       `${API_URL}/api/ess_leave/submit/${id}`,
+        {
+          submit: true, // optional kalau backend butuh flag
+        },
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        },
+      );
+
+      await showAlert(
+        "Success",
+        "success",
+        "Leave request submitted for approval!",
+        false,
+        1500,
+      );
+
+      fetchLeaveDetail(); // refresh data
+    } catch (err) {
+      showAlert(
+        "Error",
+        "error",
+        err.response?.data?.message || "Failed to submit request",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     fetchLeaveDetail();
   }, [id]);
@@ -181,24 +224,23 @@ const handleDownloadAttachment = async (leave) => {
             <hr className="mx-6 border-gray-100" />
 
             {/* 2. ATTACHMENT */}
-           <div className="px-6 py-4">
-  <label className="text-sm font-semibold text-gray-600 mb-2 block">
-    Attachment
-  </label>
-  {leave.attachment ? (
-    <button
-      onClick={() => handleDownloadAttachment(leave)}
-      className="inline-flex items-center px-4 py-2 border rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
-    >
-      Download Attachment
-    </button>
-  ) : (
-    <div className="text-gray-400 italic text-sm p-2 border border-dashed rounded bg-gray-50">
-      No attachment provided
-    </div>
-  )}
-</div>
-
+            <div className="px-6 py-4">
+              <label className="text-sm font-semibold text-gray-600 mb-2 block">
+                Attachment
+              </label>
+              {leave.attachment ? (
+                <button
+                  onClick={() => handleDownloadAttachment(leave)}
+                  className="inline-flex items-center px-4 py-2 border rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
+                >
+                  Download Attachment
+                </button>
+              ) : (
+                <div className="text-gray-400 italic text-sm p-2 border border-dashed rounded bg-gray-50">
+                  No attachment provided
+                </div>
+              )}
+            </div>
 
             {/* 3. REMARK */}
             <div className="px-6 pb-8">
@@ -212,6 +254,19 @@ const handleDownloadAttachment = async (leave) => {
                 rows={3}
               />
             </div>
+            {/* 4. ACTION BUTTON */}
+            {leave.leave_status === 0 && (
+              <div className="px-6 pb-8 flex justify-end">
+                <Button
+                  size="md"
+                  color="blue"
+                  loading={loading}
+                  onClick={handleSubmitRequest}
+                >
+                  Submit Request
+                </Button>
+              </div>
+            )}
           </Paper>
         </div>
       </div>

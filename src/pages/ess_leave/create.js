@@ -441,7 +441,6 @@ export default function ESSLeaveCreate() {
               {/* SUBMIT BUTTON */}
               <div className="flex justify-end mt-10">
                 <Button
-                  size="md"
                   onClick={onSubmit}
                   disabled={!isFormValid}
                   loading={loading}
