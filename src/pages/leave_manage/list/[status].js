@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { Button, Paper, Badge,  Select  } from "@mantine/core";
+import { Button, Paper, Badge, Select } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { IconList, IconSearch, IconTrash, IconDownload } from "@tabler/icons-react";
+import {
+  IconList,
+  IconSearch,
+  IconTrash,
+  IconDownload,
+} from "@tabler/icons-react";
 
 import { DateInput } from "@mantine/dates";
 import Datatables from "@/components/custom/Datatables";
@@ -48,46 +53,46 @@ export default function ListLeaveByStatus({ status }) {
       router.push("/leave_manage/list/draft");
     }
   }, [status]);
-useEffect(() => {
-  if (!user?.token) return;
+  useEffect(() => {
+    if (!user?.token) return;
 
-  axios
-    .get(`${API_URL}/api/leave/dropdowns`, {
-      headers: { Authorization: `Bearer ${user.token}` },
-    })
-    .then((res) => {
-      setDepartments(
-        res.data.departments.map((d) => ({
-          value: d.id.toString(),
-          label: d.departement_name,
-        }))
-      );
-      setProjects(
-        res.data.projects.map((p) => ({
-          value: p.id.toString(),
-          label: p.project_name,
-        }))
-      );
-    })
-    .catch(console.error);
-}, [user?.token]);
+    axios
+      .get(`${API_URL}/api/leave/dropdowns`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      })
+      .then((res) => {
+        setDepartments(
+          res.data.departments.map((d) => ({
+            value: d.id.toString(),
+            label: d.departement_name,
+          })),
+        );
+        setProjects(
+          res.data.projects.map((p) => ({
+            value: p.id.toString(),
+            label: p.project_name,
+          })),
+        );
+      })
+      .catch(console.error);
+  }, [user?.token]);
 
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalPages, setTotalPages] = useState(1);
-// ===============================
-// FILTER STATE (TAMBAHAN)
-// ===============================
-const [filterDept, setFilterDept] = useState(null);
-const [filterProject, setFilterProject] = useState(null);
-const [filterStart, setFilterStart] = useState(null);
-const [filterEnd, setFilterEnd] = useState(null);
+  // ===============================
+  // FILTER STATE (TAMBAHAN)
+  // ===============================
+  const [filterDept, setFilterDept] = useState(null);
+  const [filterProject, setFilterProject] = useState(null);
+  const [filterStart, setFilterStart] = useState(null);
+  const [filterEnd, setFilterEnd] = useState(null);
 
-const [departments, setDepartments] = useState([]);
-const [projects, setProjects] = useState([]);
-const [appliedFilter, setAppliedFilter] = useState({});
+  const [departments, setDepartments] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [appliedFilter, setAppliedFilter] = useState({});
   const sidebarList = sidebarData;
 
   const statusMap = {
@@ -201,7 +206,7 @@ const [appliedFilter, setAppliedFilter] = useState({});
                   size="xs"
                   color="red"
                   leftSection={<IconTrash size={16} />}
-                  onClick={() => console.log("Delete:", encryptedId)}
+                  onClick={() => handleDelete(encryptedId)}
                 >
                   Delete
                 </Button>
@@ -243,19 +248,19 @@ const [appliedFilter, setAppliedFilter] = useState({});
 
     try {
       const filterParams =
-  Object.keys(appliedFilter).length > 0
-    ? `&search=${encodeURIComponent(JSON.stringify(appliedFilter))}`
-    : "";
+        Object.keys(appliedFilter).length > 0
+          ? `&search=${encodeURIComponent(JSON.stringify(appliedFilter))}`
+          : "";
 
-const { data } = await axios.post(
-  `${API_URL}/api/leave/serverside?${
-    isAll ? "allStatus=true" : `status=${statusStringMap[status]}`
-  }${filterParams}&page=${pagination.pageIndex}&size=${
-    pagination.pageSize
-  }&sort=${sort}`,
-  {},
-  { headers: { Authorization: `Bearer ${user.token}` } },
-);
+      const { data } = await axios.post(
+        `${API_URL}/api/leave/serverside?${
+          isAll ? "allStatus=true" : `status=${statusStringMap[status]}`
+        }${filterParams}&page=${pagination.pageIndex}&size=${
+          pagination.pageSize
+        }&sort=${sort}`,
+        {},
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
 
       setData(data.data);
       setTotalPages(data.total_pages);
@@ -267,197 +272,108 @@ const { data } = await axios.post(
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-const handleSearch = () => {
-  const deptLabel =
-    departments.find((d) => d.value === filterDept)?.label || "";
+  const handleSearch = () => {
+    const deptLabel =
+      departments.find((d) => d.value === filterDept)?.label || "";
 
-  const projLabel =
-    projects.find((p) => p.value === filterProject)?.label || "";
+    const projLabel =
+      projects.find((p) => p.value === filterProject)?.label || "";
 
-  setAppliedFilter({
-    departement_name: deptLabel,
-    project_name: projLabel,
-    leave_in: filterStart
-      ? filterStart.toISOString().split("T")[0]
-      : "",
-    leave_out: filterEnd
-      ? filterEnd.toISOString().split("T")[0]
-      : "",
-  });
+    setAppliedFilter({
+      departement_name: deptLabel,
+      project_name: projLabel,
+      leave_in: filterStart ? filterStart.toISOString().split("T")[0] : "",
+      leave_out: filterEnd ? filterEnd.toISOString().split("T")[0] : "",
+    });
 
-  setPagination((p) => ({ ...p, pageIndex: 0 }));
-};
-//okee3
-const handleDownloadExcel = async () => {
-  try {
-    const response = await axios.post(
-      `${API_URL}/api/leave/export`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+  };
+  //okee3
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/leave/export`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
         },
+      );
+
+      const data = response.data;
+
+      if (!data.length) {
+        showAlert("Info", "info", "No data to export");
+        return;
       }
-    );
 
-    const data = response.data;
+      const XLSX = await import("xlsx-js-style");
 
-    if (!data.length) {
-      showAlert("Info", "info", "No data to export");
-      return;
-    }
-
-    const XLSX = await import("xlsx-js-style");
-
-    // ===============================
-    // ===== FORMAT HEADER ===========
-    // ===============================
-    const formattedData = data.map((item) => {
-      const newObj = {};
-      Object.keys(item).forEach((key) => {
-        const formattedKey = key
-          .replace(/_/g, " ")
-          .replace(/\b\w/g, (l) => l.toUpperCase());
-        newObj[formattedKey] = item[key];
+      // ===============================
+      // ===== FORMAT HEADER ===========
+      // ===============================
+      const formattedData = data.map((item) => {
+        const newObj = {};
+        Object.keys(item).forEach((key) => {
+          const formattedKey = key
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase());
+          newObj[formattedKey] = item[key];
+        });
+        return newObj;
       });
-      return newObj;
-    });
 
-    const worksheet = XLSX.utils.aoa_to_sheet([]);
-    const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet([]);
+      const workbook = XLSX.utils.book_new();
 
-    // ===============================
-    // ===== TITLE AREA A-I ==========
-    // ===============================
-    worksheet["!merges"] = [
-      {
-        s: { r: 0, c: 0 },
-        e: { r: 1, c: 9 }, // A sampai j
-      },
-    ];
-
-    worksheet["A1"] = {
-      v: "LEAVE LIST",
-      s: {
-        font: { bold: true, sz: 20 },
-        alignment: {
-          horizontal: "center",
-          vertical: "center",
+      // ===============================
+      // ===== TITLE AREA A-I ==========
+      // ===============================
+      worksheet["!merges"] = [
+        {
+          s: { r: 0, c: 0 },
+          e: { r: 1, c: 9 }, // A sampai j
         },
-      },
-    };
+      ];
 
-    worksheet["!rows"] = [{ hpt: 40 }, { hpt: 40 }];
-
-    // ===============================
-    // ===== ADD TABLE START A3 ======
-    // ===============================
-    XLSX.utils.sheet_add_json(worksheet, formattedData, {
-      origin: "A3",
-    });
-
-    const headers = Object.keys(formattedData[0]);
-
-    // ===============================
-    // ===== STYLE HEADER (ROW 3) ====
-    // ===============================
-    headers.forEach((header, colIndex) => {
-      const cellAddress = XLSX.utils.encode_cell({ r: 2, c: colIndex });
-
-      if (!worksheet[cellAddress]) return;
-
-      worksheet[cellAddress].s = {
-        font: {
-          bold: true,
-          color: { rgb: "FFFFFF" },
-        },
-        fill: {
-          fgColor: { rgb: "007BFF" },
-        },
-        alignment: {
-          horizontal: "center",
-          vertical: "center",
-        },
-        border: {
-          top: { style: "thin" },
-          bottom: { style: "thin" },
-          left: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
-    });
-
-    // ===============================
-    // ===== STYLE ALL DATA CELLS ====
-    // ===============================
-    const range = XLSX.utils.decode_range(worksheet["!ref"]);
-
-    for (let row = 3; row <= range.e.r; row++) {
-      for (let col = 0; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-
-        if (!worksheet[cellAddress]) continue;
-
-        const existingStyle = worksheet[cellAddress].s || {};
-
-        worksheet[cellAddress].s = {
-          ...existingStyle,
+      worksheet["A1"] = {
+        v: "LEAVE LIST",
+        s: {
+          font: { bold: true, sz: 20 },
           alignment: {
-            ...(existingStyle.alignment || {}),
+            horizontal: "center",
             vertical: "center",
           },
-          border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" },
-          },
-        };
-      }
-    }
+        },
+      };
 
-    // ===============================
-    // ===== COLOR LEAVE STATUS ONLY =
-    // ===============================
-    const statusColumnIndex = headers.findIndex(
-      (h) => h === "Leave Status"
-    );
+      worksheet["!rows"] = [{ hpt: 40 }, { hpt: 40 }];
 
-    if (statusColumnIndex !== -1) {
-      for (let row = 3; row <= range.e.r; row++) {
-        const cellAddress = XLSX.utils.encode_cell({
-          r: row,
-          c: statusColumnIndex,
-        });
+      // ===============================
+      // ===== ADD TABLE START A3 ======
+      // ===============================
+      XLSX.utils.sheet_add_json(worksheet, formattedData, {
+        origin: "A3",
+      });
 
-        const cell = worksheet[cellAddress];
-        if (!cell || !cell.v) continue;
+      const headers = Object.keys(formattedData[0]);
 
-        const value = String(cell.v).toLowerCase();
+      // ===============================
+      // ===== STYLE HEADER (ROW 3) ====
+      // ===============================
+      headers.forEach((header, colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: 2, c: colIndex });
 
-        let bgColor = "";
-        let fontColor = "000000";
-
-        if (value === "draft") {
-          bgColor = "D9D9D9";
-        } else if (value === "pending") {
-          bgColor = "FFC107";
-        } else if (value === "completed") {
-          bgColor = "28A745";
-          fontColor = "FFFFFF";
-        } else if (value === "reject") {
-          bgColor = "DC3545";
-          fontColor = "FFFFFF";
-        }
+        if (!worksheet[cellAddress]) return;
 
         worksheet[cellAddress].s = {
-          ...worksheet[cellAddress].s,
           font: {
             bold: true,
-            color: { rgb: fontColor },
+            color: { rgb: "FFFFFF" },
           },
           fill: {
-            fgColor: { rgb: bgColor },
+            fgColor: { rgb: "007BFF" },
           },
           alignment: {
             horizontal: "center",
@@ -470,124 +386,239 @@ const handleDownloadExcel = async () => {
             right: { style: "thin" },
           },
         };
+      });
+
+      // ===============================
+      // ===== STYLE ALL DATA CELLS ====
+      // ===============================
+      const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+      for (let row = 3; row <= range.e.r; row++) {
+        for (let col = 0; col <= range.e.c; col++) {
+          const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+
+          if (!worksheet[cellAddress]) continue;
+
+          const existingStyle = worksheet[cellAddress].s || {};
+
+          worksheet[cellAddress].s = {
+            ...existingStyle,
+            alignment: {
+              ...(existingStyle.alignment || {}),
+              vertical: "center",
+            },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          };
+        }
       }
+
+      // ===============================
+      // ===== COLOR LEAVE STATUS ONLY =
+      // ===============================
+      const statusColumnIndex = headers.findIndex((h) => h === "Leave Status");
+
+      if (statusColumnIndex !== -1) {
+        for (let row = 3; row <= range.e.r; row++) {
+          const cellAddress = XLSX.utils.encode_cell({
+            r: row,
+            c: statusColumnIndex,
+          });
+
+          const cell = worksheet[cellAddress];
+          if (!cell || !cell.v) continue;
+
+          const value = String(cell.v).toLowerCase();
+
+          let bgColor = "";
+          let fontColor = "000000";
+
+          if (value === "draft") {
+            bgColor = "D9D9D9";
+          } else if (value === "pending") {
+            bgColor = "FFC107";
+          } else if (value === "completed") {
+            bgColor = "28A745";
+            fontColor = "FFFFFF";
+          } else if (value === "reject") {
+            bgColor = "DC3545";
+            fontColor = "FFFFFF";
+          }
+
+          worksheet[cellAddress].s = {
+            ...worksheet[cellAddress].s,
+            font: {
+              bold: true,
+              color: { rgb: fontColor },
+            },
+            fill: {
+              fgColor: { rgb: bgColor },
+            },
+            alignment: {
+              horizontal: "center",
+              vertical: "center",
+            },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          };
+        }
+      }
+
+      // ===============================
+      // ===== AUTO WIDTH ==============
+      // ===============================
+      worksheet["!cols"] = headers.map((header) => ({
+        wch: header.length + 15,
+      }));
+
+      // ===============================
+      // ===== FILE NAME ===============
+      // ===============================
+      const today = new Date();
+      const formattedDate = today.toISOString().split("T")[0];
+      const fileName = `Leave_List_${formattedDate}.xlsx`;
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Leave");
+      XLSX.writeFile(workbook, fileName);
+    } catch (error) {
+      console.error(error);
+      showAlert("Error", "error", "Failed to export excel");
     }
+  };
 
-    // ===============================
-    // ===== AUTO WIDTH ==============
-    // ===============================
-    worksheet["!cols"] = headers.map((header) => ({
-      wch: header.length + 15,
-    }));
+  const handleDelete = async (encryptedId) => {
+    const confirm = await showAlert(
+      "Are you sure?",
+      "question",
+      "Do you want to delete this leave request?",
+      true,
+      null,
+      "Delete",
+      "Cancel",
+    );
 
-    // ===============================
-    // ===== FILE NAME ===============
-    // ===============================
-    const today = new Date();
-    const formattedDate = today.toISOString().split("T")[0];
-    const fileName = `Leave_List_${formattedDate}.xlsx`;
+    if (!confirm) return;
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Leave");
-    XLSX.writeFile(workbook, fileName);
+    try {
+      await axios.delete(`${API_URL}/api/leave/${encryptedId}`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
 
-  } catch (error) {
-    console.error(error);
-    showAlert("Error", "error", "Failed to export excel");
-  }
-};
+      await showAlert(
+        "Success",
+        "success",
+        "Leave deleted successfully",
+        false,
+        1500,
+      );
+      fetchData();
+    } catch (err) {
+      showAlert(
+        "Error",
+        "error",
+        err.response?.data?.message || "Failed to delete",
+      );
+    }
+  };
 
-return (
-  <AuthLayout sidebarList={sidebarList}>
-    <div className="py-6">
-      <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-
-        {/* ================= FILTER SECTION ================= */}
-        <Paper radius="sm" mt="md" withBorder>
-          <div className="px-4 py-3 border-b flex items-center gap-2">
-            <IconSearch size={20} />
-            <h2 className="text-lg font-semibold">Filter</h2>
-          </div>
-
-          <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <Select
-                label="Department"
-                placeholder="Select Department"
-                data={departments}
-                value={filterDept}
-                onChange={setFilterDept}
-                clearable
-                searchable
-              />
-
-              <Select
-                label="Project"
-                placeholder="Select Project"
-                data={projects}
-                value={filterProject}
-                onChange={setFilterProject}
-                clearable
-                searchable
-              />
-
-              <DateInput
-                label="Start Date"
-                value={filterStart}
-                onChange={setFilterStart}
-                clearable
-              />
-
-              <DateInput
-                label="End Date"
-                value={filterEnd}
-                onChange={setFilterEnd}
-                clearable
-              />
+  return (
+    <AuthLayout sidebarList={sidebarList}>
+      <div className="py-6">
+        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+          {/* ================= FILTER SECTION ================= */}
+          <Paper radius="sm" mt="md" withBorder>
+            <div className="px-4 py-3 border-b flex items-center gap-2">
+              <IconSearch size={20} />
+              <h2 className="text-lg font-semibold">Filter</h2>
             </div>
 
-            <div className="flex justify-end">
-              <Button
-                size="xs"
-                leftSection={<IconSearch size={16} />}
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
+            <div className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <Select
+                  label="Department"
+                  placeholder="Select Department"
+                  data={departments}
+                  value={filterDept}
+                  onChange={setFilterDept}
+                  clearable
+                  searchable
+                />
+
+                <Select
+                  label="Project"
+                  placeholder="Select Project"
+                  data={projects}
+                  value={filterProject}
+                  onChange={setFilterProject}
+                  clearable
+                  searchable
+                />
+
+                <DateInput
+                  label="Start Date"
+                  value={filterStart}
+                  onChange={setFilterStart}
+                  clearable
+                />
+
+                <DateInput
+                  label="End Date"
+                  value={filterEnd}
+                  onChange={setFilterEnd}
+                  clearable
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  size="xs"
+                  leftSection={<IconSearch size={16} />}
+                  onClick={handleSearch}
+                >
+                  Search
+                </Button>
+              </div>
             </div>
-          </div>
-        </Paper>
+          </Paper>
 
-        {/* ================= LIST SECTION ================= */}
-        <Paper radius="sm" mt="md" withBorder>
-          <div className="px-4 py-3 border-b flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <IconList size={20} />
-              <h2 className="text-lg font-semibold uppercase">
-                {status === "all"
-                  ? "Leave List"
-                  : `${status.replace(/_/g, " ")} Leave List`}
-              </h2>
+          {/* ================= LIST SECTION ================= */}
+          <Paper radius="sm" mt="md" withBorder className="overflow-hidden">
+            <div className="px-4 py-3 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconList size={20} />
+                <h2 className="text-lg font-semibold uppercase">
+                  {status === "all"
+                    ? "Leave List"
+                    : `${status.replace(/_/g, " ")} Leave List`}
+                </h2>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  size="xs"
+                  color="green"
+                  leftSection={<IconDownload size={16} />}
+                  onClick={handleDownloadExcel}
+                >
+                  Download
+                </Button>
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                size="xs"
-                color="green"
-                leftSection={<IconDownload size={16} />}
-                onClick={handleDownloadExcel}
-              >
-                Download
-              </Button>
+            <div className="p-4 overflow-x-auto">
+              <Datatables table={table} totalPages={totalPages} />
             </div>
-          </div>
-
-          <div className="p-4 overflow-x-auto">
-            <Datatables table={table} totalPages={totalPages} />
-          </div>
-        </Paper>
-
+          </Paper>
+        </div>
       </div>
-    </div>
-  </AuthLayout>
-);
+    </AuthLayout>
+  );
 }

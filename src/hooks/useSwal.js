@@ -20,11 +20,12 @@ export default function useSwal() {
       showConfirmButton: showButtons,
       confirmButtonText: confirmText,
       cancelButtonText: cancelText,
-      reverseButtons: true,
+      reverseButtons: false,
       confirmButtonColor: "#3085d6",
       timer: timer || undefined,
       timerProgressBar: !!timer,
-    });
+    })
+    .then((result) => result.isConfirmed); // ← TAMBAH INI
   };
 
   return { showAlert };

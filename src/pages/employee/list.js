@@ -516,7 +516,7 @@ export default function List() {
               </div>
               <div className="flex justify-end">
                 <Button
-                size="xs"
+                  size="xs"
                   leftSection={<IconSearch size={16} />}
                   onClick={handleSearch}
                 >
@@ -527,7 +527,7 @@ export default function List() {
           </Paper>
 
           {/* LIST SECTION */}
-          <Paper radius="sm" mt="md" withBorder>
+          <Paper radius="sm" mt="md" withBorder className="overflow-hidden">
             <div className="px-4 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <IconList size={20} />

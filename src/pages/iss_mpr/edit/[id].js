@@ -618,7 +618,6 @@ export default function IssMprEdit() {
     );
   }
 
-
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -777,24 +776,26 @@ export default function IssMprEdit() {
                   />
                 </div>
               </div>
-{/* Section 4: Job Description */}
-<div className="mb-4">
-  <label className="block text-sm font-medium mb-2">
-    2. Job Description
-  </label>
-  <ReactQuill
-    theme="snow"
-    value={formData.job_description}
-    onChange={(value) => handleInputChange("job_description", value)}
-    modules={{
-      toolbar: [
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["clean"],
-      ],
-    }}
-  />
-</div>
+              {/* Section 4: Job Description */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                  2. Job Description
+                </label>
+                <ReactQuill
+                  theme="snow"
+                  value={formData.job_description}
+                  onChange={(value) =>
+                    handleInputChange("job_description", value)
+                  }
+                  modules={{
+                    toolbar: [
+                      ["bold", "italic", "underline"],
+                      [{ list: "ordered" }, { list: "bullet" }],
+                      ["clean"],
+                    ],
+                  }}
+                />
+              </div>
 
               {/* Section 5: Experience */}
               <div className="mb-6">
@@ -1174,12 +1175,12 @@ export default function IssMprEdit() {
               </Table>
               <div className="mt-8 flex justify-end">
                 <Button
-                  leftSection={<IconDeviceFloppy size={16} />}
+                
                   onClick={handleSave}
                   color="blue"
-                  size="md"
+                   size="xs"
                 >
-                  Save Changes
+                  Update MPR
                 </Button>
               </div>
             </div>

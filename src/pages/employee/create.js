@@ -39,9 +39,9 @@ export default function Add_employee() {
     },
     validate: {
       full_name: (value) =>
-      value.trim().length > 0 ? null : "Employee Name is required",
+        value.trim().length > 0 ? null : "Employee Name is required",
       badge_number: (value) =>
-      value.trim().length > 0 ? null : "Badge Number is required",
+        value.trim().length > 0 ? null : "Badge Number is required",
       gender: (value) => (value ? null : "Gender is required"),
       id_departement: (value) => (value ? null : "Department is required"),
       id_project: (value) => (value ? null : "Project is required"),
@@ -62,34 +62,34 @@ export default function Add_employee() {
         data.departments.map((item) => ({
           value: item.id.toString(),
           label: item.departement_name,
-        }))
+        })),
       );
 
       setProjects(
         data.projects.map((item) => ({
           value: item.id.toString(),
           label: item.project_name,
-        }))
+        })),
       );
 
       setCompanies(
         data.companies.map((item) => ({
           value: item.id.toString(),
           label: item.company_name,
-        }))
+        })),
       );
 
       setPositions(
         data.positions.map((item) => ({
           value: item.id.toString(),
           label: item.position_name,
-        }))
+        })),
       );
       setJoinDates(
         data.join_dates.map((item) => ({
           value: item.id.toString(),
           label: item.join_date,
-        }))
+        })),
       );
     } catch (err) {
       console.log(err);
@@ -108,7 +108,7 @@ export default function Add_employee() {
       true,
       null,
       "Submit",
-      "Cancel"
+      "Cancel",
     );
 
     if (!confirm?.isConfirmed) return;
@@ -120,7 +120,7 @@ export default function Add_employee() {
       id_company: Number(values.id_company),
       id_position: Number(values.id_position),
       gender: values.gender === "male" ? 1 : 2,
-      join_date: values.join_date ? values.join_date.toISOString() : null, 
+      join_date: values.join_date ? values.join_date.toISOString() : null,
     };
 
     try {
@@ -160,7 +160,7 @@ export default function Add_employee() {
         showAlert(
           "Network Error",
           "error",
-          "No response from server (check backend/CORS)."
+          "No response from server (check backend/CORS).",
         );
       } else {
         showAlert("Error", "error", error.message || "Unknown error");
@@ -169,122 +169,115 @@ export default function Add_employee() {
   };
 
   return (
-<AuthLayout sidebarList={employee}>
-  <div className="py-6">
-    <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-    <Paper radius="sm" mt="md" withBorder>
-        
-        {/* HEADER SECTION */}
-        <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <IconArrowLeft
-              size={18}
-              onClick={() => router.push("/employee/list")}
-              className="cursor-pointer hover:text-blue-600 transition-colors"
-            />
-            <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
-              Add Employee
-            </h2>
-          </div>
+    <AuthLayout sidebarList={employee}>
+      <div className="py-6">
+        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+          <Paper radius="sm" mt="md" withBorder>
+            {/* HEADER SECTION */}
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconArrowLeft
+                  size={18}
+                  onClick={() => router.push("/employee/list")}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                  Add Employee
+                </h2>
+              </div>
+            </div>
+
+            {/* CONTENT SECTION */}
+            <form onSubmit={form.onSubmit(handleSubmit)} className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* FULL NAME */}
+                <TextInput
+                  label="Full Name"
+                  withAsterisk
+                  placeholder="Input Employee Name"
+                  {...form.getInputProps("full_name")}
+                />
+
+                {/* BADGE NUMBER */}
+                <TextInput
+                  label="Badge Number"
+                  withAsterisk
+                  placeholder="Input Badge Number"
+                  {...form.getInputProps("badge_number")}
+                />
+
+                {/* GENDER */}
+                <Select
+                  label="Gender"
+                  placeholder="Select gender"
+                  data={[
+                    { value: "male", label: "Male" },
+                    { value: "female", label: "Female" },
+                  ]}
+                  searchable
+                  withAsterisk
+                  {...form.getInputProps("gender")}
+                />
+
+                {/* DEPARTEMENT */}
+                <Select
+                  label="Departement"
+                  placeholder="Select departement"
+                  data={departments}
+                  searchable
+                  withAsterisk
+                  {...form.getInputProps("id_departement")}
+                />
+
+                {/* PROJECT */}
+                <Select
+                  label="Project"
+                  placeholder="Select project"
+                  data={projects}
+                  searchable
+                  withAsterisk
+                  {...form.getInputProps("id_project")}
+                />
+
+                {/* COMPANY */}
+                <Select
+                  label="Company"
+                  placeholder="Select company"
+                  data={companies}
+                  searchable
+                  withAsterisk
+                  {...form.getInputProps("id_company")}
+                />
+
+                {/* POSITION */}
+                <Select
+                  label="Position"
+                  placeholder="Select position"
+                  data={positions}
+                  searchable
+                  withAsterisk
+                  {...form.getInputProps("id_position")}
+                />
+
+                {/* JOIN DATE */}
+                <DateInput
+                  label="Join Date"
+                  placeholder="Select join date"
+                  withAsterisk
+                  {...form.getInputProps("join_date")}
+                />
+              </div>
+
+              {/* SUBMIT BUTTON */}
+              <div className="flex justify-end mt-10">
+                <Button type="submit"  size="xs" loading={loading}>
+                  Submit Employee Data
+                </Button>
+              </div>
+            </form>
+          </Paper>
         </div>
-
-        {/* CONTENT SECTION */}
-        <form onSubmit={form.onSubmit(handleSubmit)} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* FULL NAME */}
-            <TextInput
-              label="Full Name"
-              withAsterisk
-              placeholder="Input Employee Name"
-              {...form.getInputProps("full_name")}
-            />
-
-            {/* BADGE NUMBER */}
-            <TextInput
-              label="Badge Number"
-              withAsterisk
-              placeholder="Input Badge Number"
-              {...form.getInputProps("badge_number")}
-            />
-
-            {/* GENDER */}
-            <Select
-              label="Gender"
-              placeholder="Select gender"
-              data={[
-                { value: "male", label: "Male" },
-                { value: "female", label: "Female" },
-              ]}
-              searchable
-              withAsterisk
-              {...form.getInputProps("gender")}
-            />
-
-            {/* DEPARTEMENT */}
-            <Select
-              label="Departement"
-              placeholder="Select departement"
-              data={departments}
-              searchable
-              withAsterisk
-              {...form.getInputProps("id_departement")}
-            />
-
-            {/* PROJECT */}
-            <Select
-              label="Project"
-              placeholder="Select project"
-              data={projects}
-              searchable
-              withAsterisk
-              {...form.getInputProps("id_project")}
-            />
-
-            {/* COMPANY */}
-            <Select
-              label="Company"
-              placeholder="Select company"
-              data={companies}
-              searchable
-              withAsterisk
-              {...form.getInputProps("id_company")}
-            />
-
-            {/* POSITION */}
-            <Select
-              label="Position"
-              placeholder="Select position"
-              data={positions}
-              searchable
-              withAsterisk
-              {...form.getInputProps("id_position")}
-            />
-
-            {/* JOIN DATE */}
-            <DateInput
-              label="Join Date"
-              placeholder="Select join date"
-              withAsterisk
-              {...form.getInputProps("join_date")}
-            />
-          </div>
-
-          {/* SUBMIT BUTTON */}
-<div className="flex justify-end mt-10">
-  <Button
-    type="submit"
-    size="md"
-    loading={loading}
-  >
-    Submit Employee Data
-  </Button>
-</div>
-        </form>
-
-      </Paper>
-    </div>
-  </div>
-</AuthLayout>
+      </div>
+    </AuthLayout>
   );
 }

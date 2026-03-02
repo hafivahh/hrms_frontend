@@ -952,7 +952,7 @@ export default function IssMprList({ mpr_status }) {
           </Paper>
 
           {/* LIST SECTION */}
-          <Paper radius="sm" mt="md" withBorder>
+            <Paper radius="sm" mt="md" withBorder className="overflow-hidden">
             {/* HEADER + ACTION BUTTONS */}
             <div className="px-4 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">

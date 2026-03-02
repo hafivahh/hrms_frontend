@@ -253,7 +253,7 @@ export default function Edit_Employee() {
 
               {/* UPDATE BUTTON */}
               <div className="flex justify-end mt-10">
-                <Button type="submit" size="md" loading={loading}>
+                <Button type="submit"  size="xs" loading={loading}>
                   Update Employee Data
                 </Button>
               </div>

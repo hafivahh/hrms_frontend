@@ -247,77 +247,54 @@ export default function LeaveDetailPage() {
             </div>
 
             {/* TABLE DATE DETAIL */}
-            <div className="px-6 pb-6">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100 border-b">
-                    <th className="p-3 text-center text-sm font-semibold text-gray-600">
-                      Start Date
-                    </th>
-                    <th className="p-3 text-center text-sm font-semibold text-gray-600">
-                      End Date
-                    </th>
-                    <th className="p-3 text-center text-sm font-semibold text-gray-600">
-                      Leave Type
-                    </th>
-                    <th className="p-3 text-center text-sm font-semibold text-gray-600">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {leave.items?.map((item) => (
-                    <tr key={item.id} className="border-b">
-                      <td className="p-3 text-center">{item.leave_in}</td>
-                      <td className="p-3 text-center">{item.leave_out}</td>
-                      <td className="p-3 text-center">
-                        {item.type_name || "-"}
-                      </td>
-
-                      <td className="p-3 text-center">
-                        <div className="flex justify-center space-x-2">
-                          {/* Jika status Pending DAN user adalah supervisor */}
-                          {Number(item.leave_status) === 1 && isSupervisor ? (
-                            <>
-                              <Button
-                                size="xs"
-                                color="green"
-                                onClick={() =>
-                                  handleAlert(item.id, { leave_status: 2 })
-                                }
-                                loading={actionLoading}
-                              >
-                                Approve
-                              </Button>
-
-                              <Button
-                                size="xs"
-                                color="red"
-                                onClick={() =>
-                                  handleAlert(item.id, { leave_status: 3 })
-                                }
-                                loading={actionLoading}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          ) : (
-                            /* Jika bukan pending ATAU bukan supervisor → tampilkan badge */
-                            <Badge
-                              color={statusMap[item.leave_status]?.color}
-                              variant="filled"
-                            >
-                              {statusMap[item.leave_status]?.label}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        {/* TABLE DATE DETAIL */}
+<div className="px-6 pb-6">
+  <div className="overflow-x-auto rounded-md border">
+    <table className="w-full border-collapse text-sm">
+      <thead>
+        <tr className="bg-gray-100 border-b">
+          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Start Date</th>
+          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">End Date</th>
+          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Leave Type</th>
+          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Partial Days</th>
+          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {leave.items?.map((item) => (
+          <tr key={item.id} className="border-b hover:bg-gray-50 transition-colors">
+            <td className="px-4 py-3 text-center whitespace-nowrap">{item.leave_in}</td>
+            <td className="px-4 py-3 text-center whitespace-nowrap">{item.leave_out}</td>
+            <td className="px-4 py-3 text-center whitespace-nowrap">{item.type_name || "-"}</td>
+            <td className="px-4 py-3 text-center whitespace-nowrap">{item.partial_label || "-"}</td>
+            <td className="px-4 py-3 text-center">
+              <div className="flex justify-center gap-2">
+                {Number(item.leave_status) === 1 && isSupervisor ? (
+                  <>
+                    <Button size="xs" color="green"
+                      onClick={() => handleAlert(item.id, { leave_status: 2 })}
+                      loading={actionLoading}>
+                      Approve
+                    </Button>
+                    <Button size="xs" color="red"
+                      onClick={() => handleAlert(item.id, { leave_status: 3 })}
+                      loading={actionLoading}>
+                      Reject
+                    </Button>
+                  </>
+                ) : (
+                  <Badge color={statusMap[item.leave_status]?.color} variant="filled">
+                    {statusMap[item.leave_status]?.label}
+                  </Badge>
+                )}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
           </Paper>
         </div>
       </div>

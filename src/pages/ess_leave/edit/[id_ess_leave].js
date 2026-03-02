@@ -39,7 +39,7 @@ export default function ESSLeaveEdit() {
   const [details, setDetails] = useState([]);
   const [supervisorId, setSupervisorId] = useState(null);
   const [supervisorName, setSupervisorName] = useState("");
-  const [supervisorQuery, setSupervisorQuery] = useState("");
+  const [supervisorQuery] = useState("");
   const [remarks, setRemarks] = useState(""); // State untuk Leave Remarks
   const [file, setFile] = useState(null);
 
@@ -380,6 +380,7 @@ export default function ESSLeaveEdit() {
               {/* Action Button */}
               <div className="flex justify-end mt-10">
                 <Button
+                 size="xs"
                   loading={loading}
                   onClick={onUpdate}
                   disabled={details.some((d) => !d.id_leave_type)}

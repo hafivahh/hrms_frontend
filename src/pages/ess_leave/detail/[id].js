@@ -35,7 +35,7 @@ export default function LeaveDetailPage() {
     if (!id) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/leave/${id}`, {
+      const res = await fetch(`${API_URL}/api/ess_leave/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch leave detail");
@@ -186,6 +186,9 @@ export default function LeaveDetailPage() {
                         Leave Type
                       </th>
                       <th className="p-3 text-center text-sm font-semibold text-gray-600">
+                        Partial Days
+                      </th>
+                      <th className="p-3 text-center text-sm font-semibold text-gray-600">
                         Status
                       </th>
                     </tr>
@@ -205,6 +208,9 @@ export default function LeaveDetailPage() {
                         <td className="p-3 text-center text-sm">
                           {item.type_name || "-"}
                         </td>
+                        <td className="p-3 text-center text-sm">
+  {item.partial_label || "-"}
+</td>
                         <td className="p-3 text-center text-sm">
                           <Badge
                             color={statusMap[item.leave_status]?.color}
@@ -258,7 +264,7 @@ export default function LeaveDetailPage() {
             {leave.leave_status === 0 && (
               <div className="px-6 pb-8 flex justify-end">
                 <Button
-                  size="md"
+                   size="xs"
                   color="blue"
                   loading={loading}
                   onClick={handleSubmitRequest}
