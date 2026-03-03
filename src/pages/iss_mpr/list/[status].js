@@ -11,7 +11,7 @@ import {
   IconPencil,
   IconDownload,
   IconPlus,
-  IconSearch
+  IconSearch,
 } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
@@ -176,6 +176,7 @@ export default function IssMprList({ mpr_status }) {
     };
     return titleMap[mpr_status] || "Manpower Request List";
   };
+
   const handleDownloadMprExcel = async () => {
     try {
       const searchQuery = {};
@@ -204,7 +205,7 @@ export default function IssMprList({ mpr_status }) {
           : "";
 
       const response = await axios.post(
-        `${API_URL}/api/iss_mpr/export?${filterParams}&sort=${sort}`,
+        `${API_URL}/api/iss_mpr/export?status=${status}&${filterParams}&sort=${sort}`,
         {},
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
@@ -941,18 +942,19 @@ export default function IssMprList({ mpr_status }) {
               </div>
 
               <div className="flex justify-end">
-                <Button 
-                size="xs"
-                leftSection={<IconSearch size={16} />}
-                onClick={handleSearch}>
-                Search
+                <Button
+                  size="xs"
+                  leftSection={<IconSearch size={16} />}
+                  onClick={handleSearch}
+                >
+                  Search
                 </Button>
               </div>
             </div>
           </Paper>
 
           {/* LIST SECTION */}
-            <Paper radius="sm" mt="md" withBorder className="overflow-hidden">
+          <Paper radius="sm" mt="md" withBorder className="overflow-hidden">
             {/* HEADER + ACTION BUTTONS */}
             <div className="px-4 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">

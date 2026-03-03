@@ -291,13 +291,27 @@ export default function ListLeaveByStatus({ status }) {
   //okee3
   const handleDownloadExcel = async () => {
     try {
+      const isAll = status === "all";
+
+      // ✅ Bangun search params dari appliedFilter (sama seperti fetchData)
+      const filterParams =
+        Object.keys(appliedFilter).length > 0
+          ? `&search=${encodeURIComponent(JSON.stringify(appliedFilter))}`
+          : "";
+
+      // ✅ Bangun sort params
+      const sortParam =
+        sorting.length > 0
+          ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
+          : "";
+
       const response = await axios.post(
-        `${API_URL}/api/leave/export`,
+        `${API_URL}/api/leave/export?${
+          isAll ? "allStatus=true" : `status=${statusStringMap[status]}`
+        }${filterParams}&sort=${sortParam}`, // ✅ kirim status + filter + sort
         {},
         {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
+          headers: { Authorization: `Bearer ${user.token}` },
         },
       );
 
@@ -391,7 +405,20 @@ export default function ListLeaveByStatus({ status }) {
       // ===============================
       // ===== STYLE ALL DATA CELLS ====
       // ===============================
+      // ===============================
+      // ===== STYLE ALL DATA CELLS ====
+      // ===============================
       const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+      const dateColumns = [
+        "Request Date",
+        "Start Date",
+        "End Date",
+        "Badge Number",
+      ];
+      const dateColumnIndexes = dateColumns.map((name) =>
+        headers.findIndex((h) => h === name),
+      );
 
       for (let row = 3; row <= range.e.r; row++) {
         for (let col = 0; col <= range.e.c; col++) {
@@ -401,11 +428,14 @@ export default function ListLeaveByStatus({ status }) {
 
           const existingStyle = worksheet[cellAddress].s || {};
 
+          const isDateCol = dateColumnIndexes.includes(col);
+
           worksheet[cellAddress].s = {
             ...existingStyle,
             alignment: {
               ...(existingStyle.alignment || {}),
               vertical: "center",
+              ...(isDateCol && { horizontal: "center" }),
             },
             border: {
               top: { style: "thin" },

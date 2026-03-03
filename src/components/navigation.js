@@ -9,6 +9,7 @@ import {
   IconDatabase,
   IconUsers,
   IconList,
+  IconSettingsPlus ,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,6 +21,12 @@ const navigation = [
     name: "Dashboard",
     url: "/",
     icon: <IconHomeFilled size={20} />,
+    permission: 1,
+  },
+   {
+    name: "Administrator",
+    url: "/portal/user",
+    icon: <IconSettingsPlus  size={20} />,
     permission: 1,
   },
   {
