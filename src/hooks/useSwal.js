@@ -24,8 +24,7 @@ export default function useSwal() {
       confirmButtonColor: "#3085d6",
       timer: timer || undefined,
       timerProgressBar: !!timer,
-    })
-    .then((result) => result.isConfirmed); // ← TAMBAH INI
+    }); // ⬅️ hapus .then — return result object langsung
   };
 
   return { showAlert };

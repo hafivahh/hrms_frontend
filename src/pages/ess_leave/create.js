@@ -127,34 +127,6 @@ export default function ESSLeaveCreate() {
   }, [startDate, endDate]);
 
   // ======================
-  // FETCH SUPERVISOR OPTIONS (search by badge/full_name)
-  // ======================
-  // useEffect(() => {
-  //   if (!supervisorQuery) {
-  //     setSupervisorOptions([]);
-  //     return;
-  //   }
-
-  //   const timeout = setTimeout(() => {
-  //     axios
-  //       .get(`${API.API_URL}/api/employee`, {
-  //         headers: { Authorization: "Bearer " + user.token },
-  //         params: { search: supervisorQuery },
-  //       })
-  //       .then((res) => {
-  //         const options = res.data.map((i) => ({
-  //           badge_number: i.badge_number,
-  //           label: `${i.badge_number} - ${i.full_name}`,
-  //         }));
-  //         setSupervisorOptions(options);
-  //       })
-  //       .catch((err) => console.error(err.response?.data || err.message));
-  //   }, 300);
-
-  //   return () => clearTimeout(timeout);
-  // }, [supervisorQuery]);
-
-  // ======================
   // SUBMIT
   // ======================
   const onSubmit = async () => {

@@ -9,7 +9,18 @@ const useUser = create(
         name: null,
         token: null,
       },
+
       setUser: (value) => set({ user: value }),
+
+      // ✅ Tambahkan logout
+      logout: () =>
+        set({
+          user: {
+            id: 0,
+            name: null,
+            token: null,
+          },
+        }),
     }),
     {
       name: "user",

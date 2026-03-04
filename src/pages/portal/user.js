@@ -11,7 +11,7 @@ import {
   IconPencil,
   IconList,
   IconPlus,
-  IconDownload,
+  IconLock,
   IconEye,
 } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
@@ -86,23 +86,39 @@ export default function PortalUser() {
       // ===============================
       // ACTIONS
       // ===============================
-     {
-      id: "actions",
-      header: "Actions",
-      size: 80, // ⬅️ batasi lebar kolom action
-      cell: ({ row }) => (
-        <Button
-          size="xs"
-          color="yellow"
-          leftSection={<IconPencil size={14} />}
-          fullWidth // ⬅️ menyesuaikan lebar kolom
-          onClick={() => router.push(`/portal/edit/${row.original.id_user}`)}
-          // ⬅️ kirim id_user biasa, bukan encrypted
-        >
-          Edit
-        </Button>
-      ),
-    },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const encryptedId = encrypt(String(row.original.id_user));
+          return (
+            <Button.Group style={{ display: "flex", width: "100%" }}>
+              {/* Edit User */}
+              <Button
+                size="xs"
+                color="yellow"
+                leftSection={<IconPencil size={14} />}
+                style={{ flex: 1 }}
+                onClick={() => router.push(`/portal/edit/${encryptedId}`)}
+              >
+                Edit
+              </Button>
+
+              {/* Change Password */}
+              <Button
+                size="xs"
+                color="grey"
+                leftSection={<IconLock size={14} />}
+                style={{ flex: 1 }}
+                // Di list page, ganti encryptedId → id_user biasa
+               onClick={() => router.push(`/portal/change/${encryptedId}`)}
+              >
+                Change Password
+              </Button>
+            </Button.Group>
+          );
+        },
+      },
     ],
     [encrypt],
   );
@@ -129,6 +145,7 @@ export default function PortalUser() {
   // FETCH DATA
   // ===============================
   const fetchData = useCallback(async () => {
+    if (!user?.token) return;
     const searchQuery = {};
 
     columnFilters.forEach((filter) => {

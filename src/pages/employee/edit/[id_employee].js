@@ -95,19 +95,23 @@ export default function Edit_Employee() {
     fetchData();
   }, [id_employee]);
 
-  // HANDLE SUBMIT UPDATE
   const handleSubmit = async (values) => {
+    if (loading) return;
+
     const confirm = await showAlert(
       "Are You Sure?",
       "question",
       "Do you want to update this employee?",
       true,
       null,
-      "Update", // btn confirm
+      "Update",
       "Cancel",
     );
 
-    if (!confirm?.isConfirmed) return;
+    if (!confirm) return;
+    if (typeof confirm === "object" && confirm.isConfirmed === false) return;
+
+    setLoading(true);
 
     try {
       const payload = {
@@ -140,10 +144,10 @@ export default function Edit_Employee() {
         error: "Unknown",
       };
       showAlert(data_error.message, "error", data_error.error);
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (loading) return <p className="p-4">Loading...</p>;
 
   return (
     <AuthLayout sidebarList={employee}>
@@ -253,7 +257,7 @@ export default function Edit_Employee() {
 
               {/* UPDATE BUTTON */}
               <div className="flex justify-end mt-10">
-                <Button type="submit"  size="xs" loading={loading}>
+                <Button type="submit" size="xs" loading={loading}>
                   Update Employee Data
                 </Button>
               </div>

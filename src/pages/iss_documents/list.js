@@ -23,7 +23,28 @@ export default function IssDocumentsList() {
     pageSize: 10,
   });
   const [totalPages, setTotalPages] = useState(1);
+  const handleDownloadDocument = async (doc) => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/iss_documents/download/${doc.id}`,
+        {
+          responseType: "blob",
+          headers: { Authorization: `Bearer ${user.token}` },
+        },
+      );
 
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", doc.file_name || "document-file");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Download error:", err);
+      alert("Gagal download file");
+    }
+  };
   // ======================
   // TABLE COLUMNS
   // ======================
@@ -85,11 +106,9 @@ export default function IssDocumentsList() {
           return (
             <Button
               size="xs"
-              color="blue"
+              color="green"
               leftSection={<IconDownload size={16} />}
-              component="a"
-              href={`${API_URL}/${doc.file_path}`}
-              target="_blank"
+              onClick={() => handleDownloadDocument(row.original)}
             >
               Download
             </Button>
@@ -160,7 +179,14 @@ export default function IssDocumentsList() {
       setData([]);
       setTotalPages(1);
     }
-  }, [columnFilters, pagination.pageIndex, pagination.pageSize, sorting, API_URL, user.token]);
+  }, [
+    columnFilters,
+    pagination.pageIndex,
+    pagination.pageSize,
+    sorting,
+    API_URL,
+    user.token,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -171,20 +197,16 @@ export default function IssDocumentsList() {
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
-
             {/* HEADER */}
             <div className="px-4 py-3 border-b flex items-center gap-2">
               <IconList size={20} />
-              <h2 className="text-lg font-semibold uppercase">
-                My Documents
-              </h2>
+              <h2 className="text-lg font-semibold uppercase">My Documents</h2>
             </div>
 
             {/* TABLE */}
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} />
             </div>
-
           </Paper>
         </div>
       </div>

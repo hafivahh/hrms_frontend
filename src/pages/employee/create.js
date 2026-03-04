@@ -85,12 +85,7 @@ export default function Add_employee() {
           label: item.position_name,
         })),
       );
-      setJoinDates(
-        data.join_dates.map((item) => ({
-          value: item.id.toString(),
-          label: item.join_date,
-        })),
-      );
+     
     } catch (err) {
       console.log(err);
     }
@@ -100,74 +95,63 @@ export default function Add_employee() {
     fetchDropdown();
   }, []);
 
-  const handleSubmit = async (values) => {
-    const confirm = await showAlert(
-      "Are you sure?",
-      "question",
-      "Do you want to submit this employee?",
-      true,
-      null,
-      "Submit",
-      "Cancel",
-    );
+const handleSubmit = async (values) => {
+  if (loading) return; // ⬅️ prevent double submit
 
-    if (!confirm?.isConfirmed) return;
+  const confirm = await showAlert(
+    "Are you sure?",
+    "question",
+    "Do you want to submit this employee?",
+    true,
+    null,
+    "Submit",
+    "Cancel",
+  );
 
-    const payload = {
-      ...values,
-      id_departement: Number(values.id_departement),
-      id_project: Number(values.id_project),
-      id_company: Number(values.id_company),
-      id_position: Number(values.id_position),
-      gender: values.gender === "male" ? 1 : 2,
-      join_date: values.join_date ? values.join_date.toISOString() : null,
-    };
+  // ⬅️ handle kedua kemungkinan return value dari showAlert
+  if (!confirm) return;
+  if (typeof confirm === "object" && confirm.isConfirmed === false) return;
 
-    try {
-      console.log("SUBMIT payload:", payload);
+  setLoading(true); // ⬅️ aktifkan loading
 
-      const res = await axios.post(`${API_URL}/api/employee/create`, payload, {
-        headers: { Authorization: "Bearer " + user.token },
-      });
-
-      console.log("RESPONSE (create employee):", res);
-
-      const data = res.data;
-      const isSuccess = !!(
-        data &&
-        (data.success === true || data.id || data.createdAt || data.data)
-      );
-
-      if (isSuccess) {
-        const message = data?.message || "Employee created successfully";
-        await showAlert("Success", "success", message, false, 1500);
-        router.push("/employee/list");
-        return;
-      }
-
-      console.warn("Unexpected response shape:", data);
-      const errMsg = data?.message || "Unexpected response from server";
-      showAlert("Error", "error", errMsg);
-    } catch (error) {
-      console.error("CREATE employee error:", error);
-      const data_error = error.response?.data || null;
-
-      if (data_error) {
-        const msg = data_error.message || JSON.stringify(data_error);
-        const detail = data_error.error || "";
-        showAlert(msg, "error", detail);
-      } else if (error.request) {
-        showAlert(
-          "Network Error",
-          "error",
-          "No response from server (check backend/CORS).",
-        );
-      } else {
-        showAlert("Error", "error", error.message || "Unknown error");
-      }
-    }
+  const payload = {
+    ...values,
+    id_departement: Number(values.id_departement),
+    id_project: Number(values.id_project),
+    id_company: Number(values.id_company),
+    id_position: Number(values.id_position),
+    gender: values.gender === "male" ? 1 : 2,
+    join_date: values.join_date ? values.join_date.toISOString() : null,
   };
 
+  try {
+    const res = await axios.post(`${API_URL}/api/employee/create`, payload, {
+      headers: { Authorization: "Bearer " + user.token },
+    });
+
+    const data = res.data;
+    const isSuccess = !!(data && (data.success === true || data.id || data.createdAt || data.data));
+
+    if (isSuccess) {
+      await showAlert("Success", "success", data?.message || "Employee created successfully", false, 1500);
+      router.push("/employee/list");
+      return;
+    }
+
+    showAlert("Error", "error", data?.message || "Unexpected response from server");
+  } catch (error) {
+    const data_error = error.response?.data || null;
+    if (data_error) {
+      showAlert(data_error.message || "Error", "error", data_error.error || "");
+    } else if (error.request) {
+      showAlert("Network Error", "error", "No response from server (check backend/CORS).");
+    } else {
+      showAlert("Error", "error", error.message || "Unknown error");
+    }
+  } finally {
+    setLoading(false); // ⬅️ matikan loading
+  }
+};
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">

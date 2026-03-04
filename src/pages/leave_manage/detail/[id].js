@@ -171,10 +171,11 @@ export default function LeaveDetailPage() {
       />
     </div>
   );
-  const isSupervisor =
-    leave?.supervisor_badge &&
-    user?.badge_number &&
-    String(leave.supervisor_badge) === String(user.badge_number);
+
+const isSupervisor =
+  leave?.supervisor_user_id &&
+  user?.id &&
+  String(leave.supervisor_user_id) === String(user.id);
 
   return (
     <AuthLayout sidebarList={sidebarList}>

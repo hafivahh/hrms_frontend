@@ -90,7 +90,7 @@ export default function IssMprList({ mpr_status }) {
   }, [user?.token]);
 
   const [data, setData] = useState([]);
-  const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
+ const [sorting, setSorting] = useState([{ id: "created_date", desc: true }]); // ⬅️ ganti dari id ke created_date
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
   const [pagination, setPagination] = useState({
     pageIndex: 0,

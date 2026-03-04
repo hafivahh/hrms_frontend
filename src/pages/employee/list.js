@@ -182,7 +182,10 @@ export default function List() {
       "Delete",
       "Cancel",
     );
-    if (!confirm?.isConfirmed) return;
+
+    if (!confirm) return;
+    if (typeof confirm === "object" && confirm.isConfirmed === false) return;
+
     try {
       await axios.delete(`${API_URL}/api/employee/${encryptedId}`, {
         headers: { Authorization: `Bearer ${user.token}` },
@@ -467,8 +470,15 @@ export default function List() {
       // ===============================
       // ===== EXPORT FILE =============
       // ===============================
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0"); // month mulai dari 0
+      const dd = String(today.getDate()).padStart(2, "0");
+
+      const fileName = `Employee_List_${yyyy}_${mm}_${dd}.xlsx`;
+
       XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
-      XLSX.writeFile(workbook, "Employee_List.xlsx");
+      XLSX.writeFile(workbook, fileName);
     } catch (error) {
       showAlert("Error", "error", "Failed to export excel");
     }
