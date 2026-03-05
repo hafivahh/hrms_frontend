@@ -11,6 +11,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { use, useCallback, useEffect, useMemo, useState } from "react";
 import useEncrypt from "@/hooks/useEncrypt";
+import useSwal from "@/hooks/useSwal";
 
 export default function List() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function List() {
   const API_URL = API.API_URL;
 
   const [data, setData] = useState([]);
+  const { showAlert } = useSwal();
   const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
   const [pagination, setPagination] = useState({
@@ -59,11 +61,9 @@ export default function List() {
             <Button.Group>
               <Button
                 size="xs"
-                color="blue"
+                color="yellow"
                 onClick={() =>
-                  router.push(
-                    `/master/departement/edit/${encryptedId}`
-                  )
+                  router.push(`/master/departement/edit/${encryptedId}`)
                 }
                 leftSection={<IconPencil size={16} />}
               >
@@ -83,7 +83,7 @@ export default function List() {
         },
       },
     ],
-    [encrypt]
+    [encrypt],
   );
 
   const table = useReactTable({
@@ -130,7 +130,7 @@ export default function List() {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
-      }
+      },
     );
 
     setData(data.data);
@@ -141,13 +141,33 @@ export default function List() {
     fetchData();
   }, [fetchData]);
 
-  // const downloadExcel = () => {
-  //   console.log("Download Excel");
-  // };
+  const handleDelete = async (id) => {
+    const confirm = await showAlert(
+      "Are You Sure?",
+      "question",
+      "Do you want to delete this department?",
+      true,
+      null,
+      "Delete",
+      "Cancel",
+    );
 
-  // const downloadPdf = () => {
-  //   console.log("Download PDF");
-  // };
+    if (!confirm?.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_URL}/api/master/departement/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      showAlert("Success", "success", "Departement deleted", false, 1200);
+
+      fetchData();
+    } catch (err) {
+      showAlert("Error", "error", "Failed to delete");
+    }
+  };
 
   return (
     <AuthLayout sidebarList={master_data}>
@@ -167,11 +187,11 @@ export default function List() {
 
             {/* Tombol di kanan */}
             <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/master/departement/create")}>
+              <Button 
+              size="xs"
+              onClick={() => router.push("/master/departement/create")}>
                 Add Departement
               </Button>
-              {/* <Button onClick={downloadExcel}>Download Excel</Button>
-              <Button onClick={downloadPdf}>Download PDF</Button> */}
             </div>
 
             {/* Tabel */}

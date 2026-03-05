@@ -174,6 +174,7 @@ export default function ESSLeaveEdit() {
   // 4. FUNGSI UPDATE
   // ==========================================
   const onUpdate = async () => {
+    if (loading) return;
     if (!supervisorId)
       return showAlert("Warning", "warning", "Please select supervisor");
     const confirm = await showAlert(
@@ -182,7 +183,7 @@ export default function ESSLeaveEdit() {
       "This will update your data and submit for approval.",
       true,
     );
-    if (!confirm) return;
+    if (!confirm?.isConfirmed) return;
 
     setLoading(true);
     const formData = new FormData();
@@ -380,10 +381,10 @@ export default function ESSLeaveEdit() {
               {/* Action Button */}
               <div className="flex justify-end mt-10">
                 <Button
-                 size="xs"
+                  size="xs"
                   loading={loading}
+                  disabled={loading || details.some((d) => !d.id_leave_type)}
                   onClick={onUpdate}
-                  disabled={details.some((d) => !d.id_leave_type)}
                   className="shadow-sm"
                 >
                   Update Request

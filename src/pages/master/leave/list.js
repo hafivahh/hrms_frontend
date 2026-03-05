@@ -11,11 +11,12 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { use, useCallback, useEffect, useMemo, useState } from "react";
 import useEncrypt from "@/hooks/useEncrypt";
+import useSwal from "@/hooks/useSwal";
 
 export default function List() {
   const router = useRouter();
   const { user } = useUser();
-  
+  const { showAlert } = useSwal();
   const { encrypt } = useEncrypt();
 
   const API = useApi();
@@ -29,6 +30,33 @@ export default function List() {
     pageSize: 10,
   });
   const [totalPages, setTotalPages] = useState(1);
+
+  const handleDelete = async (id) => {
+    const confirm = await showAlert(
+      "Are You Sure?",
+      "question",
+      "Do you want to delete this Leave Type?",
+      true,
+      null,
+      "Delete",
+      "Cancel",
+    );
+
+    if (!confirm?.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_URL}/api/master/leave/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      showAlert("Success", "success", "leave type deleted", false, 1200);
+
+      fetchData();
+    } catch (err) {
+      showAlert("Error", "error", "Failed to delete");
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -59,10 +87,8 @@ export default function List() {
             <Button.Group>
               <Button
                 size="xs"
-                color="blue"
-                onClick={() =>
-                  router.push(`/master/leave/edit/${encryptedId}`)
-                }
+                color="yellow"
+                onClick={() => router.push(`/master/leave/edit/${encryptedId}`)}
                 leftSection={<IconPencil size={16} />}
               >
                 Edit
@@ -81,7 +107,7 @@ export default function List() {
         },
       },
     ],
-    [encrypt]
+    [encrypt],
   );
 
   const table = useReactTable({
@@ -128,7 +154,7 @@ export default function List() {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
-      }
+      },
     );
 
     setData(data.data);
@@ -138,14 +164,6 @@ export default function List() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const downloadExcel = () => {
-    console.log("Download Excel");
-  };
-
-  const downloadPdf = () => {
-    console.log("Download PDF");
-  };
 
   return (
     <AuthLayout sidebarList={master_data}>
@@ -165,11 +183,12 @@ export default function List() {
 
             {/* Tombol di kanan */}
             <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/master/leave/create")}>
+              <Button
+                size="sx"
+                onClick={() => router.push("/master/leave/create")}
+              >
                 Add Leave Type
               </Button>
-              <Button onClick={downloadExcel}>Download Excel</Button>
-              <Button onClick={downloadPdf}>Download PDF</Button>
             </div>
 
             {/* Tabel */}

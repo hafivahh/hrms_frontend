@@ -11,12 +11,13 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import useEncrypt from "@/hooks/useEncrypt";
+import useSwal from "@/hooks/useSwal";
 
 export default function List() {
   const router = useRouter();
   const { user } = useUser();
   const { encrypt } = useEncrypt();
-
+ const { showAlert } = useSwal();
   const API = useApi();
   const API_URL = API.API_URL;
 
@@ -54,11 +55,38 @@ export default function List() {
         cell: ({ row }) => {
           const encryptedId = encrypt(String(row.original.id));
 
+          const handleDelete = async (id) => {
+            const confirm = await showAlert(
+              "Are You Sure?",
+              "question",
+              "Do you want to delete this company?",
+              true,
+              null,
+              "Delete",
+              "Cancel",
+            );
+
+            if (!confirm?.isConfirmed) return;
+
+            try {
+              await axios.delete(`${API_URL}/api/master/company/${id}`, {
+                headers: {
+                  Authorization: `Bearer ${user.token}`,
+                },
+              });
+
+              showAlert("Success", "success", "Company deleted", false, 1200);
+
+              fetchData();
+            } catch (err) {
+              showAlert("Error", "error", "Failed to delete");
+            }
+          };
           return (
             <Button.Group>
               <Button
                 size="xs"
-                color="blue"
+                color="yellow"
                 onClick={() =>
                   router.push(`/master/company/edit/${encryptedId}`)
                 }
@@ -80,7 +108,7 @@ export default function List() {
         },
       },
     ],
-    [encrypt]
+    [encrypt],
   );
 
   const table = useReactTable({
@@ -125,7 +153,7 @@ export default function List() {
       {},
       {
         headers: { Authorization: `Bearer ${user.token}` },
-      }
+      },
     );
 
     setData(data.data);
@@ -152,7 +180,10 @@ export default function List() {
             </div>
 
             <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/master/company/create")}>
+              <Button
+                size="xs"
+                onClick={() => router.push("/master/company/create")}
+              >
                 Add Company
               </Button>
             </div>

@@ -43,7 +43,7 @@ export default function Edit_Leave() {
           `${API_URL}/api/master/project/${id_project}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
-          }
+          },
         );
 
         form.setValues({
@@ -65,10 +65,10 @@ export default function Edit_Leave() {
       "Are You Sure?",
       "question",
       "Do You Want To Update This Project?",
-      true
+      true,
     );
 
-    if (!confirm) return;
+    if (!confirm?.isConfirmed) return;
 
     try {
       const { data } = await axios.put(
@@ -76,7 +76,7 @@ export default function Edit_Leave() {
         values,
         {
           headers: { Authorization: "Bearer " + user.token },
-        }
+        },
       );
 
       if (data.success) {
@@ -100,7 +100,7 @@ export default function Edit_Leave() {
     <AuthLayout sidebarList={master_data}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="md" withBorder shadow="xs">
+          <Paper radius="sm" mt="md" withBorder>
             <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <IconArrowLeft

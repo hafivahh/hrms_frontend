@@ -11,12 +11,13 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { use, useCallback, useEffect, useMemo, useState } from "react";
 import useEncrypt from "@/hooks/useEncrypt";
+import useSwal from "@/hooks/useSwal";
 
 export default function List() {
   const router = useRouter();
   const { user } = useUser();
   const { encrypt } = useEncrypt();
-
+  const { showAlert } = useSwal();
   const API = useApi();
   const API_URL = API.API_URL;
 
@@ -28,6 +29,34 @@ export default function List() {
     pageSize: 10,
   });
   const [totalPages, setTotalPages] = useState(1);
+
+  const handleDelete = async (id) => {
+    const confirm = await showAlert(
+      "Are You Sure?",
+      "question",
+      "Do you want to delete this role?",
+      true,
+      null,
+      "Delete",
+      "Cancel",
+    );
+
+    if (!confirm?.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_URL}/api/master/role/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      showAlert("Success", "success", "Role deleted", false, 1200);
+
+      fetchData();
+    } catch (err) {
+      showAlert("Error", "error", "Failed to delete");
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -48,42 +77,38 @@ export default function List() {
         enableSorting: true,
         cell: (info) => info.getValue(),
       },
-          {
-              id: "actions",
-              header: "Actions",
-              cell: ({ row }) => {
-                const encryptedId = encrypt(String(row.original.id_role));
-      
-                return (
-                  <Button.Group>
-                    <Button
-                      size="xs"
-                      color="blue"
-                      onClick={() =>
-                        router.push(
-                          `/master/role/edit/${encryptedId}`
-                        )
-                      }
-                      leftSection={<IconPencil size={16} />}
-                    >
-                      Edit
-                    </Button>
-      
-                    <Button
-                      size="xs"
-                      color="red"
-                      onClick={() => handleDelete(encryptedId)}
-                      leftSection={<IconTrash size={16} />}
-                    >
-                      Delete
-                    </Button>
-                  </Button.Group>
-                );
-              },
-            },
-          ],
-          [encrypt]
-        );
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const encryptedId = encrypt(String(row.original.id_role));
+
+          return (
+            <Button.Group>
+              <Button
+                size="xs"
+                color="yellow"
+                onClick={() => router.push(`/master/role/edit/${encryptedId}`)}
+                leftSection={<IconPencil size={16} />}
+              >
+                Edit
+              </Button>
+
+              <Button
+                size="xs"
+                color="red"
+                onClick={() => handleDelete(encryptedId)}
+                leftSection={<IconTrash size={16} />}
+              >
+                Delete
+              </Button>
+            </Button.Group>
+          );
+        },
+      },
+    ],
+    [encrypt],
+  );
 
   const table = useReactTable({
     data,
@@ -129,7 +154,7 @@ export default function List() {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
-      }
+      },
     );
 
     setData(data.data);
@@ -139,14 +164,6 @@ export default function List() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const downloadExcel = () => {
-    console.log("Download Excel");
-  };
-
-  const downloadPdf = () => {
-    console.log("Download PDF");
-  };
 
   return (
     <AuthLayout sidebarList={master_data}>
@@ -166,11 +183,12 @@ export default function List() {
 
             {/* Tombol di kanan */}
             <div className="px-4 py-2 text-right space-x-2">
-              <Button onClick={() => router.push("/master/role/create")}>
+              <Button
+                size="xs"
+                onClick={() => router.push("/master/role/create")}
+              >
                 Add Role
               </Button>
-              <Button onClick={downloadExcel}>Download Excel</Button>
-              <Button onClick={downloadPdf}>Download PDF</Button>
             </div>
 
             {/* Tabel */}

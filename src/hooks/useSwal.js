@@ -16,6 +16,7 @@ export default function useSwal() {
       title,
       text: timer ? "" : text,
       icon,
+      
       showCancelButton: showCancel && showButtons,
       showConfirmButton: showButtons,
       confirmButtonText: confirmText,
@@ -24,7 +25,7 @@ export default function useSwal() {
       confirmButtonColor: "#3085d6",
       timer: timer || undefined,
       timerProgressBar: !!timer,
-    }); // ⬅️ hapus .then — return result object langsung
+    });
   };
 
   return { showAlert };

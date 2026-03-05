@@ -143,7 +143,7 @@ export default function IssRecruitmentDetail() {
     return applicant.document ? (
       <Button
         size="xs"
-        color="blue"
+        color="green"
         leftSection={<IconDownload size={16} />}
         onClick={() => handleDownloadCV(applicant)}
       >

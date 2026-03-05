@@ -43,7 +43,7 @@ export default function Edit_Departement() {
           `${API_URL}/api/master/departement/${id_dept}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
-          }
+          },
         );
 
         form.setValues({
@@ -65,10 +65,10 @@ export default function Edit_Departement() {
       "Are You Sure?",
       "question",
       "Do You Want To Update This Departement?",
-      true
+      true,
     );
 
-    if (!confirm) return;
+    if (!confirm?.isConfirmed) return;
 
     try {
       const { data } = await axios.put(
@@ -76,7 +76,7 @@ export default function Edit_Departement() {
         values,
         {
           headers: { Authorization: "Bearer " + user.token },
-        }
+        },
       );
 
       if (data.success) {
@@ -100,7 +100,7 @@ export default function Edit_Departement() {
     <AuthLayout sidebarList={master_data}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-          <Paper radius="md" withBorder shadow="xs">
+          <Paper radius="sm" mt="md" withBorder>
             <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <IconArrowLeft
@@ -124,7 +124,7 @@ export default function Edit_Departement() {
               </div>
 
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button size="md" type="submit">
+                <Button size="sx" type="submit">
                   Update
                 </Button>
               </div>

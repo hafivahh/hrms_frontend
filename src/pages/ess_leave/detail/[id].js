@@ -75,13 +75,14 @@ export default function LeaveDetailPage() {
   };
 
   const handleSubmitRequest = async () => {
+    if (loading) return; 
     const confirm = await showAlert(
       "Submit Request?",
       "question",
       "This will submit your leave for approval.",
       true,
     );
-
+ if (!confirm?.isConfirmed) return;
     if (!confirm) return;
 
     try {
@@ -267,6 +268,7 @@ export default function LeaveDetailPage() {
                    size="xs"
                   color="blue"
                   loading={loading}
+  disabled={loading}
                   onClick={handleSubmitRequest}
                 >
                   Submit Request

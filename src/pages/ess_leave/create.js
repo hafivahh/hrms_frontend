@@ -130,11 +130,6 @@ export default function ESSLeaveCreate() {
   // SUBMIT
   // ======================
   const onSubmit = async () => {
-    // console.log("=== SUBMIT DEBUG ===");
-    // console.log("Supervisor Query:", supervisorQuery);
-    // console.log("Supervisor ID:", supervisorId);
-    // console.log("Details:", details);
-
     // Validasi supervisor
     if (!supervisorId) {
       await showAlert(
@@ -190,10 +185,6 @@ export default function ESSLeaveCreate() {
     formData.append("leave_remarks", remarks || "");
     formData.append("details", JSON.stringify(details));
 
-    // console.log("=== SENDING TO BACKEND ===");
-    // console.log("supervisor_id:", supervisorId);
-    // console.log("total_days:", details.length);
-
     if (file) formData.append("file", file);
 
     try {
@@ -203,7 +194,6 @@ export default function ESSLeaveCreate() {
         {
           headers: {
             Authorization: "Bearer " + user.token,
-            // "Content-Type": "multipart/form-data",
           },
         },
       );

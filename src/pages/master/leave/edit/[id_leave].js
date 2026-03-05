@@ -68,7 +68,7 @@ export default function Edit_Leave() {
       true
     );
 
-    if (!confirm) return;
+   if (!confirm?.isConfirmed) return;
 
     try {
       const { data } = await axios.put(
@@ -123,7 +123,7 @@ export default function Edit_Leave() {
                 />
               </div>
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button size="md" type="submit">
+                <Button size="sx" type="submit">
                   Update
                 </Button>
               </div>

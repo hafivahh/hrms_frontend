@@ -40,6 +40,11 @@ const navigation = [
         icon: <IconUserCog size={18} />,
       },
       {
+        title: "Document Work",
+        url: "/iss_documents/list",
+        icon: <IconUserCog size={18} />,
+      },
+      {
         title: "Leave",
         url: "/leave_manage/list/all",
         icon: <IconList size={18} />,
@@ -118,11 +123,6 @@ const navigation = [
       {
         title: "Master Position",
         url: "/master/position/list",
-        icon: <IconDatabase size={18} />,
-      },
-      {
-        title: "Master Job Title",
-        url: "/master/job_title/list",
         icon: <IconDatabase size={18} />,
       },
       {

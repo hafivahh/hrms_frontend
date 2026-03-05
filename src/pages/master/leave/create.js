@@ -36,7 +36,7 @@ export default function Create_Leave_Type() {
       true
     );
 
-    if (!confirm) return;
+    if (!confirm?.isConfirmed) return;
 
     try {
       const { data } = await axios.post(
@@ -66,8 +66,8 @@ export default function Create_Leave_Type() {
   return (
    <AuthLayout sidebarList={master_data}>
        <div className="py-6">
-         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
-           <Paper radius="md" withBorder shadow="xs">
+        <div className="max-w-full mx-auto sm:px-6 lg:px-8">
+          <Paper radius="sm" mt="md" withBorder>
              <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
                <div className="flex items-center gap-2">
                  <IconArrowLeft
@@ -90,7 +90,7 @@ export default function Create_Leave_Type() {
                 />
               </div>
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button size="md" type="submit">
+                <Button size="sx" type="submit">
                   Submit
                 </Button>
               </div>

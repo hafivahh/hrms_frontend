@@ -7,7 +7,6 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
 import { IconArrowLeft, IconSend } from "@tabler/icons-react";
-import Swal from "sweetalert2";
 import axios from "axios";
 
 export default function LeaveDetailPage() {
@@ -17,7 +16,7 @@ export default function LeaveDetailPage() {
   const { user } = useUser();
   const API = useApi();
   const API_URL = API.API_URL;
-  const { showAlert, showConfirm } = useSwal();
+  const { showAlert } = useSwal();
 
   const [leave, setLeave] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,61 +58,58 @@ export default function LeaveDetailPage() {
     fetchLeaveDetail();
   }, [id]);
 
-  const handleApproval = async (itemId, payload) => {
-    setActionLoading(true);
-    try {
-      // 1. Update status item ke database
-      await axios.post(
-        `${API_URL}/api/leave-record-detail/${itemId}/update`,
-        payload,
-        { headers: { Authorization: `Bearer ${user.token}` } },
-      );
+ const handleApproval = async (itemId, payload) => {
+  setActionLoading(true);
+  try {
+    await axios.post(
+      `${API_URL}/api/leave-record-detail/${itemId}/update`,
+      payload,
+      { headers: { Authorization: `Bearer ${user.token}` } },
+    );
 
-      await showAlert(
-        "Success",
-        "success",
-        "Item processed successfully",
-        false,
-        1000,
-      );
+    await showAlert(
+      "Success",
+      "success",
+      "Item processed successfully",
+      false,
+      1000,
+    );
 
-      // 2. REFRESH DATA (Crucial!)
-      // Ini akan memicu findOne di backend kembali dan menghitung ulang leave_status kolektif
-      const res = await fetch(`${API_URL}/api/leave/${id}`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      const latestData = await res.json();
-
-      setLeave(latestData);
-
-      // 3. Jika hasil perhitungan status adalah 4 (Completed), baru pindah halaman
-      if (Number(latestData.leave_status) === 4) {
-        setTimeout(() => {
-          router.push("/leave_manage/list/completed");
-        }, 1500);
-      }
-    } catch (err) {
-      showAlert("Error", "error", err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleAlert = (id, payload) => {
-    showAlert(
-      "Are you sure?",
-      "question",
-      "You are about to update this leave item status.",
-      true,
-      null,
-      "Yes, proceed",
-      "Cancel",
-    ).then((confirmed) => {
-      if (confirmed) {
-        handleApproval(id, payload);
-      }
+    const res = await fetch(`${API_URL}/api/leave/${id}`, {
+      headers: { Authorization: `Bearer ${user.token}` },
     });
-  };
+    const latestData = await res.json();
+
+    setLeave(latestData);
+
+    if (Number(latestData.leave_status) === 4) {
+      setTimeout(() => {
+        router.push("/leave_manage/list/completed");
+      }, 1500);
+    }
+  } catch (err) {
+    showAlert("Error", "error", err.message);
+  } finally {
+    setActionLoading(false);
+  }
+};
+
+const handleAlert = async (id, payload) => {
+  const confirm = await showAlert(
+    "Are you sure?",
+    "question",
+    "You are about to update this leave item status.",
+    true,
+    null,
+    "Yes, proceed",
+    "Cancel",
+  );
+
+  if (!confirm?.isConfirmed) return; // ⬅️ cancel → stop
+
+  handleApproval(id, payload);
+};
+
   const handleDownloadAttachment = async () => {
     try {
       const response = await axios.get(
