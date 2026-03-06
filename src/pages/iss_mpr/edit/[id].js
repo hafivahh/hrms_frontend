@@ -470,7 +470,7 @@ export default function IssMprEdit() {
       );
 
       //  Redirect ke list
-      router.push("/iss_mpr/list/all");
+
     } catch (err) {
       console.error("UPDATE ERROR:", err);
       showAlert(
@@ -480,123 +480,6 @@ export default function IssMprEdit() {
       );
     }
   };
-  // const handleApproval = async (approvalType, status) => {
-  //   try {
-  //     const decryptedId = decrypt(id);
-
-  //     await axios.patch(
-  //       `${API_URL}/api/iss_mpr/${decryptedId}/approval`,
-  //       {
-  //         approval_type: approvalType,
-  //         status,
-  //       },
-  //       {
-  //         headers: { Authorization: "Bearer " + user.token },
-  //       },
-  //     );
-
-  //     await showAlert(
-  //       "Success",
-  //       "success",
-  //       "Item processed successfully",
-  //       false,
-  //       1000,
-  //     );
-
-  //     fetchMprDetail();
-  //   } catch (err) {
-  //     showAlert(
-  //       "Error",
-  //       "error",
-  //       err.response?.data?.message || "Approval failed",
-  //     );
-  //   }
-  // };
-
-  // const handleAlert = (approvalType, status) => {
-  //   showAlert(
-  //     "Are you sure?",
-  //     "question",
-  //     `You are about to ${status} this MPR`,
-  //     true,
-  //     null,
-  //     "Yes, proceed",
-  //     "Cancel",
-  //   ).then((confirmed) => {
-  //     if (confirmed) {
-  //       handleApproval(approvalType, status);
-  //     }
-  //   });
-  // };
-
-  // const AssignmentBox = ({
-  //   title,
-  //   employeeData,
-  //   approvalType,
-  //   currentUser,
-  // }) => {
-  //   const isAssignedUser =
-  //     currentUser?.badge_number &&
-  //     employeeData?.badge_number &&
-  //     currentUser.badge_number === employeeData.badge_number;
-
-  //   const isNotApproved = !employeeData?.approval_date;
-
-  //   const canApprove =
-  //     approvalType && employeeData && isAssignedUser && isNotApproved;
-
-  //   return (
-  //     <Box
-  //       style={{
-  //         border: "1px solid #dee2e6",
-  //         borderRadius: "6px",
-  //         padding: "12px",
-  //         marginBottom: "16px",
-  //       }}
-  //     >
-  //       <Text size="sm" fw={600} mb={8}>
-  //         {title}
-  //       </Text>
-
-  //       <Text size="sm" c="dimmed">
-  //         Name: {employeeData?.full_name || "-"}
-  //       </Text>
-  //       <Text size="sm" c="dimmed">
-  //         Date:{" "}
-  //         {employeeData?.approval_date
-  //           ? new Date(employeeData.approval_date).toLocaleDateString()
-  //           : "-"}
-  //       </Text>
-  //       <Text size="sm" c="dimmed">
-  //         Status:{" "}
-  //         {employeeData?.status_sign === 1
-  //           ? "Approved"
-  //           : employeeData?.status_sign === 2
-  //             ? "Rejected"
-  //             : "Pending"}
-  //       </Text>
-
-  //       {canApprove && (
-  //         <Group mt="md" grow>
-  //           <Button
-  //             size="xs"
-  //             color="green"
-  //             onClick={() => handleAlert(approvalType, "approved")}
-  //           >
-  //             Approve
-  //           </Button>
-  //           <Button
-  //             size="xs"
-  //             color="red"
-  //             onClick={() => handleAlert(approvalType, "rejected")}
-  //           >
-  //             Reject
-  //           </Button>
-  //         </Group>
-  //       )}
-  //     </Box>
-  //   );
-  // };
 
   if (loading) {
     return (

@@ -8,6 +8,7 @@ import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
 import { IconArrowLeft, IconSend } from "@tabler/icons-react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default function LeaveDetailPage() {
   const router = useRouter();
@@ -58,56 +59,64 @@ export default function LeaveDetailPage() {
     fetchLeaveDetail();
   }, [id]);
 
- const handleApproval = async (itemId, payload) => {
-  setActionLoading(true);
-  try {
-    await axios.post(
-      `${API_URL}/api/leave-record-detail/${itemId}/update`,
-      payload,
-      { headers: { Authorization: `Bearer ${user.token}` } },
-    );
+  const handleApproval = async (itemId, payload) => {
+    setActionLoading(true);
+    try {
+      await axios.post(
+        `${API_URL}/api/leave-record-detail/${itemId}/update`,
+        payload,
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
 
-    await showAlert(
-      "Success",
-      "success",
-      "Item processed successfully",
-      false,
-      1000,
-    );
+      await showAlert(
+        "Success",
+        "success",
+        "Item processed successfully",
+        false,
+        1000,
+      );
 
-    const res = await fetch(`${API_URL}/api/leave/${id}`, {
-      headers: { Authorization: `Bearer ${user.token}` },
-    });
-    const latestData = await res.json();
+      const res = await fetch(`${API_URL}/api/leave/${id}`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      const latestData = await res.json();
 
-    setLeave(latestData);
+      setLeave(latestData);
 
-    if (Number(latestData.leave_status) === 4) {
-      setTimeout(() => {
-        router.push("/leave_manage/list/completed");
-      }, 1500);
+      if (Number(latestData.leave_status) === 4) {
+        setTimeout(() => {}, 1500);
+      }
+    } catch (err) {
+      showAlert("Error", "error", err.message);
+    } finally {
+      setActionLoading(false);
     }
-  } catch (err) {
-    showAlert("Error", "error", err.message);
-  } finally {
-    setActionLoading(false);
-  }
-};
+  };
 
-const handleAlert = async (id, payload) => {
-  const confirm = await showAlert(
-    "Are you sure?",
-    "question",
-    "You are about to update this leave item status.",
-    true,
-    null,
-    "Yes, proceed",
-    "Cancel",
-  );
+const handleAlert = async (itemId, payload) => {
+  const isApprove = payload.leave_status === 2;
 
-  if (!confirm?.isConfirmed) return; // ⬅️ cancel → stop
+  const { value: remarks, isConfirmed } = await Swal.fire({
+    title: payload.leave_status === 2 ? "Approve Leave" : "Reject Leave",
+    input: "textarea",
+    inputLabel: "Remarks",
+    inputPlaceholder: "Type your remarks here...",
+    inputAttributes: {
+      "aria-label": "Type your remarks here",
+    },
+    showCancelButton: true,
+    confirmButtonText: isApprove ? "Approve" : "Reject",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: isApprove ? "#2f9e44" : "#e03131", 
+    cancelButtonColor: "#868e96",  
+  });
 
-  handleApproval(id, payload);
+  if (!isConfirmed) return;
+
+  handleApproval(itemId, {
+    ...payload,
+    remarks: remarks || "",
+  });
 };
 
   const handleDownloadAttachment = async () => {
@@ -168,10 +177,10 @@ const handleAlert = async (id, payload) => {
     </div>
   );
 
-const isSupervisor =
-  leave?.supervisor_user_id &&
-  user?.id &&
-  String(leave.supervisor_user_id) === String(user.id);
+  const isSupervisor =
+    leave?.supervisor_user_id &&
+    user?.id &&
+    String(leave.supervisor_user_id) === String(user.id);
 
   return (
     <AuthLayout sidebarList={sidebarList}>
@@ -244,54 +253,96 @@ const isSupervisor =
             </div>
 
             {/* TABLE DATE DETAIL */}
-        {/* TABLE DATE DETAIL */}
-<div className="px-6 pb-6">
-  <div className="overflow-x-auto rounded-md border">
-    <table className="w-full border-collapse text-sm">
-      <thead>
-        <tr className="bg-gray-100 border-b">
-          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Start Date</th>
-          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">End Date</th>
-          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Leave Type</th>
-          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Partial Days</th>
-          <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {leave.items?.map((item) => (
-          <tr key={item.id} className="border-b hover:bg-gray-50 transition-colors">
-            <td className="px-4 py-3 text-center whitespace-nowrap">{item.leave_in}</td>
-            <td className="px-4 py-3 text-center whitespace-nowrap">{item.leave_out}</td>
-            <td className="px-4 py-3 text-center whitespace-nowrap">{item.type_name || "-"}</td>
-            <td className="px-4 py-3 text-center whitespace-nowrap">{item.partial_label || "-"}</td>
-            <td className="px-4 py-3 text-center">
-              <div className="flex justify-center gap-2">
-                {Number(item.leave_status) === 1 && isSupervisor ? (
-                  <>
-                    <Button size="xs" color="green"
-                      onClick={() => handleAlert(item.id, { leave_status: 2 })}
-                      loading={actionLoading}>
-                      Approve
-                    </Button>
-                    <Button size="xs" color="red"
-                      onClick={() => handleAlert(item.id, { leave_status: 3 })}
-                      loading={actionLoading}>
-                      Reject
-                    </Button>
-                  </>
-                ) : (
-                  <Badge color={statusMap[item.leave_status]?.color} variant="filled">
-                    {statusMap[item.leave_status]?.label}
-                  </Badge>
-                )}
+            {/* TABLE DATE DETAIL */}
+            <div className="px-6 pb-6">
+              <div className="overflow-x-auto rounded-md border">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-gray-100 border-b">
+                      <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">
+                        Start Date
+                      </th>
+                      <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">
+                        End Date
+                      </th>
+                      <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">
+                        Leave Type
+                      </th>
+                      <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">
+                        Partial Days
+                      </th>
+
+                      <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">
+                        Action
+                      </th>
+                      <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">
+                        Approval Notes
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leave.items?.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="border-b hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          {item.leave_in}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          {item.leave_out}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          {item.type_name || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          {item.partial_label || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex justify-center gap-2">
+                            {Number(item.leave_status) === 1 && isSupervisor ? (
+                              <>
+                                <Button
+                                  size="xs"
+                                  color="green"
+                                  onClick={() =>
+                                    handleAlert(item.id, { leave_status: 2 })
+                                  }
+                                  loading={actionLoading}
+                                >
+                                  Approve
+                                </Button>
+
+                                <Button
+                                  size="xs"
+                                  color="red"
+                                  onClick={() =>
+                                    handleAlert(item.id, { leave_status: 3 })
+                                  }
+                                  loading={actionLoading}
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            ) : (
+                              <Badge
+                                color={statusMap[item.leave_status]?.color}
+                                variant="filled"
+                              >
+                                {statusMap[item.leave_status]?.label}
+                              </Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          {item.remarks_status || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+            </div>
           </Paper>
         </div>
       </div>

@@ -5,6 +5,7 @@ import axios from "axios";
 import useUser from "@/store/useUser";
 import useDecrypt from "@/hooks/useDecrypt";
 import useSwal from "@/hooks/useSwal";
+import Swal from "sweetalert2";
 import {
   Paper,
   TextInput,
@@ -38,8 +39,6 @@ export default function IssMprDetail() {
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [approving, setApproving] = useState(false);
-  const [rejecting, setRejecting] = useState(false);
   const readOnlyInputStyle = {
     input: {
       backgroundColor: "#f1f3f5",
@@ -79,6 +78,7 @@ export default function IssMprDetail() {
           approval_date: assign.assign_date,
           status_sign: assign.status_sign,
           index: assign.index,
+          remarks_status: assign.remarks_status,
         };
       };
 
@@ -134,7 +134,7 @@ export default function IssMprDetail() {
         1500,
       );
 
-      router.push("/iss_mpr/list/all");
+
     } catch (err) {
       console.error("Failed to submit MPR:", err);
       showAlert(
@@ -147,99 +147,55 @@ export default function IssMprDetail() {
     }
   };
 
-  // Approve MPR
-  const handleApproveMpr = async () => {
-    try {
-      const confirm = await showAlert(
-        "Approve Request?",
-        "question",
-        "Are you sure you want to approve this Manpower Request?",
-        true,
-        null,
-        "Approve",
-        "Cancel",
-      );
+const handleActionWithRemarks = async (type) => {
+  const { value: remarksValue, isConfirmed } = await Swal.fire({
+    title: type === "approve" ? "Approve Manpower Request" : "Reject Manpower Request",
+    input: "textarea",
+    inputLabel: "Remarks",
+    inputPlaceholder: type === "approve"
+      ? "Add approval remarks ..."
+      : "Please provide rejection reason...",
+    inputAttributes: { "aria-label": "Type your remarks here" },
+    showCancelButton: true,
+    confirmButtonText: type === "approve" ? "Approve" : "Reject",
+    confirmButtonColor: type === "approve" ? "#2f9e44" : "#e03131",
+    cancelButtonText: "Cancel",
+    inputValidator: type === "reject"
+      ? (value) => { if (!value) return "Rejection reason is required!" }
+      : undefined,
+  });
 
-      if (!confirm.isConfirmed) return;
+  if (!isConfirmed) return;
 
-      setApproving(true);
-      const decryptedId = decrypt(id);
+  try {
+    const decryptedId = decrypt(id);
+    const endpoint = type === "approve" ? "approve" : "reject";
 
-      await axios.patch(
-        `${API_URL}/api/iss_mpr/${decryptedId}/approve`,
-        {},
-        {
-          headers: { Authorization: "Bearer " + user.token },
-        },
-      );
+    await axios.patch(
+      `${API_URL}/api/iss_mpr/${decryptedId}/${endpoint}`,
+      { remarks: remarksValue || "" },
+      { headers: { Authorization: "Bearer " + user.token } },
+    );
 
-      await showAlert(
-        "Success",
-        "success",
-        "Manpower request approved successfully",
-        false,
-        1500,
-      );
+    await showAlert(
+      "Success",
+      "success",
+      type === "approve"
+        ? "Manpower request approved successfully"
+        : "Manpower request rejected",
+      false,
+      1500,
+    );
 
-      // Refresh data untuk menampilkan button di step berikutnya
-      fetchMprDetail();
-    } catch (err) {
-      console.error("Failed to approve MPR:", err);
-      showAlert(
-        "Error",
-        "error",
-        err.response?.data?.message || "Failed to approve MPR",
-      );
-    } finally {
-      setApproving(false);
-    }
-  };
-
-  // Reject MPR
-  const handleRejectMpr = async () => {
-    try {
-      const confirm = await showAlert(
-        "Reject Request?",
-        "question",
-        "Are you sure you want to reject this Manpower Request?",
-        true,
-        null,
-        "Reject",
-        "Cancel",
-      );
-
-      if (!confirm.isConfirmed) return;
-
-      setRejecting(true);
-      const decryptedId = decrypt(id);
-
-      await axios.patch(
-        `${API_URL}/api/iss_mpr/${decryptedId}/reject`,
-        {},
-        {
-          headers: { Authorization: "Bearer " + user.token },
-        },
-      );
-
-      await showAlert(
-        "Success",
-        "success",
-        "Manpower request rejected",
-        false,
-        1200,
-      );
-
-      fetchMprDetail();
-    } catch (err) {
-      showAlert(
-        "Error",
-        "error",
-        err.response?.data?.message || "Failed to reject MPR",
-      );
-    } finally {
-      setRejecting(false);
-    }
-  };
+    fetchMprDetail();
+  } catch (err) {
+    showAlert(
+      "Error",
+      "error",
+      err.response?.data?.message || `Failed to ${type} MPR`,
+    );
+  }
+};
 
   /**
    *  DYNAMIC ASSIGNMENT BOX
@@ -252,25 +208,41 @@ export default function IssMprDetail() {
       Number(mprData?.index_sign) === Number(employeeData.index);
 
     // Decrypt user ID untuk mendapatkan numeric ID
-    let currentUserId = null;
-    try {
-      if (user?.id) {
-        currentUserId = Number(decrypt(user.id));
-      }
-    } catch (error) {
-      console.error("Failed to decrypt user ID:", error);
-    }
+   const currentUserId = user?.id_user
+  ? Number(user.id_user)
+  : user?.id
+    ? Number(user.id)
+    : null;
+   console.log("=== USER ID CHECK ===", {
+  id_user: user?.id_user,
+  id: user?.id,
+  currentUserId,
+  employeeUserId: employeeData.user_id,
+  match: Number(currentUserId) === Number(employeeData.user_id)
+});
 
     // Cek apakah user yang login adalah user yang terdaftar di assignment ini
     const isAuthorizedUser =
       currentUserId && Number(currentUserId) === Number(employeeData.user_id);
 
-    const canApprove =
-      isCurrentStep &&
-      isAuthorizedUser &&
-      employeeData.status_sign !== 1 &&
-      employeeData.status_sign !== 2;
-
+   const canApprove =
+  isCurrentStep === true &&
+  isAuthorizedUser === true &&
+  employeeData.status_sign !== 1 &&
+  employeeData.status_sign !== 2;
+// ⬅️ tambah log sementara
+  console.log("=== ASSIGNMENT BOX DEBUG ===", {
+    title,
+    mpr_status: mprData?.mpr_status,
+    index_sign: mprData?.index_sign,
+    employeeIndex: employeeData.index,
+    employeeUserId: employeeData.user_id,
+    currentUserId,
+    status_sign: employeeData.status_sign,
+    isCurrentStep,
+    isAuthorizedUser,
+    canApprove,
+  });
     // Format tanggal dengan waktu
     const formatDateTime = (date) => {
       if (!date) return "-";
@@ -357,6 +329,11 @@ export default function IssMprDetail() {
                   >
                     {getSignatureStatus(employeeData.status_sign)?.label}
                   </Text>
+                  {employeeData.remarks_status && (
+  <Text size="xs" c="dimmed" mt={2} fs="italic">
+    {employeeData.remarks_status}
+  </Text>
+)}
                 </>
               ) : (
                 <Text size="sm">-</Text>
@@ -366,29 +343,26 @@ export default function IssMprDetail() {
         </div>
 
         {canApprove && (
-          <div className="flex gap-2 mt-3 pt-3 border-t">
-            <Button
-              size="xs"
-              color="red"
-              variant="light"
-              onClick={handleRejectMpr}
-              loading={rejecting}
-              fullWidth
-            >
-              Reject
-            </Button>
-
-            <Button
-              size="xs"
-              color="green"
-              onClick={handleApproveMpr}
-              loading={approving}
-              fullWidth
-            >
-              Approve
-            </Button>
-          </div>
-        )}
+  <div className="flex gap-2 mt-3 pt-3 border-t">
+    <Button
+      size="xs"
+      color="red"
+      variant="light"
+      onClick={() => handleActionWithRemarks("reject")}
+      fullWidth
+    >
+      Reject
+    </Button>
+    <Button
+      size="xs"
+      color="green"
+      onClick={() => handleActionWithRemarks("approve")}
+      fullWidth
+    >
+      Approve
+    </Button>
+  </div>
+)}
       </Box>
     );
   };

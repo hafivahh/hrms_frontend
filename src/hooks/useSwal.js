@@ -7,22 +7,32 @@ export default function useSwal() {
     text = "",
     showCancel = false,
     timer = null,
-    confirmText = "Submit",
+    confirmText = null,
     cancelText = "Cancel"
   ) => {
     const showButtons = !timer;
+
+    // Tentukan default tombol berdasarkan jenis alert
+    let defaultConfirmText = "Submit";
+
+    if (icon === "info" || icon === "error" || icon === "warning") {
+      defaultConfirmText = "OKE";
+    }
 
     return Swal.fire({
       title,
       text: timer ? "" : text,
       icon,
-      
+
       showCancelButton: showCancel && showButtons,
       showConfirmButton: showButtons,
-      confirmButtonText: confirmText,
+
+      confirmButtonText: confirmText || defaultConfirmText,
       cancelButtonText: cancelText,
+
       reverseButtons: false,
       confirmButtonColor: "#3085d6",
+
       timer: timer || undefined,
       timerProgressBar: !!timer,
     });

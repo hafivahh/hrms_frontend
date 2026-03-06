@@ -110,7 +110,6 @@ export default function ChangePassword() {
         1500,
       );
 
-      router.push("/portal/user");
     } catch (error) {
       console.error("Change password error:", error.response?.data || error);
 

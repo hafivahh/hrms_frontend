@@ -208,8 +208,7 @@ export default function ESSLeaveCreate() {
         false,
         1500,
       );
-
-      router.push("/ess_leave/list");
+      
     } catch (err) {
       console.error("=== ERROR ===", err.response?.data || err.message);
 

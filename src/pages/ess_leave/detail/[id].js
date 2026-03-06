@@ -75,21 +75,21 @@ export default function LeaveDetailPage() {
   };
 
   const handleSubmitRequest = async () => {
-    if (loading) return; 
+    if (loading) return;
     const confirm = await showAlert(
       "Submit Request?",
       "question",
       "This will submit your leave for approval.",
       true,
     );
- if (!confirm?.isConfirmed) return;
+    if (!confirm?.isConfirmed) return;
     if (!confirm) return;
 
     try {
       setLoading(true);
 
       await axios.put(
-       `${API_URL}/api/ess_leave/submit/${id}`,
+        `${API_URL}/api/ess_leave/submit/${id}`,
         {
           submit: true, // optional kalau backend butuh flag
         },
@@ -120,15 +120,6 @@ export default function LeaveDetailPage() {
   useEffect(() => {
     fetchLeaveDetail();
   }, [id]);
-
-  if (loading)
-    return (
-      <AuthLayout sidebarList={sidebarList}>
-        <div className="flex justify-center items-center h-64">
-          <Loader size="lg" />
-        </div>
-      </AuthLayout>
-    );
 
   if (!leave)
     return (
@@ -192,6 +183,9 @@ export default function LeaveDetailPage() {
                       <th className="p-3 text-center text-sm font-semibold text-gray-600">
                         Status
                       </th>
+                      <th className="px-4 py-3 text-center font-semibold text-gray-600 whitespace-nowrap">
+                        Approval Notes
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -210,8 +204,8 @@ export default function LeaveDetailPage() {
                           {item.type_name || "-"}
                         </td>
                         <td className="p-3 text-center text-sm">
-  {item.partial_label || "-"}
-</td>
+                          {item.partial_label || "-"}
+                        </td>
                         <td className="p-3 text-center text-sm">
                           <Badge
                             color={statusMap[item.leave_status]?.color}
@@ -220,6 +214,9 @@ export default function LeaveDetailPage() {
                           >
                             {statusMap[item.leave_status]?.label}
                           </Badge>
+                        </td>
+                         <td className="px-4 py-3 text-center whitespace-nowrap">
+                          {item.remarks_status || "-"}
                         </td>
                       </tr>
                     ))}
@@ -261,14 +258,15 @@ export default function LeaveDetailPage() {
                 rows={3}
               />
             </div>
+            
             {/* 4. ACTION BUTTON */}
             {leave.leave_status === 0 && (
               <div className="px-6 pb-8 flex justify-end">
                 <Button
-                   size="xs"
+                  size="xs"
                   color="blue"
                   loading={loading}
-  disabled={loading}
+                  disabled={loading}
                   onClick={handleSubmitRequest}
                 >
                   Submit Request

@@ -120,7 +120,6 @@ export default function AddPortalUser() {
         1500,
       );
 
-      router.push("/portal/user");
     } catch (error) {
       const msg =
         error.response?.data?.message ||

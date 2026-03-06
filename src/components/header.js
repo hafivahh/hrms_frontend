@@ -1,7 +1,8 @@
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
+import useEncrypt from "@/hooks/useEncrypt"; 
 import { Button, Image, Menu } from "@mantine/core";
-import { IconUser, IconLogout, IconChevronDown } from "@tabler/icons-react";
+import { IconUser, IconLogout, IconChevronDown, IconKey } from "@tabler/icons-react";
 import Link from "next/link";
 import React from "react";
 import { useRouter } from "next/router";
@@ -9,20 +10,20 @@ import Cookies from "js-cookie";
 
 export default function Header() {
   const { user, logout } = useUser();
+  const { encrypt } = useEncrypt(); 
   const router = useRouter();
   const API = useApi();
   const LINK_PORTAL = API.LINK_PORTAL;
 
   const handleLogout = () => {
-  // Hapus semua cookie
-  Cookies.remove("portal_login_token");
-  Cookies.remove("portal_login_name");
-  Cookies.remove("portal_login_id");
-  Cookies.remove("portal_user");
-
-  logout(); // clear Zustand
-  router.push("/login");
-};
+    Cookies.remove("portal_login_token");
+    Cookies.remove("portal_login_name");
+    Cookies.remove("portal_login_id");
+    Cookies.remove("portal_user");
+    logout();
+    router.replace("/login");
+    window.location.reload();
+  };
 
   return (
     <header className="flex flex-col md:flex-row items-center md:justify-between py-8 px-8">
@@ -34,9 +35,8 @@ export default function Header() {
         />
       </div>
 
-      <div className="flex items-center">
-        {/* 👤 User Dropdown */}
-        <Menu shadow="md" width={180} position="bottom-end">
+      <div className="flex items-center gap-2">
+        <Menu shadow="md" width={200} position="bottom-end">
           <Menu.Target>
             <Button
               variant="filled"
@@ -48,6 +48,18 @@ export default function Header() {
           </Menu.Target>
 
           <Menu.Dropdown>
+            <Menu.Item
+              leftSection={<IconKey size={16} />}
+              onClick={() => {
+                const encryptedId = encrypt(String(user?.id));
+                router.push(`/portal/change/${encryptedId}`);
+              }}
+            >
+              Change Password
+            </Menu.Item>
+
+            <Menu.Divider />
+
             <Menu.Item
               leftSection={<IconLogout size={16} />}
               color="red"
@@ -63,7 +75,7 @@ export default function Header() {
           href={LINK_PORTAL}
           variant="filled"
           color="red"
-          size="sx"
+          size="xs"
         >
           Portal
         </Button>

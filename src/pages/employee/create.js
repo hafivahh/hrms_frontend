@@ -134,7 +134,6 @@ const handleSubmit = async (values) => {
 
     if (isSuccess) {
       await showAlert("Success", "success", data?.message || "Employee created successfully", false, 1500);
-      router.push("/employee/list");
       return;
     }
 

@@ -484,6 +484,8 @@ export default function List() {
     }
   };
 
+  const isFilterApplied = Object.values(appliedFilter).some((v) => v);
+
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -548,7 +550,18 @@ export default function List() {
                   size="xs"
                   color="green"
                   leftSection={<IconDownload size={16} />}
-                  onClick={handleDownloadExcel}
+                  onClick={async () => {
+                    if (!isFilterApplied) {
+                      await showAlert(
+                        "Information",
+                        "info",
+                        "Please use filter and click Search before downloading data.",
+                      );
+                      return;
+                    }
+
+                    handleDownloadExcel();
+                  }}
                 >
                   Download
                 </Button>

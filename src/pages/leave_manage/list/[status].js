@@ -50,7 +50,6 @@ export default function ListLeaveByStatus({ status }) {
   useEffect(() => {
     if (!allowedStatus.includes(status)) {
       showAlert("error", `Invalid leave status: ${status}`);
-      router.push("/leave_manage/list/draft");
     }
   }, [status]);
   useEffect(() => {
@@ -89,10 +88,19 @@ export default function ListLeaveByStatus({ status }) {
   const [filterProject, setFilterProject] = useState(null);
   const [filterStart, setFilterStart] = useState(null);
   const [filterEnd, setFilterEnd] = useState(null);
+const [appliedFilter, setAppliedFilter] = useState({});
 
+useEffect(() => {
+  setFilterDept(null);
+  setFilterProject(null);
+  setFilterStart(null);
+  setFilterEnd(null);
+  setAppliedFilter({});
+  setPagination((p) => ({ ...p, pageIndex: 0 }));
+}, [status]);
   const [departments, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [appliedFilter, setAppliedFilter] = useState({});
+
   const sidebarList = sidebarData;
 
   const statusMap = {
@@ -288,6 +296,7 @@ export default function ListLeaveByStatus({ status }) {
 
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   };
+  
   //okee3
   const handleDownloadExcel = async () => {
     try {
@@ -559,6 +568,8 @@ export default function ListLeaveByStatus({ status }) {
     }
   };
 
+  const isFilterApplied = Object.values(appliedFilter).some((v) => v);
+
   return (
     <AuthLayout sidebarList={sidebarList}>
       <div className="py-6">
@@ -636,7 +647,18 @@ export default function ListLeaveByStatus({ status }) {
                   size="xs"
                   color="green"
                   leftSection={<IconDownload size={16} />}
-                  onClick={handleDownloadExcel}
+                  onClick={async () => {
+                    if (!isFilterApplied) {
+                      await showAlert(
+                        "Information",
+                        "info",
+                        "Please use filter and click Search before downloading data.",
+                      );
+                      return;
+                    }
+
+                    handleDownloadExcel();
+                  }}
                 >
                   Download
                 </Button>

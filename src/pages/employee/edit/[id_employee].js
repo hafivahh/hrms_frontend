@@ -137,7 +137,7 @@ export default function Edit_Employee() {
         false,
         1500,
       );
-      router.push("/employee/list");
+     
     } catch (error) {
       const data_error = error.response?.data || {
         message: "Error",

@@ -172,7 +172,205 @@ export default function IssMprCreate() {
     return Number(val);
   };
 
+  const validateForm = () => {
+    if (!formData.id_departement) {
+      showAlert("Information", "info", "Please select Department", "Oke");
+      return false;
+    }
+
+    if (!formData.id_project) {
+      showAlert("Information", "info", "Please select Project", "Oke");
+      return false;
+    }
+
+    if (!formData.id_position) {
+      showAlert("Information", "info", "Please select Position", "Oke");
+      return false;
+    }
+
+    if (!formData.work_type) {
+      showAlert("Information", "info", "Please select Employee Status", "Oke");
+      return false;
+    }
+
+    if (!formData.qty) {
+      showAlert("Information", "info", "Please input Qty", "Oke");
+      return false;
+    }
+
+    if (!formData.vacant_type) {
+      showAlert("Information", "info", "Please choose Vacant Type", "Oke");
+      return false;
+    }
+
+    if (!formData.budgeted) {
+      showAlert(
+        "Information",
+        "info",
+        "Please choose Annual Budget option",
+        "Oke",
+      );
+      return false;
+    }
+
+    if (!formData.job_description) {
+      showAlert("Information", "info", "Please input Job Description", "Oke");
+      return false;
+    }
+
+    if (!formData.experience_years)
+      return (
+        showAlert(
+          "Information",
+          "info",
+          "Experience Years must be filled",
+          "Oke",
+        ),
+        false
+      );
+    if (!formData.contract_type)
+      return (
+        showAlert(
+          "Information",
+          "info",
+          "Contract Type must be selected",
+          "Oke",
+        ),
+        false
+      );
+
+    if (formData.contract_type === "contract" && !formData.contract_duration)
+      return (
+        showAlert(
+          "Information",
+          "info",
+          "Contract Duration must be filled",
+          "Oke",
+        ),
+        false
+      );
+
+    if (!formData.purpose)
+      return (
+        showAlert("Information", "info", "Purpose must be filled", "Oke"),
+        false
+      );
+
+    if (!formData.required_date)
+      return (
+        showAlert(
+          "Information",
+          "info",
+          "Required Date must be selected",
+          "Oke",
+        ),
+        false
+      );
+
+    // =====================
+    // EDUCATION
+    // =====================
+    if (!formData.education_level.length)
+      return (
+        showAlert(
+          "Information",
+          "info",
+          "Education Background must be selected",
+          "Oke",
+        ),
+        false
+      );
+
+    // =====================
+    // ASSIGNMENT
+    // =====================
+
+    if (!formData.requested_by)
+      return (
+        showAlert(
+          "Information",
+          "info",
+          "Requested By must be selected",
+          "Oke",
+        ),
+        false
+      );
+
+    if (formData.id_project !== "11") {
+      if (!formData.approved_section_manager)
+        return (
+          showAlert(
+            "Information",
+            "info",
+            "Section Manager must be selected",
+            "Oke",
+          ),
+          false
+        );
+
+      if (!formData.approved_cm)
+        return (
+          showAlert(
+            "Information",
+            "info",
+            "Construction Manager must be selected",
+            "Oke",
+          ),
+          false
+        );
+
+      if (!formData.concurred_pmo)
+        return (
+          showAlert("Information", "info", "PMO must be selected", "Oke"),
+          false
+        );
+
+      if (!formData.concurred_yard_manager)
+        return (
+          showAlert(
+            "Information",
+            "info",
+            "Yard Manager must be selected",
+            "Oke",
+          ),
+          false
+        );
+    } else {
+      if (!formData.concurred_by)
+        return (
+          showAlert(
+            "Information",
+            "info",
+            "Concurred By must be selected",
+            "Oke",
+          ),
+          false
+        );
+    }
+
+    if (!formData.acknowledged_by)
+      return (
+        showAlert(
+          "Information",
+          "info",
+          "Acknowledged By must be selected",
+          "Oke",
+        ),
+        false
+      );
+
+    if (!formData.approved_by)
+      return (
+        showAlert("Information", "info", "Approved By must be selected", "Oke"),
+        false
+      );
+
+    return true;
+  };
+
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     const confirm = await showAlert(
       "Are you sure?",
       "question",
@@ -444,6 +642,7 @@ export default function IssMprCreate() {
                     value={formData.id_departement}
                     onChange={(val) => handleInputChange("id_departement", val)}
                     searchable
+                    withAsterisk
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -453,6 +652,7 @@ export default function IssMprCreate() {
                     value={formData.id_project}
                     onChange={(val) => handleInputChange("id_project", val)}
                     searchable
+                    withAsterisk
                   />
                 </Grid.Col>
               </Grid>
@@ -693,7 +893,8 @@ export default function IssMprCreate() {
               {/* Section 8: Information Technology Facilities */}
               <div className="mb-6">
                 <h3 className="text-md font-semibold mb-4">
-                  6. Information Technology Facilities
+                  6. Information Technology Facilities{" "}
+                  <span className="text-red-500">*</span>
                 </h3>
 
                 <div className="mb-6">
@@ -1020,11 +1221,7 @@ export default function IssMprCreate() {
 
               {/* Submit Button */}
               <Group justify="flex-end" mt="xl">
-                <Button
-                  size="md"
-                  onClick={handleSubmit}
-                  leftSection={<span>✓</span>}
-                >
+                <Button size="sx" onClick={handleSubmit}>
                   Submit
                 </Button>
               </Group>

@@ -2,7 +2,7 @@ import AuthLayout from "@/components/layout/authLayout";
 import useApi from "@/hooks/useApi";
 import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
-import { Button, Paper, TextInput, Select, PasswordInput } from "@mantine/core";
+import { Button, Paper, TextInput, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconArrowLeft } from "@tabler/icons-react";
 import axios from "axios";
@@ -27,8 +27,6 @@ export default function EditPortalUser() {
       badge_number: "",
       username: "",
       email: "",
-      new_password: "",
-      confirm_password: "",
       id_role: "",
       status_user: "1",
     },
@@ -39,25 +37,6 @@ export default function EditPortalUser() {
       email: (v) => (/^\S+@\S+$/.test(v) ? null : "Valid email is required"),
       id_role: (v) => (v ? null : "Role is required"),
       status_user: (v) => (v ? null : "Status is required"),
-
-      // ✅ Password optional but validated if filled
-      new_password: (value) => {
-        if (!value) return null; // tidak wajib
-        if (value.length < 14) return "Password must be at least 14 characters";
-        if (!/[0-9]/.test(value))
-          return "Password must contain at least one number";
-        if (!/[a-z]/.test(value) || !/[A-Z]/.test(value))
-          return "Password must contain uppercase & lowercase letters";
-        return null;
-      },
-
-      confirm_password: (value, values) => {
-        if (values.new_password && !value)
-          return "Confirm Password is required";
-        if (value !== values.new_password)
-          return "Confirm Password must match New Password";
-        return null;
-      },
     },
   });
 
@@ -96,8 +75,6 @@ export default function EditPortalUser() {
         badge_number: u.badge_number || "",
         username: u.username || "",
         email: u.email || "",
-        new_password: "",
-        confirm_password: "",
         id_role: u.id_role?.toString() || "",
         status_user: u.status_user?.toString() || "1",
       });
@@ -115,7 +92,6 @@ export default function EditPortalUser() {
     fetchUser();
   }, [id]);
 
-  // Submit
   const handleSubmit = async (values) => {
     if (loading) return;
 
@@ -128,7 +104,8 @@ export default function EditPortalUser() {
       "Update",
       "Cancel",
     );
-    if (!confirm) return;
+
+       if (!confirm?.isConfirmed) return;
 
     const payload = {
       full_name: values.full_name,
@@ -139,16 +116,16 @@ export default function EditPortalUser() {
       status_user: Number(values.status_user),
     };
 
-    // Tambahkan password baru jika diisi
-    if (values.new_password) {
-      payload.password = values.new_password;
-    }
-
     try {
       setLoading(true);
-      const res = await axios.put(`${API_URL}/api/user/update/${id}`, payload, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
+
+      const res = await axios.put(
+        `${API_URL}/api/user/update/${id}`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        },
+      );
 
       await showAlert(
         "Success",
@@ -157,7 +134,6 @@ export default function EditPortalUser() {
         false,
         1500,
       );
-      router.push("/portal/user");
     } catch (error) {
       const msg =
         error.response?.data?.message ||
@@ -193,32 +169,23 @@ export default function EditPortalUser() {
                   withAsterisk
                   {...form.getInputProps("full_name")}
                 />
+
                 <TextInput
                   label="Badge Number"
                   withAsterisk
                   {...form.getInputProps("badge_number")}
                 />
+
                 <TextInput
                   label="Username"
                   withAsterisk
                   {...form.getInputProps("username")}
                 />
+
                 <TextInput
                   label="Email"
                   withAsterisk
                   {...form.getInputProps("email")}
-                />
-
-                {/* New Password & Confirm Password */}
-                <PasswordInput
-                  label="New Password"
-                  placeholder="Enter new password"
-                  {...form.getInputProps("new_password")}
-                />
-                <PasswordInput
-                  label="Confirm Password"
-                  placeholder="Confirm new password"
-                  {...form.getInputProps("confirm_password")}
                 />
 
                 <Select
@@ -229,6 +196,7 @@ export default function EditPortalUser() {
                   withAsterisk
                   {...form.getInputProps("id_role")}
                 />
+
                 <Select
                   label="Account Status"
                   data={[

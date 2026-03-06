@@ -211,7 +211,7 @@ export default function ESSLeaveEdit() {
         false,
         1500,
       );
-      router.push("/ess_leave/list");
+
     } catch (err) {
       showAlert(
         "Error",

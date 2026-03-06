@@ -90,7 +90,7 @@ export default function IssMprList({ mpr_status }) {
   }, [user?.token]);
 
   const [data, setData] = useState([]);
- const [sorting, setSorting] = useState([{ id: "created_date", desc: true }]); // ⬅️ ganti dari id ke created_date
+  const [sorting, setSorting] = useState([{ id: "created_date", desc: true }]); // ⬅️ ganti dari id ke created_date
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -109,6 +109,15 @@ export default function IssMprList({ mpr_status }) {
   const [departments, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
   const [positions, setPositions] = useState([]);
+  
+  useEffect(() => {
+    setFilterDept(null);
+    setFilterProject(null);
+    setFilterPosition(null);
+    setFilterMprStatus(null);
+    setAppliedFilter({});
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+  }, [mpr_status]);
 
   const mprStatusOptions = [
     { value: "0", label: "Draft" },
@@ -891,6 +900,8 @@ export default function IssMprList({ mpr_status }) {
     fetchData();
   }, [fetchData]);
 
+  const isFilterApplied = Object.values(appliedFilter).some((v) => v);
+
   return (
     <AuthLayout sidebarList={employee}>
       <div className="py-6">
@@ -968,7 +979,18 @@ export default function IssMprList({ mpr_status }) {
                   size="xs"
                   color="green"
                   leftSection={<IconDownload size={16} />}
-                  onClick={handleDownloadMprExcel}
+                  onClick={async () => {
+                    if (!isFilterApplied) {
+                      await showAlert(
+                        "Information",
+                        "info",
+                        "Please use filter and click Search before downloading data.",
+                      );
+                      return;
+                    }
+
+                    handleDownloadMprExcel();
+                  }}
                 >
                   Download
                 </Button>
