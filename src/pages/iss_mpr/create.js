@@ -203,6 +203,7 @@ export default function IssMprCreate() {
       return false;
     }
 
+    // Section 3: Budgeted
     if (!formData.budgeted) {
       showAlert(
         "Information",
@@ -213,157 +214,105 @@ export default function IssMprCreate() {
       return false;
     }
 
-    if (!formData.job_description) {
-      showAlert("Information", "info", "Please input Job Description", "Oke");
+    // Section 5: Years of Experience
+    if (!formData.experience_years) {
+      showAlert(
+        "Information",
+        "info",
+        "Please input Years of Relevant Experience",
+        "Oke",
+      );
       return false;
     }
 
-    if (!formData.experience_years)
-      return (
-        showAlert(
-          "Information",
-          "info",
-          "Experience Years must be filled",
-          "Oke",
-        ),
-        false
+    // Section 6: Educational Background
+    if (formData.education_level.length === 0) {
+      showAlert(
+        "Information",
+        "info",
+        "Please select at least one Educational Background",
+        "Oke",
       );
-    if (!formData.contract_type)
-      return (
-        showAlert(
-          "Information",
-          "info",
-          "Contract Type must be selected",
-          "Oke",
-        ),
-        false
-      );
-
-    if (formData.contract_type === "contract" && !formData.contract_duration)
-      return (
-        showAlert(
-          "Information",
-          "info",
-          "Contract Duration must be filled",
-          "Oke",
-        ),
-        false
-      );
-
-    if (!formData.purpose)
-      return (
-        showAlert("Information", "info", "Purpose must be filled", "Oke"),
-        false
-      );
-
-    if (!formData.required_date)
-      return (
-        showAlert(
-          "Information",
-          "info",
-          "Required Date must be selected",
-          "Oke",
-        ),
-        false
-      );
-
-    // =====================
-    // EDUCATION
-    // =====================
-    if (!formData.education_level.length)
-      return (
-        showAlert(
-          "Information",
-          "info",
-          "Education Background must be selected",
-          "Oke",
-        ),
-        false
-      );
-
-    // =====================
-    // ASSIGNMENT
-    // =====================
-
-    if (!formData.requested_by)
-      return (
-        showAlert(
-          "Information",
-          "info",
-          "Requested By must be selected",
-          "Oke",
-        ),
-        false
-      );
-
-    if (formData.id_project !== "11") {
-      if (!formData.approved_section_manager)
-        return (
-          showAlert(
-            "Information",
-            "info",
-            "Section Manager must be selected",
-            "Oke",
-          ),
-          false
-        );
-
-      if (!formData.approved_cm)
-        return (
-          showAlert(
-            "Information",
-            "info",
-            "Construction Manager must be selected",
-            "Oke",
-          ),
-          false
-        );
-
-      if (!formData.concurred_pmo)
-        return (
-          showAlert("Information", "info", "PMO must be selected", "Oke"),
-          false
-        );
-
-      if (!formData.concurred_yard_manager)
-        return (
-          showAlert(
-            "Information",
-            "info",
-            "Yard Manager must be selected",
-            "Oke",
-          ),
-          false
-        );
-    } else {
-      if (!formData.concurred_by)
-        return (
-          showAlert(
-            "Information",
-            "info",
-            "Concurred By must be selected",
-            "Oke",
-          ),
-          false
-        );
+      return false;
     }
 
-    if (!formData.acknowledged_by)
-      return (
+    // Section 7: Contract Type
+    if (!formData.contract_type) {
+      showAlert("Information", "info", "Please choose Contract Type", "Oke");
+      return false;
+    }
+    if (formData.contract_type === "contract" && !formData.contract_duration) {
+      showAlert("Information", "info", "Please input Contract Duration", "Oke");
+      return false;
+    }
+
+    // Section 8–9: IT Facilities & Applications
+    if (formData.access.length === 0) {
+      showAlert(
+        "Information",
+        "info",
+        "Please select at least one IT Access",
+        "Oke",
+      );
+      return false;
+    }
+    if (formData.share_folder.length === 0) {
+      showAlert(
+        "Information",
+        "info",
+        "Please select at least one Share Folder option",
+        "Oke",
+      );
+      return false;
+    }
+
+    // Section 10: Purpose & Date & Remarks
+    if (!formData.purpose) {
+      showAlert(
+        "Information",
+        "info",
+        "Please input Purpose for Request",
+        "Oke",
+      );
+      return false;
+    }
+    if (!formData.required_date) {
+      showAlert("Information", "info", "Please select Required Date", "Oke");
+      return false;
+    }
+    if (!formData.remarks) {
+      showAlert("Information", "info", "Please input Remarks", "Oke");
+      return false;
+    }
+
+    // Section 11: Assignment
+    const requiredAssignments = [
+      "requested_by",
+      "acknowledged_by",
+      "approved_by",
+    ];
+    if (formData.id_project !== "11") {
+      requiredAssignments.push(
+        "approved_section_manager",
+        "approved_cm",
+        "concurred_pmo",
+        "concurred_yard_manager",
+      );
+    } else {
+      requiredAssignments.push("concurred_by");
+    }
+
+    for (const field of requiredAssignments) {
+      if (!formData[field]) {
         showAlert(
           "Information",
           "info",
-          "Acknowledged By must be selected",
+          `Please assign ${field.replaceAll("_", " ")}`,
           "Oke",
-        ),
-        false
-      );
-
-    if (!formData.approved_by)
-      return (
-        showAlert("Information", "info", "Approved By must be selected", "Oke"),
-        false
-      );
+        );
+        return false;
+      }
+    }
 
     return true;
   };

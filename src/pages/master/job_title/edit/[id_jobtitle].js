@@ -82,7 +82,6 @@ export default function Edit_Job_Title() {
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
 
-        router.push("/master/job_title/list");
       }
     } catch (error) {
       const data_error = error.response?.data || {

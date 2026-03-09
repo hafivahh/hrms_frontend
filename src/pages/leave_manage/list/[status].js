@@ -14,7 +14,7 @@ import {
 import { DateInput } from "@mantine/dates";
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { employee as sidebarData } from "@/data/sidebar/employee";
+import { leaveOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
@@ -100,8 +100,6 @@ useEffect(() => {
 }, [status]);
   const [departments, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
-
-  const sidebarList = sidebarData;
 
   const statusMap = {
     0: { label: "Draft", color: "gray" },
@@ -296,7 +294,7 @@ useEffect(() => {
 
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   };
-  
+
   //okee3
   const handleDownloadExcel = async () => {
     try {
@@ -571,7 +569,7 @@ useEffect(() => {
   const isFilterApplied = Object.values(appliedFilter).some((v) => v);
 
   return (
-    <AuthLayout sidebarList={sidebarList}>
+   <AuthLayout sidebarList={leaveOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           {/* ================= FILTER SECTION ================= */}

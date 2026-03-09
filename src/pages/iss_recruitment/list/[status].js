@@ -4,10 +4,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import Swal from "sweetalert2";
-
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { employee } from "@/data/sidebar/employee";
+import { recruitmentOnly  } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
@@ -282,7 +281,7 @@ export default function IssRecruitmentList() {
 
   /* ================= RENDER ================= */
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={recruitmentOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

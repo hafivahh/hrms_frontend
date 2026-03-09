@@ -43,6 +43,12 @@ export default function Edit_Employee() {
       badge_number: (value) =>
         value.trim() ? null : "Badge number is required",
       full_name: (value) => (value.trim() ? null : "Full name is required"),
+      gender: (value) => (value ? null : "Gender is required"),
+      id_position: (value) => (value ? null : "Position is required"),
+      id_departement: (value) => (value ? null : "Departement is required"),
+      id_project: (value) => (value ? null : "Project is required"),
+      id_company: (value) => (value ? null : "Company is required"),
+      join_date: (value) => (value ? null : "Join date is required"),
     },
   });
 
@@ -137,7 +143,6 @@ export default function Edit_Employee() {
         false,
         1500,
       );
-     
     } catch (error) {
       const data_error = error.response?.data || {
         message: "Error",

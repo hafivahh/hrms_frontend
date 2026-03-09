@@ -82,7 +82,6 @@ export default function Edit_Leave() {
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
 
-        router.push("/master/leave/list");
       }
     } catch (error) {
       const data_error = error.response?.data || {

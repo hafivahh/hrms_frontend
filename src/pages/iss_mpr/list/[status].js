@@ -1,6 +1,6 @@
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { employee } from "@/data/sidebar/employee";
+import { mprOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
@@ -109,7 +109,7 @@ export default function IssMprList({ mpr_status }) {
   const [departments, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
   const [positions, setPositions] = useState([]);
-  
+
   useEffect(() => {
     setFilterDept(null);
     setFilterProject(null);
@@ -903,7 +903,7 @@ export default function IssMprList({ mpr_status }) {
   const isFilterApplied = Object.values(appliedFilter).some((v) => v);
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={mprOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           {/* FILTER SECTION */}

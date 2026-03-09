@@ -1,6 +1,6 @@
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { employee } from "@/data/sidebar/employee";
+import { adminOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
@@ -49,7 +49,7 @@ export default function PortalUser() {
         header: "Created Date",
       },
       {
-        accessorFn: (row) => row.badge_number,
+        accessorFn: (row) => row.username,
         id: "username",
         header: "Username",
       },
@@ -69,20 +69,15 @@ export default function PortalUser() {
         header: "Role",
       },
       {
-        accessorFn: (row) => row.status_user,
-        id: "status_user",
-        header: "Account Status",
-        cell: (info) => {
-          const val = Number(info.getValue());
-          const st = statusMap[val] ?? { label: "Unknown", color: "gray" };
-
-          return (
-            <Badge color={st.color} variant="filled" size="sm">
-              {st.label}
-            </Badge>
-          );
-        },
-      },
+  accessorFn: (row) => row.status_user,
+  id: "status_user",
+  header: "Account Status",
+  cell: (info) => {
+    const val = Number(info.getValue());
+    const st = statusMap[val] ?? { label: "Unknown", color: "gray" };
+    return <Badge color={st.color} variant="filled" size="sm">{st.label}</Badge>;
+  },
+},
       // ===============================
       // ACTIONS
       // ===============================
@@ -190,7 +185,7 @@ export default function PortalUser() {
   // RENDER
   // ===============================
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={adminOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder className="overflow-hidden">

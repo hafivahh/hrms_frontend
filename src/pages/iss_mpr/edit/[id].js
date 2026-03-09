@@ -331,7 +331,179 @@ export default function IssMprEdit() {
     return Number(val);
   };
 
+  const validateForm = () => {
+    // Section 1–2: Department & Project & Position & Work Type & Qty
+    if (!formData.id_departement) {
+      showAlert("Information", "info", "Please select Department", "Oke");
+      return false;
+    }
+    if (!formData.id_project) {
+      showAlert("Information", "info", "Please select Project", "Oke");
+      return false;
+    }
+    if (!formData.id_position) {
+      showAlert("Information", "info", "Please select Position", "Oke");
+      return false;
+    }
+    if (!formData.work_type) {
+      showAlert("Information", "info", "Please select Employee Status", "Oke");
+      return false;
+    }
+    if (!formData.qty) {
+      showAlert("Information", "info", "Please input Qty", "Oke");
+      return false;
+    }
+
+    // Section 2: Transfer Qty (boleh kosong kalau optional)
+    // if (!formData.transfer_qty) { ... }
+
+    // Vacant Type
+    if (!formData.vacant_type) {
+      showAlert("Information", "info", "Please select Vacant Type", "Oke");
+      return false;
+    }
+
+    // Budgeted
+    if (!formData.is_budgeted) {
+      showAlert(
+        "Information",
+        "info",
+        "Please select if this manpower request is budgeted",
+        "Oke",
+      );
+      return false;
+    }
+
+    // Job Description
+    if (
+      !formData.job_description ||
+      formData.job_description === "<p><br></p>"
+    ) {
+      showAlert("Information", "info", "Please input Job Description", "Oke");
+      return false;
+    }
+
+    // Experience
+    if (!formData.experience_years) {
+      showAlert(
+        "Information",
+        "info",
+        "Please input Years of Relevant Experience",
+        "Oke",
+      );
+      return false;
+    }
+
+    // Contract Type
+    if (!formData.contract_type) {
+      showAlert("Information", "info", "Please select Contract Type", "Oke");
+      return false;
+    }
+    if (formData.contract_type === "contract" && !formData.contract_duration) {
+      showAlert(
+        "Information",
+        "info",
+        "Please input Contract Duration for Contract Type",
+        "Oke",
+      );
+      return false;
+    }
+
+    // Education: jika checkbox dicek, note wajib
+    for (const key of formData.education_level) {
+      if (
+        !formData.education_note[key] ||
+        formData.education_note[key] === ""
+      ) {
+        showAlert(
+          "Information",
+          "info",
+          `Please input Education note for ${key}`,
+          "Oke",
+        );
+        return false;
+      }
+    }
+
+    // Section 8–9: IT Facilities & Applications
+    if (formData.access.length === 0) {
+      showAlert(
+        "Information",
+        "info",
+        "Please select at least one IT Access",
+        "Oke",
+      );
+      return false;
+    }
+    if (formData.printer.length === 0) {
+      showAlert(
+        "Information",
+        "info",
+        "Please select at least one Printer option",
+        "Oke",
+      );
+      return false;
+    }
+    if (formData.application.length === 0) {
+      showAlert(
+        "Information",
+        "info",
+        "Please select at least one Application",
+        "Oke",
+      );
+      return false;
+    }
+
+    // Section 10: Purpose, Required Date & Remarks
+    if (!formData.purpose) {
+      showAlert(
+        "Information",
+        "info",
+        "Please input Purpose for Request",
+        "Oke",
+      );
+      return false;
+    }
+    if (!formData.required_date) {
+      showAlert("Information", "info", "Please input Required Date", "Oke");
+      return false;
+    }
+    if (!formData.remarks) {
+      showAlert("Information", "info", "Please input Remarks", "Oke");
+      return false;
+    }
+
+    // Section Assignment
+    const assignmentFields = ["requested_by", "approved_by", "acknowledged_by"];
+
+    if (formData.id_project !== "11") {
+      assignmentFields.push(
+        "approved_section_manager",
+        "approved_cm",
+        "concurred_pmo",
+        "concurred_yard_manager",
+      );
+    } else {
+      assignmentFields.push("concurred_by");
+    }
+
+    for (const field of assignmentFields) {
+      if (!formData[field]) {
+        showAlert(
+          "Information",
+          "info",
+          `Please select ${field.replace(/_/g, " ")}`,
+          "Oke",
+        );
+        return false;
+      }
+    }
+
+    return true; // Semua valid
+  };
+
   const handleSave = async () => {
+    if (!validateForm()) return;
     try {
       //  Confirmation alert
       const confirm = await showAlert(
@@ -470,7 +642,6 @@ export default function IssMprEdit() {
       );
 
       //  Redirect ke list
-
     } catch (err) {
       console.error("UPDATE ERROR:", err);
       showAlert(
@@ -1057,12 +1228,7 @@ export default function IssMprEdit() {
                 </Table.Tbody>
               </Table>
               <div className="mt-8 flex justify-end">
-                <Button
-                
-                  onClick={handleSave}
-                  color="blue"
-                   size="xs"
-                >
+                <Button onClick={handleSave} color="blue" size="xs">
                   Update MPR
                 </Button>
               </div>

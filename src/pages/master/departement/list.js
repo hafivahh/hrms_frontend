@@ -5,7 +5,7 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { Button, Paper } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconTrash, IconDatabase, IconPencil } from "@tabler/icons-react";
+import { IconTrash, IconDatabase, IconPencil,IconPlus } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -189,6 +189,7 @@ export default function List() {
             <div className="px-4 py-2 text-right space-x-2">
               <Button 
               size="xs"
+              leftSection={<IconPlus size={16} />}
               onClick={() => router.push("/master/departement/create")}>
                 Add Departement
               </Button>

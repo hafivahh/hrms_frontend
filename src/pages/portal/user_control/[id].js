@@ -2,14 +2,14 @@ import AuthLayout from "@/components/layout/authLayout";
 import useApi from "@/hooks/useApi";
 import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
-import { Button, Paper, TextInput, PasswordInput } from "@mantine/core";
+import { Button, Paper, PasswordInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconArrowLeft } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-export default function ChangePassword() {
+export default function ChangeOwnPassword() {
   const router = useRouter();
   const { user } = useUser();
   const API = useApi();
@@ -21,12 +21,12 @@ export default function ChangePassword() {
 
   const form = useForm({
     initialValues: {
-      full_name: "",
-      badge_number: "",
+      old_password: "",
       new_password: "",
       confirm_password: "",
     },
     validate: {
+      old_password: (value) => (!value ? "Old Password is required" : null),
       new_password: (value) => {
         if (!value) return "New Password is required";
         if (value.length < 14) return "Password must be at least 14 characters";
@@ -43,43 +43,13 @@ export default function ChangePassword() {
     },
   });
 
-  // ============================
-  // Fetch User Data (Readonly)
-  // ============================
-  const fetchUser = async () => {
-    try {
-      const { data } = await axios.get(`${API_URL}/api/user/${id}`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-
-      form.setValues({
-        full_name: data.full_name || "",
-        badge_number: data.badge_number || "",
-        new_password: "",
-        confirm_password: "",
-      });
-    } catch (err) {
-      console.error("Fetch user error:", err.response?.data || err);
-      showAlert("Error", "error", "Failed to fetch user data");
-    }
-  };
-
-  useEffect(() => {
-    if (router.isReady && id) {
-      fetchUser();
-    }
-  }, [router.isReady, id]);
-
-  // ============================
-  // Submit Change Password
-  // ============================
   const handleSubmit = async (values) => {
     if (loading) return;
 
     const confirm = await showAlert(
       "Are you sure?",
       "question",
-      "Do you want to change this user's password?",
+      "Do you want to change your password?",
       true,
       null,
       "Update",
@@ -90,15 +60,13 @@ export default function ChangePassword() {
 
     try {
       setLoading(true);
-
       const res = await axios.patch(
-        `${API_URL}/api/user/change/${id}`,
+        `${API_URL}/api/user/change_own/${id}`, // ⬅️ id langsung dari URL
         {
+          old_password: values.old_password,
           new_password: values.new_password,
         },
-        {
-          headers: { Authorization: `Bearer ${user.token}` },
-        },
+        { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
       await showAlert(
@@ -109,14 +77,13 @@ export default function ChangePassword() {
         1500,
       );
 
+      form.reset();
+ 
     } catch (error) {
-      console.error("Change password error:", error.response?.data || error);
-
       const msg =
         error.response?.data?.message ||
         error.response?.data?.error ||
         "Failed to update password";
-
       showAlert("Error", "error", msg);
     } finally {
       setLoading(false);
@@ -131,7 +98,7 @@ export default function ChangePassword() {
             <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center gap-2">
               <IconArrowLeft
                 size={18}
-                onClick={() => router.push("/portal/user")}
+                onClick={() => router.back()}
                 className="cursor-pointer hover:text-blue-600"
               />
               <h2 className="text-lg font-semibold uppercase tracking-wide">
@@ -141,40 +108,18 @@ export default function ChangePassword() {
 
             <form onSubmit={form.onSubmit(handleSubmit)} className="p-6">
               <div className="flex flex-col gap-6">
-                <TextInput
-                  label="Full Name"
-                  readOnly
-                  styles={{
-                    input: {
-                      backgroundColor: "#f1f3f5",
-                      color: "#495057",
-                      cursor: "not-allowed",
-                    },
-                  }}
-                  {...form.getInputProps("full_name")}
+                <PasswordInput
+                  label="Old Password"
+                  placeholder="Enter current password"
+                  withAsterisk
+                  {...form.getInputProps("old_password")}
                 />
-
-                <TextInput
-                  label="Badge Number"
-                  readOnly
-                  styles={{
-                    input: {
-                      backgroundColor: "#f8f9fa",
-                      color: "#495057",
-                      cursor: "not-allowed",
-                    },
-                  }}
-                  {...form.getInputProps("badge_number")}
-                />
-
-                {/* PASSWORD INPUT */}
                 <PasswordInput
                   label="New Password"
                   placeholder="Enter new password"
                   withAsterisk
                   {...form.getInputProps("new_password")}
                 />
-
                 <PasswordInput
                   label="Confirm Password"
                   placeholder="Confirm new password"
@@ -182,11 +127,8 @@ export default function ChangePassword() {
                   {...form.getInputProps("confirm_password")}
                 />
 
-                {/* PASSWORD POLICY */}
                 <div className="text-sm bg-gray-50 p-4 rounded border">
-                  <p className="font-semibold mb-2">
-                    Please Follow Password Configuration Policy Settings:
-                  </p>
+                  <p className="font-semibold mb-2">Password Policy:</p>
                   <ul className="list-disc ml-5 space-y-1">
                     <li>Minimum Length: 14 characters</li>
                     <li>Must contain at least one number</li>

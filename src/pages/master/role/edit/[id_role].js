@@ -81,8 +81,6 @@ export default function Edit_Role() {
 
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
-
-        router.push("/master/role/list");
       }
     } catch (error) {
       const data_error = error.response?.data || {

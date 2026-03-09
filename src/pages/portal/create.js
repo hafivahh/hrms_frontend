@@ -8,7 +8,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { employee } from "@/data/sidebar/employee";
+import { adminOnly } from "@/data/sidebar/employee";
 
 AddPortalUser.title = "Add Portal User";
 
@@ -136,7 +136,7 @@ export default function AddPortalUser() {
   // RENDER
   // ===============================
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={adminOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
