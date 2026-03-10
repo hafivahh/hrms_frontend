@@ -15,7 +15,6 @@ const recruitmentStatusMap = {
 };
 
 export default function PssRecruitmentList() {
-  const { user } = useUser();
   const { encrypt } = useEncrypt();
   const API = useApi();
   const API_URL = API.API_URL;
@@ -34,8 +33,8 @@ export default function PssRecruitmentList() {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${API_URL}/api/pss_recruitment/open_recruitment`,
-        { headers: { Authorization: `Bearer ${user?.token}` } },
+        `${API_URL}/api/career/open_recruitment`,
+       
       );
       setData(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
@@ -49,8 +48,7 @@ export default function PssRecruitmentList() {
   // ================= FETCH POSITIONS (DROPDOWN) =================
   const fetchPositions = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/pss_recruitment/dropdowns`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
+      const res = await axios.get(`${API_URL}/api/career/dropdowns`, {
       });
       setPositions(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
@@ -168,7 +166,7 @@ export default function PssRecruitmentList() {
                     className="text-xl font-semibold text-blue-600 cursor-pointer hover:underline"
                     onClick={() =>
                       router.push(
-                        `/pss_recruitment/detail/${encrypt(String(item.id))}`,
+                        `/career/detail/${encrypt(String(item.id))}`,
                       )
                     }
                   >
@@ -193,7 +191,7 @@ export default function PssRecruitmentList() {
                 <Button
                   onClick={() =>
                     router.push(
-                      `/pss_recruitment/detail/${encrypt(String(item.id))}`,
+                      `/career/detail/${encrypt(String(item.id))}`,
                     )
                   }
                 >

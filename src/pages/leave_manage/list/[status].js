@@ -1,3 +1,4 @@
+//list leave
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -86,18 +87,16 @@ export default function ListLeaveByStatus({ status }) {
   // ===============================
   const [filterDept, setFilterDept] = useState(null);
   const [filterProject, setFilterProject] = useState(null);
-  const [filterStart, setFilterStart] = useState(null);
-  const [filterEnd, setFilterEnd] = useState(null);
-const [appliedFilter, setAppliedFilter] = useState({});
+  const [filterStatus, setFilterStatus] = useState(null);
+  const [appliedFilter, setAppliedFilter] = useState({});
 
-useEffect(() => {
-  setFilterDept(null);
-  setFilterProject(null);
-  setFilterStart(null);
-  setFilterEnd(null);
-  setAppliedFilter({});
-  setPagination((p) => ({ ...p, pageIndex: 0 }));
-}, [status]);
+  useEffect(() => {
+    setFilterDept(null);
+    setFilterProject(null);
+    setFilterStatus(null);
+    setAppliedFilter({});
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+  }, [status]);
   const [departments, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
 
@@ -156,7 +155,7 @@ useEffect(() => {
       },
       {
         accessorFn: (row) => row.supervisor_name,
-        id: "supervisor_id",
+        id: "supervisor_name",
         header: "Supervisor",
       },
       {
@@ -173,10 +172,10 @@ useEffect(() => {
         accessorFn: (row) => row.leave_status,
         id: "leave_status",
         header: "Status",
+        enableColumnFilter: false,
         cell: (info) => {
           const val = Number(info.getValue());
           const s = statusMap[val] || { label: "Unknown", color: "gray" };
-
           return (
             <Badge color={s.color} variant="filled">
               {s.label}
@@ -242,20 +241,26 @@ useEffect(() => {
   const fetchData = useCallback(async () => {
     const isAll = status === "all";
 
-    const searchQuery = {};
-    columnFilters.forEach((f) => {
-      if (f.value) searchQuery[f.id] = f.value;
-    });
-
     const sort =
       sorting.length > 0
         ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
         : "";
 
     try {
+      // gabungkan columnFilters + appliedFilter
+      const searchQuery = {};
+      columnFilters.forEach((f) => {
+        if (f.value) searchQuery[f.id] = f.value;
+      });
+
+      // merge appliedFilter ke searchQuery
+      Object.keys(appliedFilter).forEach((key) => {
+        if (appliedFilter[key]) searchQuery[key] = appliedFilter[key];
+      });
+
       const filterParams =
-        Object.keys(appliedFilter).length > 0
-          ? `&search=${encodeURIComponent(JSON.stringify(appliedFilter))}`
+        Object.keys(searchQuery).length > 0
+          ? `&search=${encodeURIComponent(JSON.stringify(searchQuery))}`
           : "";
 
       const { data } = await axios.post(
@@ -273,7 +278,15 @@ useEffect(() => {
     } catch (err) {
       showAlert("error", "Failed to load data");
     }
-  }, [status, columnFilters, sorting, pagination, API_URL, user?.token]);
+  }, [
+    status,
+    columnFilters,
+    sorting,
+    pagination,
+    appliedFilter,
+    API_URL,
+    user?.token,
+  ]); // appliedFilter
 
   useEffect(() => {
     fetchData();
@@ -288,8 +301,7 @@ useEffect(() => {
     setAppliedFilter({
       departement_name: deptLabel,
       project_name: projLabel,
-      leave_in: filterStart ? filterStart.toISOString().split("T")[0] : "",
-      leave_out: filterEnd ? filterEnd.toISOString().split("T")[0] : "",
+      leave_status: filterStatus || "",
     });
 
     setPagination((p) => ({ ...p, pageIndex: 0 }));
@@ -569,7 +581,7 @@ useEffect(() => {
   const isFilterApplied = Object.values(appliedFilter).some((v) => v);
 
   return (
-   <AuthLayout sidebarList={leaveOnly}>
+    <AuthLayout sidebarList={leaveOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           {/* ================= FILTER SECTION ================= */}
@@ -600,22 +612,18 @@ useEffect(() => {
                   clearable
                   searchable
                 />
-
-                <DateInput
-                  label="Start Date"
-                  value={filterStart}
-                  onChange={setFilterStart}
+                <Select
+                  label="Leave Status"
+                  placeholder="Select Status"
+                  value={filterStatus}
+                  onChange={setFilterStatus}
                   clearable
-                />
-
-                <DateInput
-                  label="End Date"
-                  value={filterEnd}
-                  onChange={setFilterEnd}
-                  clearable
+                  data={[
+                    { value: "1", label: "Pending Approval" },
+                    { value: "4", label: "Completed" },
+                  ]}
                 />
               </div>
-
               <div className="flex justify-end">
                 <Button
                   size="xs"

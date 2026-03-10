@@ -164,6 +164,18 @@ export default function ESSLeaveCreate() {
       return;
     }
 
+    // validasi MIME type di sini
+    const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
+    if (!allowedTypes.includes(file.type)) {
+      await showAlert(
+        "Invalid File Type",
+        "error",
+        "Only PDF, PNG, and JPG files are allowed.\n\nPlease upload a valid file.",
+        false,
+      );
+      return;
+    }
+
     // Konfirmasi submit
     const confirm = await showAlert(
       "Are you sure?",
@@ -172,8 +184,8 @@ export default function ESSLeaveCreate() {
       true,
     );
 
-    if (!confirm) {
-      return; // User cancel
+    if (!confirm || confirm.isConfirmed === false) {
+      return;
     }
 
     setLoading(true);
@@ -396,6 +408,7 @@ export default function ESSLeaveCreate() {
                   placeholder="Enter your reason for leave"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
+                  required
                   minRows={3}
                 />
               </div>

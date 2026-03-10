@@ -14,7 +14,7 @@ import {
 import { IconFileSpreadsheet, IconUpload, IconX, } from "@tabler/icons-react";
 import axios from "axios";
 import { useState } from "react";
-import { employee } from "@/data/sidebar/employee";
+import { employeeOnly } from "@/data/sidebar/employee";
 import { ActionIcon } from "@mantine/core";
 import { useRouter } from "next/navigation";
 
@@ -141,7 +141,7 @@ export default function IssDocuments() {
   };
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={employeeOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

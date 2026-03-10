@@ -16,7 +16,11 @@ import { usePathname } from "next/navigation";
 const COOKIE_EXPIRE_TIME = 86400;
 
 // Halaman yang tidak perlu auth
-const PUBLIC_PAGES = ['/login'];
+const PUBLIC_PAGES = [
+  "/login",
+  "/career",
+  "/career/detail",
+];
 
 export default function App({ Component, pageProps }) {
   const cookieUser = useCookie("portal_user");
@@ -53,11 +57,14 @@ export default function App({ Component, pageProps }) {
       if (!router.isReady) return;
 
       // ⬅️ Skip auth untuk halaman public (login, dll)
-      if (PUBLIC_PAGES.includes(router.pathname)) {
-        
-        setIsAuthenticated(true);
-        return;
-      }
+    const isPublicPage = PUBLIC_PAGES.some((page) =>
+  router.pathname.startsWith(page)
+);
+
+if (isPublicPage) {
+  setIsAuthenticated(true);
+  return;
+}
 
       const { auth_user } = router.query;
 

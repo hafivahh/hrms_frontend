@@ -47,110 +47,139 @@ export default function PssRecruitmentDetail() {
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [fileKey, setFileKey] = useState(0);
   const [opened, setOpened] = useState(false);
 
   const form = useForm({
-  initialValues: {
-    email: "",
-    name: "",
-    phone: "",
-    file: null,
-  },
-  validate: {
-    email: (value) =>
-      /^\S+@\S+$/.test(value) ? null : "Invalid email",
-    name: (value) => (!value ? "Name is required" : null),
-    phone: (value) => (!value ? "Phone number is required" : null),
-    file: (value) => (!value ? "CV is required" : null),
-  },
-});
+    initialValues: {
+      email: "",
+      name: "",
+      phone: "",
+      file: null,
+    },
+    validate: {
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+      name: (value) => (!value ? "Name is required" : null),
+      phone: (value) => {
+        if (!value) return "Phone number is required";
+        if (!/^\d+$/.test(value))
+          return "Phone number must contain numbers only";
+        if (value.length < 8) return "Phone number too short";
+        return null;
+      },
+      file: (value) => (!value ? "CV is required" : null),
+    },
+  });
 
   const fetchDetail = async () => {
     if (!id) return;
+
     try {
       setLoading(true);
-      const decryptedId = decrypt(id);
-      const res = await axios.get(
-        `${API_URL}/api/pss_recruitment/${decryptedId}`,
-        {
-          headers: { Authorization: `Bearer ${user?.token}` },
-        },
-      );
+
+      const decryptedId = decrypt(String(id));
+
+      const res = await axios.get(`${API_URL}/api/career/${decryptedId}`);
+
       setData(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("FETCH DETAIL ERROR:", err);
     } finally {
       setLoading(false);
     }
   };
 
-const handleApply = async (values) => {
-  const decryptedId = decrypt(id);
+  const handleApply = async (values) => {
+    const decryptedId = decrypt(id);
+    const file = values.file;
 
-  const confirm = await showAlert(
-    "Are You Sure?",
-    "question",
-    `You are about to upload 1 file. Continue?`,
-    true,
-    null,
-    "Upload",
-    "Cancel"
-  );
+    // ⬅️ cek magic bytes di frontend
+    const checkMagicBytes = (file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = (e) => {
+          const arr = new Uint8Array(e.target.result).subarray(0, 8);
+          const hex = Array.from(arr)
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("")
+            .toUpperCase();
 
-  if (!confirm?.isConfirmed) return;
+          if (hex.startsWith("25504446")) resolve("pdf");
+          else if (hex.startsWith("89504E47")) resolve("png");
+          else if (hex.startsWith("FFD8FF")) resolve("jpg");
+          else resolve(null);
+        };
+        reader.readAsArrayBuffer(file.slice(0, 8));
+      });
+    };
 
-  try {
-    setLoading(true);
+    const realType = await checkMagicBytes(file);
+    if (!realType) {
+      await showAlert(
+        "Invalid File",
+        "error",
+        "File content is invalid. Only real PDF, PNG, and JPG files are allowed.",
+      );
+      return;
+    }
 
-    const formData = new FormData();
+    const confirm = await showAlert(
+      "Are You Sure?",
+      "question",
+      `You are about to upload 1 file. Continue?`,
+      true,
+      null,
+      "Upload",
+      "Cancel",
+    );
 
-    // file
-    formData.append("file", values.file);
+    if (!confirm?.isConfirmed) return;
 
-    // data lain
-    formData.append("mpr_id", decryptedId);
-    formData.append("mpr_no", data.mpr_no);
-    if (data.id_project) {
-  formData.append("id_project", data.id_project);
-}
-    formData.append("email", values.email);
-    formData.append("full_name", values.name);
-    formData.append("phone_number", values.phone);
+    try {
+      setSubmitting(true);
 
-    await axios.post(
-      `${API_URL}/api/pss_recruitment/upload`,
-      formData,
-      {
+      const formData = new FormData();
+      formData.append("file", values.file);
+      formData.append("mpr_id", decryptedId);
+      formData.append("mpr_no", data.mpr_no);
+      if (data.id_project) {
+        formData.append("id_project", data.id_project);
+      }
+      formData.append("email", values.email);
+      formData.append("full_name", values.name);
+      formData.append("phone_number", values.phone);
+
+      await axios.post(`${API_URL}/api/career/upload`, formData, {
         headers: {
-          Authorization: `Bearer ${user?.token}`,
           "Content-Type": "multipart/form-data",
         },
-      }
-    );
+      });
 
-    form.reset();
-    setOpened(false);
+      form.reset();
+      setOpened(false);
 
-    await showAlert(
-      "Success",
-      "success",
-      "Application submitted successfully!",
-      false,
-      1500
-    );
-  } catch (err) {
-    console.error(err);
+      await showAlert(
+        "Success",
+        "success",
+        "Application submitted successfully!",
+        false,
+        1500,
+      );
+    } catch (err) {
+      console.error(err);
 
-    await showAlert(
-      "Failed",
-      "error",
-      err?.response?.data?.message || "Failed to submit application",
-      false
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      await showAlert(
+        "Failed",
+        "error",
+        err?.response?.data?.message || "Failed to submit application",
+        false,
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     fetchDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -275,6 +304,8 @@ const handleApply = async (values) => {
             size="md"
             disabled={data.recruitment_status !== 1}
             onClick={() => setOpened(true)}
+            type="submit"
+            loading={submitting}
           >
             Apply Now
           </Button>
@@ -297,26 +328,43 @@ const handleApply = async (values) => {
             mb="sm"
           />
 
-           <TextInput
+          <TextInput
             label="Name"
             placeholder="Your full name"
             {...form.getInputProps("name")}
             mb="sm"
           />
 
-
           <TextInput
             label="Phone Number"
-            placeholder="08xxxxxxxxxx"
+            placeholder="08xxxxxxxxxxx"
             {...form.getInputProps("phone")}
+            onChange={(e) => {
+              const val = e.currentTarget.value.replace(/\D/g, "");
+              form.setFieldValue("phone", val);
+            }}
             mb="sm"
           />
 
           <FileInput
+            key={fileKey}
             label="Upload CV"
             placeholder="Choose file"
-            accept="application/pdf"
+            accept="application/pdf,image/png,image/jpeg"
             {...form.getInputProps("file")}
+            rightSection={
+              form.values.file ? (
+                <span
+                  style={{ cursor: "pointer", color: "gray" }}
+                  onClick={() => {
+                    form.setFieldValue("file", null);
+                    setFileKey((k) => k + 1);
+                  }}
+                >
+                  ✕
+                </span>
+              ) : null
+            }
             mb="md"
           />
 
