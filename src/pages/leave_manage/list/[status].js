@@ -655,12 +655,17 @@ export default function ListLeaveByStatus({ status }) {
                   leftSection={<IconDownload size={16} />}
                   onClick={async () => {
                     if (!isFilterApplied) {
-                      await showAlert(
-                        "Information",
-                        "info",
-                        "Please use filter and click Search before downloading data.",
+                      const confirm = await showAlert(
+                        "Download All Data?",
+                        "question",
+                        "No filter applied. Are you sure you want to download all leave data?",
+                        true,
+                        null,
+                        "Yes, Download All",
+                        "Cancel",
                       );
-                      return;
+
+                      if (!confirm?.isConfirmed) return;
                     }
 
                     handleDownloadExcel();

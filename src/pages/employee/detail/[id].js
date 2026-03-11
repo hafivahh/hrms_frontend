@@ -1,5 +1,5 @@
 import AuthLayout from "@/components/layout/authLayout";
-import { employee } from "@/data/sidebar/employee";
+import { employeeOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
@@ -22,28 +22,34 @@ export default function EmployeeDetail() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  if (!id) return;
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${API_URL}/api/employee/${id}`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      setData(res.data);
-    } catch (err) {
-      console.error("Error:", err.response?.data || err.message);
-      showAlert("Error", "error", err.response?.data?.message || "Failed to load employee data");
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchData();
-}, [id]);
+  useEffect(() => {
+    if (!id) return;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`${API_URL}/api/employee/${id}`, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        setData(res.data);
+      } catch (err) {
+        console.error("Error:", err.response?.data || err.message);
+        showAlert(
+          "Error",
+          "error",
+          err.response?.data?.message || "Failed to load employee data",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
 
   const Field = ({ label, value }) => (
     <div className="flex flex-col">
-      <label className="text-sm font-semibold text-gray-600 mb-1">{label}</label>
+      <label className="text-sm font-semibold text-gray-600 mb-1">
+        {label}
+      </label>
       <input
         type="text"
         value={value || "-"}
@@ -55,7 +61,7 @@ useEffect(() => {
 
   if (loading)
     return (
-      <AuthLayout sidebarList={employee}>
+      <AuthLayout sidebarList={employeeOnly}>
         <div className="flex justify-center items-center h-64">
           <Loader size="lg" />
         </div>
@@ -64,13 +70,13 @@ useEffect(() => {
 
   if (!data)
     return (
-      <AuthLayout sidebarList={employee}>
+      <AuthLayout sidebarList={employeeOnly}>
         <div className="text-center mt-8">Employee data not found</div>
       </AuthLayout>
     );
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={employeeOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

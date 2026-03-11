@@ -41,8 +41,8 @@ export default function ESSLeaveList() {
   const statusMap = {
     0: { label: "Draft", color: "gray" },
     1: { label: "Pending Approval", color: "yellow" },
-    2: { label: "Approved", color: "blue" }, // Status antara (per-item)
-    3: { label: "Rejected", color: "red" },
+    // 2: { label: "Approved", color: "blue" }, 
+    // 3: { label: "Rejected", color: "red" },
     4: { label: "Completed", color: "green" }, // Status akhir (semua selesai)
   };
 

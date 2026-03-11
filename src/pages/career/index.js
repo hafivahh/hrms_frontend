@@ -1,5 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
-import { TextInput, Button, Badge, Loader, Select } from "@mantine/core";
+import {
+  TextInput,
+  Button,
+  Badge,
+  Loader,
+  Select,
+  MultiSelect,
+} from "@mantine/core";
 import { IconSearch, IconUsers } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -26,16 +33,13 @@ export default function PssRecruitmentList() {
   const [loading, setLoading] = useState(false);
 
   const [keyword, setKeyword] = useState("");
-  const [position, setPosition] = useState(null);
+  const [position, setPosition] = useState([]);
 
   // ================= FETCH OPEN RECRUITMENT =================
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        `${API_URL}/api/career/open_recruitment`,
-       
-      );
+      const res = await axios.get(`${API_URL}/api/career/open_recruitment`);
       setData(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
@@ -48,8 +52,7 @@ export default function PssRecruitmentList() {
   // ================= FETCH POSITIONS (DROPDOWN) =================
   const fetchPositions = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/career/dropdowns`, {
-      });
+      const res = await axios.get(`${API_URL}/api/career/dropdowns`, {});
       setPositions(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch positions", err);
@@ -60,7 +63,7 @@ export default function PssRecruitmentList() {
   useEffect(() => {
     fetchData();
     fetchPositions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ================= CLIENT-SIDE FILTER =================
@@ -76,9 +79,12 @@ export default function PssRecruitmentList() {
       item.position?.toLowerCase().includes(keyword.toLowerCase());
 
     const matchPosition =
-      !position ||
-      item.position ===
-        positions.find((p) => p.id.toString() === position)?.position_name;
+      position.length === 0 ||
+      position.some(
+        (p) =>
+          item.position ===
+          positions.find((pos) => pos.id.toString() === p)?.position_name,
+      );
 
     return matchKeyword && matchPosition;
   });
@@ -88,11 +94,15 @@ export default function PssRecruitmentList() {
   return (
     <div className="min-h-screen bg-white">
       {/* ================= HERO SECTION ================= */}
-      <div className="relative w-full h-[450px]">
-        <img
-          src="/images/recruitment.jpg"
-          alt="Recruitment Banner"
-          className="w-full h-full object-cover"
+      <div className="relative w-full h-[450px] overflow-hidden">
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video
+          src="/images/career.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute bottom-16 left-10 text-white">
@@ -103,7 +113,7 @@ export default function PssRecruitmentList() {
       </div>
 
       {/* ================= SEARCH SECTION ================= */}
-      <div className="bg-cyan-500 py-12 px-10 text-white">
+      <div className="bg-blue-900 py-12 px-10 text-white">
         <h2 className="text-white text-xl font-semibold mb-6">Open Jobs</h2>
         <div className="flex flex-col md:flex-row gap-4">
           <TextInput
@@ -115,14 +125,14 @@ export default function PssRecruitmentList() {
             radius="md"
             size="md"
           />
-          <Select
+          <MultiSelect
             placeholder="Select Position"
             leftSection={<IconSearch size={16} />}
             data={positions.map((p) => ({
               value: p.id.toString(),
               label: p.position_name,
             }))}
-            value={position}
+            value={position ?? []}
             onChange={setPosition}
             searchable
             clearable
@@ -165,9 +175,7 @@ export default function PssRecruitmentList() {
                   <div
                     className="text-xl font-semibold text-blue-600 cursor-pointer hover:underline"
                     onClick={() =>
-                      router.push(
-                        `/career/detail/${encrypt(String(item.id))}`,
-                      )
+                      router.push(`/career/detail/${encrypt(String(item.id))}`)
                     }
                   >
                     {item.position || "-"}
@@ -190,9 +198,7 @@ export default function PssRecruitmentList() {
                 {/* RIGHT: Apply button */}
                 <Button
                   onClick={() =>
-                    router.push(
-                      `/career/detail/${encrypt(String(item.id))}`,
-                    )
+                    router.push(`/career/detail/${encrypt(String(item.id))}`)
                   }
                 >
                   Apply

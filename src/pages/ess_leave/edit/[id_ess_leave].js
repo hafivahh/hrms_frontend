@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import ManagerSelect from "@/components/ManagerSelect";
 
-dayjs.extend(isSameOrBefore); //
+dayjs.extend(isSameOrBefore); 
 
 export default function ESSLeaveEdit() {
   const router = useRouter();

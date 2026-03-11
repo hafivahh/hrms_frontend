@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import {
   Badge,
   Loader,
@@ -30,7 +29,6 @@ import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
-
 const recruitmentStatusMap = {
   1: { label: "Open", color: "green" },
   3: { label: "Closed", color: "red" },
@@ -94,7 +92,7 @@ export default function PssRecruitmentDetail() {
     const decryptedId = decrypt(id);
     const file = values.file;
 
-    // ⬅️ cek magic bytes di frontend
+    // cek magic bytes di frontend
     const checkMagicBytes = (file) => {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -210,17 +208,22 @@ export default function PssRecruitmentDetail() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <div className="relative w-full h-[300px]">
-        <img
-          src="/images/recruitment.jpg"
-          alt="Recruitment Banner"
-          className="w-full h-full object-cover"
+      {/* ================= HERO SECTION ================= */}
+      <div className="relative w-full h-[450px] overflow-hidden">
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <video
+          src="/images/career.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="absolute bottom-8 left-10 text-white">
-          <h1 className="text-3xl font-bold">{data.position || "-"}</h1>
-          <p className="mt-1 text-sm opacity-80">Open Recruitment</p>
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute bottom-16 left-10 text-white">
+          <h1 className="text-4xl font-bold leading-tight">
+            <br />
+          </h1>
         </div>
       </div>
 

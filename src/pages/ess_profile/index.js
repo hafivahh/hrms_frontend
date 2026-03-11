@@ -51,7 +51,7 @@ export default function EssProfile() {
     if (user?.token) {
       fetchProfile();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   return (
@@ -83,8 +83,6 @@ export default function EssProfile() {
                     <Text fw={700} size="xl">
                       {profile.full_name}
                     </Text>
-
-                    
 
                     <Badge
                       mt="xs"

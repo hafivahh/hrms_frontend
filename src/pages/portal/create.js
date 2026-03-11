@@ -82,55 +82,56 @@ export default function AddPortalUser() {
   // ===============================
   // SUBMIT
   // ===============================
-  const handleSubmit = async (values) => {
-    if (loading) return;
+const handleSubmit = async (values) => {
+  if (loading) return;
 
-    const confirm = await showAlert(
-      "Are you sure?",
-      "question",
-      "Do you want to create this user?",
-      true,
-      null,
-      "Submit",
-      "Cancel",
+  const confirm = await showAlert(
+    "Are you sure?",
+    "question",
+    "Do you want to create this user?",
+    true,
+    null,
+    "Submit",
+    "Cancel",
+  );
+
+  if (!confirm?.isConfirmed) return;
+
+  const payload = {
+    ...values,
+    id_role: Number(values.id_role),
+    status_user: Number(values.status_user),
+  };
+
+  try {
+    setLoading(true);
+
+    const res = await axios.post(`${API_URL}/api/user/create`, payload, {
+      headers: { Authorization: "Bearer " + user.token },
+    });
+
+    await showAlert(
+      "Success",
+      "success",
+      res.data?.message || "User created successfully",
+      false,
+      1500,
     );
 
-    if (!confirm) return;
+    router.push("/portal/user"); 
+  } catch (error) {
+    const msg =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Failed to create user";
 
-    const payload = {
-      ...values,
-      id_role: Number(values.id_role),
-      status_user: Number(values.status_user),
-    };
+    await showAlert("Error", "error", msg);
 
-    console.log("dsadsadas", payload);
-
-    try {
-      setLoading(true);
-
-      const res = await axios.post(`${API_URL}/api/user/create`, payload, {
-        headers: { Authorization: "Bearer " + user.token },
-      });
-
-      await showAlert(
-        "Success",
-        "success",
-        res.data?.message || "User created successfully",
-        false,
-        1500,
-      );
-
-    } catch (error) {
-      const msg =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Failed to create user";
-
-      showAlert("Error", "error", msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    form.reset(); // reset form jika gagal
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ===============================
   // RENDER

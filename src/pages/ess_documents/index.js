@@ -1,6 +1,6 @@
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { ess } from "@/data/sidebar/ess"
+import { ess } from "@/data/sidebar/ess";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { Paper, Button } from "@mantine/core";

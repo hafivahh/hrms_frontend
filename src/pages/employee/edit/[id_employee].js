@@ -8,7 +8,7 @@ import { IconArrowLeft, IconDeviceFloppy } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { employee } from "@/data/sidebar/employee";
+import { employeeOnly } from "@/data/sidebar/employee";
 import { DateInput } from "@mantine/dates";
 
 Edit_Employee.title = "Edit Employee";
@@ -32,7 +32,7 @@ export default function Edit_Employee() {
     initialValues: {
       badge_number: "",
       full_name: "",
-      gender: "1", // string sekarang
+      gender: "1",
       id_position: "",
       id_departement: "",
       id_project: "",
@@ -155,7 +155,7 @@ export default function Edit_Employee() {
   };
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={employeeOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

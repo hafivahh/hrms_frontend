@@ -91,7 +91,7 @@ export default function LeaveDetailPage() {
       await axios.put(
         `${API_URL}/api/ess_leave/submit/${id}`,
         {
-          submit: true, // optional kalau backend butuh flag
+          submit: true,
         },
         {
           headers: { Authorization: `Bearer ${user.token}` },
@@ -215,7 +215,7 @@ export default function LeaveDetailPage() {
                             {statusMap[item.leave_status]?.label}
                           </Badge>
                         </td>
-                         <td className="px-4 py-3 text-center whitespace-nowrap">
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
                           {item.remarks_status || "-"}
                         </td>
                       </tr>
@@ -258,7 +258,7 @@ export default function LeaveDetailPage() {
                 rows={3}
               />
             </div>
-            
+
             {/* 4. ACTION BUTTON */}
             {leave.leave_status === 0 && (
               <div className="px-6 pb-8 flex justify-end">

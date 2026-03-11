@@ -1,10 +1,10 @@
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { employeeOnly  } from "@/data/sidebar/employee";
+import { employeeOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
-import { Button, Paper, Select } from "@mantine/core";
+import { Button, Paper, Select, Badge } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
 import {
   IconTrash,
@@ -41,8 +41,6 @@ export default function List() {
   const [departments, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
   const [companies, setCompanies] = useState([]);
-
-  // Active filter yang sudah di-apply
   const [appliedFilter, setAppliedFilter] = useState({});
 
   // Fetch dropdowns
@@ -132,6 +130,26 @@ export default function List() {
         enableColumnFilter: true,
         enableSorting: true,
         cell: (info) => info.getValue(),
+      },
+      {
+        accessorFn: (row) => row.status_active,
+        id: "status_active",
+        header: "Status Active",
+        enableColumnFilter: true,
+        enableSorting: true,
+        cell: (info) => {
+          const val = Number(info.getValue());
+          const statusMap = {
+            1: { label: "Active", color: "green" },
+            0: { label: "Inactive", color: "red" },
+          };
+          const st = statusMap[val] ?? { label: "Unknown", color: "gray" };
+          return (
+            <Badge color={st.color} variant="filled" size="sm">
+              {st.label}
+            </Badge>
+          );
+        },
       },
       {
         id: "actions",
@@ -552,12 +570,16 @@ export default function List() {
                   leftSection={<IconDownload size={16} />}
                   onClick={async () => {
                     if (!isFilterApplied) {
-                      await showAlert(
-                        "Information",
-                        "info",
-                        "Please use filter and click Search before downloading data.",
+                      const confirm = await showAlert(
+                        "Download All Data?",
+                        "question",
+                        "No filter applied. Are you sure you want to download all employee data?",
+                        true,
+                        null,
+                        "Yes, Download All",
+                        "Cancel",
                       );
-                      return;
+                      if (!confirm?.isConfirmed) return;
                     }
 
                     handleDownloadExcel();

@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 
 //   return { cookieValue, loading };
 // };
-const domain = "www.smoebatam.com";
+// const domain = "www.smoebatam.com";
 
 const useCookie = (key) => {
   const [value, setValue] = useState("");

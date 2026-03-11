@@ -9,7 +9,7 @@ import { IconArrowLeft, IconSend } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import { employee } from "@/data/sidebar/employee";
+import { employeeOnly } from "@/data/sidebar/employee";
 
 Add_employee.title = "Add Employee";
 
@@ -85,7 +85,6 @@ export default function Add_employee() {
           label: item.position_name,
         })),
       );
-     
     } catch (err) {
       console.log(err);
     }
@@ -95,65 +94,86 @@ export default function Add_employee() {
     fetchDropdown();
   }, []);
 
-const handleSubmit = async (values) => {
-  if (loading) return; // ⬅️ prevent double submit
+  const handleSubmit = async (values) => {
+    if (loading) return; // ⬅️ prevent double submit
 
-  const confirm = await showAlert(
-    "Are you sure?",
-    "question",
-    "Do you want to submit this employee?",
-    true,
-    null,
-    "Submit",
-    "Cancel",
-  );
+    const confirm = await showAlert(
+      "Are you sure?",
+      "question",
+      "Do you want to submit this employee?",
+      true,
+      null,
+      "Submit",
+      "Cancel",
+    );
 
-  // ⬅️ handle kedua kemungkinan return value dari showAlert
-  if (!confirm) return;
-  if (typeof confirm === "object" && confirm.isConfirmed === false) return;
+    // ⬅️ handle kedua kemungkinan return value dari showAlert
+    if (!confirm) return;
+    if (typeof confirm === "object" && confirm.isConfirmed === false) return;
 
-  setLoading(true); // ⬅️ aktifkan loading
+    setLoading(true); // ⬅️ aktifkan loading
 
-  const payload = {
-    ...values,
-    id_departement: Number(values.id_departement),
-    id_project: Number(values.id_project),
-    id_company: Number(values.id_company),
-    id_position: Number(values.id_position),
-    gender: values.gender === "male" ? 1 : 2,
-    join_date: values.join_date ? values.join_date.toISOString() : null,
+    const payload = {
+      ...values,
+      id_departement: Number(values.id_departement),
+      id_project: Number(values.id_project),
+      id_company: Number(values.id_company),
+      id_position: Number(values.id_position),
+      gender: values.gender === "male" ? 1 : 2,
+      join_date: values.join_date ? values.join_date.toISOString() : null,
+    };
+
+    try {
+      const res = await axios.post(`${API_URL}/api/employee/create`, payload, {
+        headers: { Authorization: "Bearer " + user.token },
+      });
+
+      const data = res.data;
+      const isSuccess = !!(
+        data &&
+        (data.success === true || data.id || data.createdAt || data.data)
+      );
+
+      if (isSuccess) {
+        await showAlert(
+          "Success",
+          "success",
+          data?.message || "Employee created successfully",
+          false,
+          1500,
+        );
+        router.push("/employee/list");
+        return;
+      }
+
+      showAlert(
+        "Error",
+        "error",
+        data?.message || "Unexpected response from server",
+      );
+    } catch (error) {
+      const data_error = error.response?.data || null;
+      if (data_error) {
+        showAlert(
+          data_error.message || "Error",
+          "error",
+          data_error.error || "",
+        );
+      } else if (error.request) {
+        showAlert(
+          "Network Error",
+          "error",
+          "No response from server (check backend/CORS).",
+        );
+      } else {
+        showAlert("Error", "error", error.message || "Unknown error");
+      }
+    } finally {
+      setLoading(false); // matikan loading
+    }
   };
-
-  try {
-    const res = await axios.post(`${API_URL}/api/employee/create`, payload, {
-      headers: { Authorization: "Bearer " + user.token },
-    });
-
-    const data = res.data;
-    const isSuccess = !!(data && (data.success === true || data.id || data.createdAt || data.data));
-
-    if (isSuccess) {
-      await showAlert("Success", "success", data?.message || "Employee created successfully", false, 1500);
-      router.push("/employee/list");
-      return;
-    }
-
-    showAlert("Error", "error", data?.message || "Unexpected response from server");
-  } catch (error) {
-    const data_error = error.response?.data || null;
-    if (data_error) {
-      showAlert(data_error.message || "Error", "error", data_error.error || "");
-    } else if (error.request) {
-      showAlert("Network Error", "error", "No response from server (check backend/CORS).");
-    } else {
-      showAlert("Error", "error", error.message || "Unknown error");
-    }
-  } finally {
-    setLoading(false); // ⬅️ matikan loading
-  }
-};
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={employeeOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
@@ -254,7 +274,7 @@ const handleSubmit = async (values) => {
 
               {/* SUBMIT BUTTON */}
               <div className="flex justify-end mt-10">
-                <Button type="submit"  size="xs" loading={loading}>
+                <Button type="submit" size="xs" loading={loading}>
                   Submit Employee Data
                 </Button>
               </div>

@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Paper, Badge, Button, Loader } from "@mantine/core";
 import AuthLayout from "@/components/layout/authLayout";
-import { employee as sidebarData } from "@/data/sidebar/employee";
+import {leaveOnly} from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
@@ -23,7 +23,6 @@ export default function LeaveDetailPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const sidebarList = sidebarData;
 
   // Tambahkan status 4 ke dalam statusMap
   const statusMap = {
@@ -149,7 +148,7 @@ const handleAlert = async (itemId, payload) => {
 
   if (loading)
     return (
-      <AuthLayout sidebarList={sidebarList}>
+      <AuthLayout sidebarList={leaveOnly}>
         <div className="flex justify-center items-center h-64">
           <Loader size="lg" />
         </div>
@@ -158,7 +157,7 @@ const handleAlert = async (itemId, payload) => {
 
   if (!leave)
     return (
-      <AuthLayout sidebarList={sidebarList}>
+      <AuthLayout sidebarList={leaveOnly}>
         <div className="text-center mt-8">Leave data not found</div>
       </AuthLayout>
     );
@@ -183,7 +182,7 @@ const handleAlert = async (itemId, payload) => {
     String(leave.supervisor_user_id) === String(user.id);
 
   return (
-    <AuthLayout sidebarList={sidebarList}>
+    <AuthLayout sidebarList={leaveOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

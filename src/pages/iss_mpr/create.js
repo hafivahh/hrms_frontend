@@ -1,5 +1,5 @@
 import AuthLayout from "@/components/layout/authLayout";
-import { employee } from "@/data/sidebar/employee";
+import { mprOnly } from "@/data/sidebar/employee";
 import ManagerSelect from "@/components/ManagerSelect";
 import useApi from "@/hooks/useApi";
 import axios from "axios";
@@ -566,7 +566,7 @@ export default function IssMprCreate() {
   };
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={mprOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

@@ -9,7 +9,7 @@ import {
   IconDatabase,
   IconUsers,
   IconList,
-  IconSettingsPlus ,
+  IconSettingsPlus,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,10 +23,10 @@ const navigation = [
     icon: <IconHomeFilled size={20} />,
     permission: 1,
   },
-   {
+  {
     name: "Administrator",
     url: "/portal/user",
-    icon: <IconSettingsPlus  size={20} />,
+    icon: <IconSettingsPlus size={20} />,
     permission: 1,
   },
   {
@@ -84,18 +84,6 @@ const navigation = [
       {
         title: "Attendance",
         url: "/pss/attendance",
-        icon: <IconAccessible size={18} />,
-      },
-    ],
-  },
-  {
-    name: "PSS",
-    icon: <IconAccessible size={20} />,
-    permission: 1,
-    child: [
-      {
-        title: "Dashboard",
-        url: "/pss_recruitment",
         icon: <IconAccessible size={18} />,
       },
     ],
@@ -159,9 +147,11 @@ export default function Navigation() {
           </Menu.Target>
           <Menu.Dropdown>
             {link.child.map((item, idx) => (
-              <Menu.Item key={idx} icon={item.icon}>
-                <Link href={item.url}>{item.title}</Link>
+              <Link href={item.url} key={idx}>
+              <Menu.Item icon={item.icon}>
+                {item.title}
               </Menu.Item>
+              </Link>
             ))}
           </Menu.Dropdown>
         </Menu>
@@ -218,7 +208,7 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop & tablet navbar */}
-      <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-blue-600 px-4 py-2 hidden">
+      <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-blue-900 px-4 py-2 hidden">
         <div className="flex items-center gap-2">
           <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
             <IconMenu2 color="white" />
@@ -228,7 +218,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Navbar */}
-      <nav className="md:hidden w-full flex items-center justify-between bg-blue-600 px-4 py-2 sticky top-0 z-50">
+      <nav className="md:hidden w-full flex items-center justify-between bg-blue-900 px-4 py-2 sticky top-0 z-50">
         <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
           <IconMenu2 color="white" />
         </ActionIcon>
@@ -238,7 +228,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile menu collapse */}
-      <Collapse in={opened} className="md:hidden w-full bg-blue-600">
+      <Collapse in={opened} className="md:hidden w-full bg-blue-900">
         <nav className="flex flex-col px-4 py-2">{mobileItems}</nav>
       </Collapse>
     </>

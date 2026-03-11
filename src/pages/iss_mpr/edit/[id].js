@@ -1,6 +1,6 @@
 import AuthLayout from "@/components/layout/authLayout";
 import ManagerSelect from "@/components/ManagerSelect";
-import { employee } from "@/data/sidebar/employee";
+import { mprOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import axios from "axios";
 import useUser from "@/store/useUser";
@@ -503,22 +503,38 @@ export default function IssMprEdit() {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
-    try {
-      //  Confirmation alert
-      const confirm = await showAlert(
-        "Are you sure?",
-        "question",
-        "Do you want to save changes to this Manpower Request?",
-        true,
-        null,
-        "Submit",
-        "Cancel",
-      );
+  console.log("=== handleSave called ==="); // ⬅️ step 1
 
-      if (!confirm.isConfirmed) return; // User klik Cancel -> keluar
+  if (!validateForm()) {
+    console.log("=== validateForm FAILED ==="); // ⬅️ step 2
+    return;
+  }
 
-      const decryptedId = decrypt(id);
+  console.log("=== validateForm PASSED ==="); // ⬅️ step 3
+
+  try {
+    const confirm = await showAlert(
+      "Are you sure?",
+      "question",
+      "Do you want to save changes to this Manpower Request?",
+      true,
+      null,
+      "Submit",
+      "Cancel",
+    );
+
+    console.log("=== confirm result ===", confirm); // ⬅️ step 4
+
+    if (!confirm?.isConfirmed) {
+      console.log("=== User cancelled ===");
+      return;
+    }
+
+    const decryptedId = decrypt(id);
+    console.log("=== decryptedId ===", decryptedId); // ⬅️ step 5
+    console.log("=== formData ===", formData); // ⬅️ step 6
+
+    // ... sisa kode sama
 
       const educationMap = {
         degree: 1,
@@ -673,7 +689,7 @@ export default function IssMprEdit() {
   }
 
   return (
-    <AuthLayout sidebarList={employee}>
+    <AuthLayout sidebarList={mprOnly}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

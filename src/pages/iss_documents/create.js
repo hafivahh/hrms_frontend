@@ -11,13 +11,12 @@ import {
   Button,
   List,
 } from "@mantine/core";
-import { IconFileSpreadsheet, IconUpload, IconX, } from "@tabler/icons-react";
+import { IconFileSpreadsheet, IconUpload, IconX } from "@tabler/icons-react";
 import axios from "axios";
 import { useState } from "react";
 import { employeeOnly } from "@/data/sidebar/employee";
 import { ActionIcon } from "@mantine/core";
 import { useRouter } from "next/navigation";
-
 
 IssDocuments.title = "Upload Employee Documents";
 
@@ -26,9 +25,9 @@ export default function IssDocuments() {
   const API = useApi();
   const API_URL = API.API_URL;
   const { showAlert } = useSwal();
-  const router = useRouter(); 
+  const router = useRouter();
 
-  const [files, setFiles] = useState([]); 
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // ===============================
@@ -159,7 +158,7 @@ export default function IssDocuments() {
                 placeholder="Select Excel files (.xls / .xlsx)"
                 accept=".xls,.xlsx"
                 multiple
-                value={files} // ✅ TAMBAHKAN INI
+                value={files}
                 onChange={handleSelectFiles}
                 leftSectionPointerEvents="none"
                 disabled={loading}
