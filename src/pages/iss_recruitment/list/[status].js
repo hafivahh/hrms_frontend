@@ -64,6 +64,11 @@ export default function IssRecruitmentList() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalPages, setTotalPages] = useState(1);
 
+  useEffect(() => {
+  setColumnFilters([]);
+  setPagination({ pageIndex: 0, pageSize: 10 });
+}, [status]);
+
   /* ================= FETCH DATA ================= */
   const fetchData = useCallback(async () => {
     if (!status || !user?.token) return;
@@ -293,7 +298,7 @@ export default function IssRecruitmentList() {
             </div>
 
             <div className="p-4 overflow-x-auto">
-              <Datatables table={table} totalPages={totalPages} />
+              <Datatables table={table} totalPages={totalPages} key={status} />
             </div>
           </Paper>
         </div>

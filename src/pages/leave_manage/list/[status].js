@@ -365,7 +365,7 @@ export default function ListLeaveByStatus({ status }) {
         v: "LEAVE LIST",
         t: "s",
         s: {
-          font: { name: "Times New Roman", bold: true, sz: 16 },
+          font: { name: "Calibri", bold: true, sz: 16 },
           alignment: { horizontal: "center", vertical: "center" },
         },
       };
@@ -375,7 +375,7 @@ export default function ListLeaveByStatus({ status }) {
       // ============================================================
       const headerStyle = {
         font: {
-          name: "Times New Roman",
+          name: "Calibri",
           bold: true,
           color: { rgb: "FFFFFF" },
           sz: 11,
@@ -413,7 +413,7 @@ export default function ListLeaveByStatus({ status }) {
           const value = row[col.key] ?? "-";
 
           const style = {
-            font: { name: "Times New Roman", sz: 10 },
+            font: { name: "Calibri", sz: 11 },
             alignment: {
               horizontal: col.align,
               vertical: "center",
@@ -609,7 +609,7 @@ export default function ListLeaveByStatus({ status }) {
             </div>
 
             <div className="p-4 overflow-x-auto">
-              <Datatables table={table} totalPages={totalPages} />
+              <Datatables table={table} totalPages={totalPages} key={status} />
             </div>
           </Paper>
         </div>

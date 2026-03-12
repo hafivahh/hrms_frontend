@@ -13,6 +13,11 @@ export const adminOnly = [
     icon: <IconListLetters size={14} />,
     child: [
       {
+        title: "Dashboard",
+        href: "/portal/dashboard",
+        icon: <IconCaretRightFilled size={14} />,
+      },
+      {
         title: "User List",
         href: "/portal/user",
         icon: <IconCaretRightFilled size={14} />,

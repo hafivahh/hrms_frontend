@@ -115,6 +115,7 @@ export default function IssMprList({ mpr_status }) {
     setFilterProject(null);
     setFilterPosition(null);
     setFilterMprStatus(null);
+      setColumnFilters([]);
     setAppliedFilter({});
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   }, [mpr_status]);
@@ -996,7 +997,7 @@ const editable = row.mpr_status === 2;
 
             {/* DATATABLE */}
             <div className="p-4 overflow-x-auto">
-              <Datatables table={table} totalPages={totalPages} />
+              <Datatables table={table} totalPages={totalPages}  key={mpr_status}  />
             </div>
           </Paper>
         </div>
