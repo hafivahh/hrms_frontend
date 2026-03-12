@@ -25,7 +25,7 @@ const navigation = [
   },
   {
     name: "Administrator",
-    url: "/portal/user",
+    url: "/portal/dashboard",
     icon: <IconSettingsPlus size={20} />,
     permission: 1,
   },
@@ -36,22 +36,22 @@ const navigation = [
     child: [
       {
         title: "Employee",
-        url: "/employee/list",
+        url: "/employee/dashboard",
         icon: <IconUserCog size={18} />,
       },
       {
         title: "Document Work",
-        url: "/iss_documents/list",
+        url: "/iss_documents/dashboard",
         icon: <IconUserCog size={18} />,
       },
       {
         title: "Leave",
-        url: "/leave_manage/list/all",
+        url: "/leave_manage/dashboard",
         icon: <IconList size={18} />,
       },
       {
         title: "MPR",
-        url: "/iss_mpr/list/all",
+        url: "/iss_mpr/dashboard",
         icon: <IconList size={18} />,
       },
       {

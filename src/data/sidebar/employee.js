@@ -37,6 +37,11 @@ const employeeMenu = {
   icon: <IconListLetters size={14} />,
   child: [
     {
+      title: "Dashboard",
+      href: "/employee/dashboard",
+      icon: <IconCaretRightFilled size={14} />,
+    },
+    {
       title: "List",
       href: "/employee/list",
       icon: <IconCaretRightFilled size={14} />,
@@ -55,6 +60,11 @@ const documentMenu = {
   icon: <IconListLetters size={14} />,
   child: [
     {
+      title: "Dashboard",
+      href: "/iss_documents/dashboard",
+      icon: <IconCaretRightFilled size={14} />,
+    },
+    {
       title: "List Documents",
       href: "/iss_documents/list",
       icon: <IconCaretRightFilled size={14} />,
@@ -72,6 +82,11 @@ const leaveMenu = {
   href: "",
   icon: <IconListLetters size={14} />,
   child: [
+    {
+      title: "Dashboard",
+      href: "/leave_manage/dashboard",
+      icon: <IconCaretRightFilled size={14} />,
+    },
     {
       title: "List",
       href: "/leave_manage/list/all",
@@ -95,6 +110,11 @@ const mprMenu = {
   href: "",
   icon: <IconListLetters size={14} />,
   child: [
+    {
+      title: "Dashboard",
+      href: "/iss_mpr/dashboard",
+      icon: <IconCaretRightFilled size={14} />,
+    },
     {
       title: "Create",
       href: "/iss_mpr/create",
