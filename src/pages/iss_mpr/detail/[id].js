@@ -133,8 +133,7 @@ export default function IssMprDetail() {
         false,
         1500,
       );
-
-
+      router.back();
     } catch (err) {
       console.error("Failed to submit MPR:", err);
       showAlert(
@@ -147,55 +146,62 @@ export default function IssMprDetail() {
     }
   };
 
-const handleActionWithRemarks = async (type) => {
-  const { value: remarksValue, isConfirmed } = await Swal.fire({
-    title: type === "approve" ? "Approve Manpower Request" : "Reject Manpower Request",
-    input: "textarea",
-    inputLabel: "Remarks",
-    inputPlaceholder: type === "approve"
-      ? "Add approval remarks ..."
-      : "Please provide rejection reason...",
-    inputAttributes: { "aria-label": "Type your remarks here" },
-    showCancelButton: true,
-    confirmButtonText: type === "approve" ? "Approve" : "Reject",
-    confirmButtonColor: type === "approve" ? "#2f9e44" : "#e03131",
-    cancelButtonText: "Cancel",
-    inputValidator: type === "reject"
-      ? (value) => { if (!value) return "Rejection reason is required!" }
-      : undefined,
-  });
+  const handleActionWithRemarks = async (type) => {
+    const { value: remarksValue, isConfirmed } = await Swal.fire({
+      title:
+        type === "approve"
+          ? "Approve Manpower Request"
+          : "Reject Manpower Request",
+      input: "textarea",
+      inputLabel: "Remarks",
+      inputPlaceholder:
+        type === "approve"
+          ? "Add approval remarks ..."
+          : "Please provide rejection reason...",
+      inputAttributes: { "aria-label": "Type your remarks here" },
+      showCancelButton: true,
+      confirmButtonText: type === "approve" ? "Approve" : "Reject",
+      confirmButtonColor: type === "approve" ? "#2f9e44" : "#e03131",
+      cancelButtonText: "Cancel",
+      inputValidator:
+        type === "reject"
+          ? (value) => {
+              if (!value) return "Rejection reason is required!";
+            }
+          : undefined,
+    });
 
-  if (!isConfirmed) return;
+    if (!isConfirmed) return;
 
-  try {
-    const decryptedId = decrypt(id);
-    const endpoint = type === "approve" ? "approve" : "reject";
+    try {
+      const decryptedId = decrypt(id);
+      const endpoint = type === "approve" ? "approve" : "reject";
 
-    await axios.patch(
-      `${API_URL}/api/iss_mpr/${decryptedId}/${endpoint}`,
-      { remarks: remarksValue || "" },
-      { headers: { Authorization: "Bearer " + user.token } },
-    );
+      await axios.patch(
+        `${API_URL}/api/iss_mpr/${decryptedId}/${endpoint}`,
+        { remarks: remarksValue || "" },
+        { headers: { Authorization: "Bearer " + user.token } },
+      );
 
-    await showAlert(
-      "Success",
-      "success",
-      type === "approve"
-        ? "Manpower request approved successfully"
-        : "Manpower request rejected",
-      false,
-      1500,
-    );
+      await showAlert(
+        "Success",
+        "success",
+        type === "approve"
+          ? "Manpower request approved successfully"
+          : "Manpower request rejected",
+        false,
+        1500,
+      );
 
-    fetchMprDetail();
-  } catch (err) {
-    showAlert(
-      "Error",
-      "error",
-      err.response?.data?.message || `Failed to ${type} MPR`,
-    );
-  }
-};
+      fetchMprDetail();
+    } catch (err) {
+      showAlert(
+        "Error",
+        "error",
+        err.response?.data?.message || `Failed to ${type} MPR`,
+      );
+    }
+  };
 
   /**
    *  DYNAMIC ASSIGNMENT BOX
@@ -208,41 +214,41 @@ const handleActionWithRemarks = async (type) => {
       Number(mprData?.index_sign) === Number(employeeData.index);
 
     // Decrypt user ID untuk mendapatkan numeric ID
-   const currentUserId = user?.id_user
-  ? Number(user.id_user)
-  : user?.id
-    ? Number(user.id)
-    : null;
-   console.log("=== USER ID CHECK ===", {
-  id_user: user?.id_user,
-  id: user?.id,
-  currentUserId,
-  employeeUserId: employeeData.user_id,
-  match: Number(currentUserId) === Number(employeeData.user_id)
-});
+    const currentUserId = user?.id_user
+      ? Number(user.id_user)
+      : user?.id
+        ? Number(user.id)
+        : null;
+    console.log("=== USER ID CHECK ===", {
+      id_user: user?.id_user,
+      id: user?.id,
+      currentUserId,
+      employeeUserId: employeeData.user_id,
+      match: Number(currentUserId) === Number(employeeData.user_id),
+    });
 
     // Cek apakah user yang login adalah user yang terdaftar di assignment ini
     const isAuthorizedUser =
       currentUserId && Number(currentUserId) === Number(employeeData.user_id);
 
-   const canApprove =
-  isCurrentStep === true &&
-  isAuthorizedUser === true &&
-  employeeData.status_sign !== 1 &&
-  employeeData.status_sign !== 2;
-// ⬅️ tambah log sementara
-  console.log("=== ASSIGNMENT BOX DEBUG ===", {
-    title,
-    mpr_status: mprData?.mpr_status,
-    index_sign: mprData?.index_sign,
-    employeeIndex: employeeData.index,
-    employeeUserId: employeeData.user_id,
-    currentUserId,
-    status_sign: employeeData.status_sign,
-    isCurrentStep,
-    isAuthorizedUser,
-    canApprove,
-  });
+    const canApprove =
+      isCurrentStep === true &&
+      isAuthorizedUser === true &&
+      employeeData.status_sign !== 1 &&
+      employeeData.status_sign !== 2;
+    // ⬅️ tambah log sementara
+    console.log("=== ASSIGNMENT BOX DEBUG ===", {
+      title,
+      mpr_status: mprData?.mpr_status,
+      index_sign: mprData?.index_sign,
+      employeeIndex: employeeData.index,
+      employeeUserId: employeeData.user_id,
+      currentUserId,
+      status_sign: employeeData.status_sign,
+      isCurrentStep,
+      isAuthorizedUser,
+      canApprove,
+    });
     // Format tanggal dengan waktu
     const formatDateTime = (date) => {
       if (!date) return "-";
@@ -330,10 +336,10 @@ const handleActionWithRemarks = async (type) => {
                     {getSignatureStatus(employeeData.status_sign)?.label}
                   </Text>
                   {employeeData.remarks_status && (
-  <Text size="xs" c="dimmed" mt={2} fs="italic">
-    {employeeData.remarks_status}
-  </Text>
-)}
+                    <Text size="xs" c="dimmed" mt={2} fs="italic">
+                      {employeeData.remarks_status}
+                    </Text>
+                  )}
                 </>
               ) : (
                 <Text size="sm">-</Text>
@@ -343,33 +349,33 @@ const handleActionWithRemarks = async (type) => {
         </div>
 
         {canApprove && (
-  <div className="flex gap-2 mt-3 pt-3 border-t">
-    <Button
-      size="xs"
-      color="red"
-      variant="light"
-      onClick={() => handleActionWithRemarks("reject")}
-      fullWidth
-    >
-      Reject
-    </Button>
-    <Button
-      size="xs"
-      color="green"
-      onClick={() => handleActionWithRemarks("approve")}
-      fullWidth
-    >
-      Approve
-    </Button>
-  </div>
-)}
+          <div className="flex gap-2 mt-3 pt-3 border-t">
+            <Button
+              size="xs"
+              color="red"
+              variant="light"
+              onClick={() => handleActionWithRemarks("reject")}
+              fullWidth
+            >
+              Reject
+            </Button>
+            <Button
+              size="xs"
+              color="green"
+              onClick={() => handleActionWithRemarks("approve")}
+              fullWidth
+            >
+              Approve
+            </Button>
+          </div>
+        )}
       </Box>
     );
   };
 
   if (loading) {
     return (
-      <AuthLayout sidebarList={employee}>
+      <AuthLayout sidebarList={mprOnly}>
         <Paper radius="sm" mt="md" withBorder p="lg">
           <Text>Loading...</Text>
         </Paper>
@@ -379,7 +385,7 @@ const handleActionWithRemarks = async (type) => {
 
   if (!mprData) {
     return (
-      <AuthLayout sidebarList={employee}>
+      <AuthLayout sidebarList={mprOnly}>
         <Paper radius="sm" mt="md" withBorder p="lg">
           <Text>MPR not found</Text>
         </Paper>
@@ -837,18 +843,33 @@ const handleActionWithRemarks = async (type) => {
               <Divider my="lg" />
 
               {/* Submit Button - Only show if draft */}
-              {mprData.mpr_status === 0 && (
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleSubmitMpr}
-                    loading={submitting}
-                    size="md"
-                    color="blue"
-                  >
-                    Submit Manpower Request
-                  </Button>
-                </div>
-              )}
+              {/* Submit Button - Only show if draft AND user is requested_by */}
+              {mprData.mpr_status === 0 &&
+                (() => {
+                  const currentUserId = user?.id_user
+                    ? Number(user.id_user)
+                    : user?.id
+                      ? Number(user.id)
+                      : null;
+
+                  const isRequestedBy =
+                    currentUserId &&
+                    Number(currentUserId) ===
+                      Number(assignments.requested_by?.user_id);
+
+                  return isRequestedBy ? (
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleSubmitMpr}
+                        loading={submitting}
+                        size="md"
+                        color="blue"
+                      >
+                        Submit Manpower Request
+                      </Button>
+                    </div>
+                  ) : null;
+                })()}
             </div>
           </Paper>
         </div>

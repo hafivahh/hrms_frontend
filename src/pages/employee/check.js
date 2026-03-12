@@ -4,7 +4,11 @@ import useApi from "@/hooks/useApi";
 import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
 import { Button, Paper, MultiSelect, Badge, Table } from "@mantine/core";
-import { IconSearch, IconCircleCheck, IconToggleRight } from "@tabler/icons-react";
+import {
+  IconSearch,
+  IconCircleCheck,
+  IconToggleRight,
+} from "@tabler/icons-react";
 import axios from "axios";
 import React, { useState } from "react";
 import useEncrypt from "@/hooks/useEncrypt";
@@ -22,36 +26,36 @@ export default function CheckEmployee() {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
-const [allOptions, setAllOptions] = useState([]);
+  const [allOptions, setAllOptions] = useState([]);
   // ⬅️ fetch dropdown saat user ketik
-const handleSearchInput = async (query) => {
-  if (!query || query.trim().length < 1) return;
-  try {
-    setLoading(true);
-    const { data } = await axios.get(
-      `${API_URL}/api/employee/check?keyword=${encodeURIComponent(query)}`,
-      { headers: { Authorization: `Bearer ${user.token}` } },
-    );
-    const options = Array.isArray(data)
-      ? data.map((item) => ({
-          value: String(item.id),
-          label: `${item.badge_number} - ${item.full_name}`, // ⬅️ label lengkap
-        }))
-      : [];
+  const handleSearchInput = async (query) => {
+    if (!query || query.trim().length < 1) return;
+    try {
+      setLoading(true);
+      const { data } = await axios.get(
+        `${API_URL}/api/employee/check?keyword=${encodeURIComponent(query)}`,
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
+      const options = Array.isArray(data)
+        ? data.map((item) => ({
+            value: String(item.id),
+            label: `${item.badge_number} - ${item.full_name}`, // ⬅️ label lengkap
+          }))
+        : [];
 
-    setAllOptions((prev) => {
-      const map = new Map(prev.map((o) => [o.value, o]));
-      options.forEach((o) => map.set(o.value, o)); // ⬅️ override dengan data terbaru
-      return Array.from(map.values());
-    });
+      setAllOptions((prev) => {
+        const map = new Map(prev.map((o) => [o.value, o]));
+        options.forEach((o) => map.set(o.value, o)); // ⬅️ override dengan data terbaru
+        return Array.from(map.values());
+      });
 
-    setDropdownData(options);
-  } catch (err) {
-    setDropdownData([]);
-  } finally {
-    setLoading(false);
-  }
-};
+      setDropdownData(options);
+    } catch (err) {
+      setDropdownData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ⬅️ search by selected ids
   const handleSearch = async () => {
@@ -71,37 +75,47 @@ const handleSearchInput = async (query) => {
     }
   };
 
-const handleEnable = async (id, fullName) => {
-  const confirm = await showAlert(
-    "Enable Employee?",
-    "question",
-    `Are you sure you want to re-activate ${fullName}?`,
-    true,
-    null,
-    "Yes, Enable",
-    "Cancel",
-  );
-  if (!confirm?.isConfirmed) return;
-
-  try {
-    await axios.patch(
-      `${API_URL}/api/employee/enable/${encrypt(String(id))}`,
-      {},
-      { headers: { Authorization: `Bearer ${user.token}` } },
+  const handleEnable = async (id, fullName) => {
+    const confirm = await showAlert(
+      "Enable Employee?",
+      "question",
+      `Are you sure you want to re-activate ${fullName}?`,
+      true,
+      null,
+      "Yes, Enable",
+      "Cancel",
     );
+    if (!confirm?.isConfirmed) return;
 
-    // ⬅️ update status di results, tidak dihapus
-    setResults((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status_active: 1 } : item,
-      ),
-    );
+    try {
+      await axios.patch(
+        `${API_URL}/api/employee/enable/${encrypt(String(id))}`,
+        {},
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
 
-    await showAlert("Success", "success", "Employee re-activated successfully", false, 1500);
-  } catch (err) {
-    showAlert("Error", "error", err?.response?.data?.message || "Failed to enable employee");
-  }
-};
+      // ⬅️ update status di results, tidak dihapus
+      setResults((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status_active: 1 } : item,
+        ),
+      );
+
+      await showAlert(
+        "Success",
+        "success",
+        "Employee re-activated successfully",
+        false,
+        1500,
+      );
+    } catch (err) {
+      showAlert(
+        "Error",
+        "error",
+        err?.response?.data?.message || "Failed to enable employee",
+      );
+    }
+  };
 
   return (
     <AuthLayout sidebarList={employeeOnly}>
@@ -153,7 +167,12 @@ const handleEnable = async (id, fullName) => {
                     No inactive employee found
                   </div>
                 ) : (
-                  <Table withTableBorder withColumnBorders striped highlightOnHover>
+                  <Table
+                    withTableBorder
+                    withColumnBorders
+                    striped
+                    highlightOnHover
+                  >
                     <Table.Thead>
                       <Table.Tr>
                         <Table.Th>Badge Number</Table.Th>
@@ -168,41 +187,52 @@ const handleEnable = async (id, fullName) => {
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-  {results.map((item) => (
-    <Table.Tr key={item.id}>
-      <Table.Td>{item.badge_number}</Table.Td>
-      <Table.Td>{item.full_name}</Table.Td>
-      <Table.Td>{item.gender_text}</Table.Td>
-      <Table.Td>{item.position_name}</Table.Td>
-      <Table.Td>{item.departement_name}</Table.Td>
-      <Table.Td>{item.project_name}</Table.Td>
-      <Table.Td>{item.company_name}</Table.Td>
-      <Table.Td>
-        {item.status_active === 1 ? (
-          <Badge color="green" variant="filled" size="sm">Active</Badge>
-        ) : (
-          <Badge color="red" variant="filled" size="sm">Inactive</Badge>
-        )}
-      </Table.Td>
-      <Table.Td>
-        {item.status_active === 1 ? (
-          <Button size="xs" color="gray" disabled leftSection={<IconToggleRight size={14} />}>
-            Enabled
-          </Button>
-        ) : (
-          <Button
-            size="xs"
-            color="blue"
-            leftSection={<IconToggleRight size={14} />}
-            onClick={() => handleEnable(item.id, item.full_name)}
-          >
-            Enable
-          </Button>
-        )}
-      </Table.Td>
-    </Table.Tr>
-  ))}
-</Table.Tbody>
+                      {results.map((item) => (
+                        <Table.Tr key={item.id}>
+                          <Table.Td>{item.badge_number}</Table.Td>
+                          <Table.Td>{item.full_name}</Table.Td>
+                          <Table.Td>{item.gender_text}</Table.Td>
+                          <Table.Td>{item.position_name}</Table.Td>
+                          <Table.Td>{item.departement_name}</Table.Td>
+                          <Table.Td>{item.project_name}</Table.Td>
+                          <Table.Td>{item.company_name}</Table.Td>
+                          <Table.Td>
+                            {item.status_active === 1 ? (
+                              <Badge color="green" variant="filled" size="sm">
+                                Active
+                              </Badge>
+                            ) : (
+                              <Badge color="red" variant="filled" size="sm">
+                                Inactive
+                              </Badge>
+                            )}
+                          </Table.Td>
+                          <Table.Td>
+                            {item.status_active === 1 ? (
+                              <Button
+                                size="xs"
+                                color="gray"
+                                disabled
+                                leftSection={<IconToggleRight size={14} />}
+                              >
+                                Enabled
+                              </Button>
+                            ) : (
+                              <Button
+                                size="xs"
+                                color="blue"
+                                leftSection={<IconToggleRight size={14} />}
+                                onClick={() =>
+                                  handleEnable(item.id, item.full_name)
+                                }
+                              >
+                                Enable
+                              </Button>
+                            )}
+                          </Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
                   </Table>
                 )}
               </div>

@@ -17,7 +17,7 @@ import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import Swal from "sweetalert2";
+
 import useSwal from "@/hooks/useSwal";
 
 export const getStaticPaths = async () => {
@@ -237,7 +237,6 @@ export default function IssMprList({ mpr_status }) {
         Project: item.project || "-",
         Position: item.position || "-",
         Request: item.qty_request ?? 0,
-        "New Join": item.qty_new_join ?? 0,
         "Vacant Type": item.vacant_type_text || "-",
         "Required Date": item.required_date
           ? new Date(item.required_date).toLocaleDateString("id-ID")
@@ -522,16 +521,6 @@ export default function IssMprList({ mpr_status }) {
         size: 100,
       },
       {
-        accessorFn: (row) => row.qty_new_join,
-        id: "qty_new_join",
-        header: "New Join",
-        enableColumnFilter: false,
-        enableSorting: true,
-        cell: (info) => info.getValue() || 0,
-        size: 100,
-      },
-
-      {
         accessorFn: (row) => row.vacant_type,
         id: "vacant_type",
         header: () => (
@@ -680,7 +669,7 @@ export default function IssMprList({ mpr_status }) {
           const currentStatus = info.getValue();
 
           const statusOptions = [
-            { value: "", label: "---", color: "gray" },
+            { value: "", label: "---", color: "yellow" },
             { value: "1", label: "Open", color: "green" },
             { value: "2", label: "Fulfillment in Progress", color: "blue" },
             { value: "3", label: "Closed", color: "gray" },
@@ -739,44 +728,45 @@ export default function IssMprList({ mpr_status }) {
               );
             }
           };
-
+const editable = row.mpr_status === 2;
           return (
-            <Select
-              value={currentStatus ? String(currentStatus) : ""}
-              onChange={handleStatusChange}
-              data={statusOptions}
-              size="xs"
-              disabled={row.mpr_status !== 2}
-              styles={{
-                input: {
-                  textAlign: "center",
-                  textAlignLast: "center",
-                  fontWeight: 600,
-                  backgroundColor:
-                    statusColor === "green"
-                      ? "#d3f9d8"
-                      : statusColor === "blue"
-                        ? "#d0ebff"
-                        : statusColor === "red"
-                          ? "#ffc9c9"
-                          : statusColor === "dark"
-                            ? "#343a40"
-                            : "#e9ecef",
-                  color:
-                    statusColor === "green"
-                      ? "#2b8a3e"
-                      : statusColor === "blue"
-                        ? "#1864ab"
-                        : statusColor === "red"
-                          ? "#c92a2a"
-                          : statusColor === "dark"
-                            ? "#ffffff"
-                            : "#495057",
-                  fontWeight: 600,
-                  border: "1px solid transparent",
-                },
-              }}
-            />
+           <Select
+  value={currentStatus ? String(currentStatus) : ""}
+  onChange={handleStatusChange}
+  data={statusOptions}
+  size="xs"
+  disabled={!editable}
+  styles={{
+    input: {
+      textAlign: "center",
+      textAlignLast: "center",
+      fontWeight: 600,
+      cursor: editable ? "pointer" : "not-allowed",
+
+      backgroundColor: !editable
+        ? "#343a40" // 🔒 abu gelap kalau tidak bisa edit
+        : statusColor === "green"
+        ? "#d3f9d8"
+        : statusColor === "blue"
+        ? "#d0ebff"
+        : statusColor === "red"
+        ? "#ffc9c9"
+        : "#fff3bf", // 🟡 kuning kalau belum dipilih
+
+      color: !editable
+        ? "#ffffff"
+        : statusColor === "green"
+        ? "#2b8a3e"
+        : statusColor === "blue"
+        ? "#1864ab"
+        : statusColor === "red"
+        ? "#c92a2a"
+        : "#e67700",
+
+      border: "1px solid transparent",
+    },
+  }}
+/>
           );
         },
       },

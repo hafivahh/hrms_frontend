@@ -312,13 +312,10 @@ export default function ListLeaveByStatus({ status }) {
     try {
       const isAll = status === "all";
 
-      // ✅ Bangun search params dari appliedFilter (sama seperti fetchData)
       const filterParams =
         Object.keys(appliedFilter).length > 0
           ? `&search=${encodeURIComponent(JSON.stringify(appliedFilter))}`
           : "";
-
-      // ✅ Bangun sort params
       const sortParam =
         sorting.length > 0
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
@@ -327,15 +324,12 @@ export default function ListLeaveByStatus({ status }) {
       const response = await axios.post(
         `${API_URL}/api/leave/export?${
           isAll ? "allStatus=true" : `status=${statusStringMap[status]}`
-        }${filterParams}&sort=${sortParam}`, // ✅ kirim status + filter + sort
+        }${filterParams}&sort=${sortParam}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${user.token}` },
-        },
+        { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
       const data = response.data;
-
       if (!data.length) {
         showAlert("Info", "info", "No data to export");
         return;
@@ -343,200 +337,138 @@ export default function ListLeaveByStatus({ status }) {
 
       const XLSX = await import("xlsx-js-style");
 
-      // ===============================
-      // ===== FORMAT HEADER ===========
-      // ===============================
-      const formattedData = data.map((item) => {
-        const newObj = {};
-        Object.keys(item).forEach((key) => {
-          const formattedKey = key
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, (l) => l.toUpperCase());
-          newObj[formattedKey] = item[key];
-        });
-        return newObj;
-      });
+      // ============================================================
+      // COLUMN CONFIG
+      // ============================================================
+      const columnConfig = [
+        { label: "Name", key: "Name", align: "left" },
+        { label: "Badge Number", key: "Badge", align: "center" },
+        { label: "Department", key: "Department", align: "left" },
+        { label: "Project", key: "Project", align: "left" },
+        { label: "Position", key: "Position", align: "left" },
+        { label: "Start Date", key: "Start_Date", align: "center" },
+        { label: "End Date", key: "End_Date", align: "center" },
+        { label: "Leave Type", key: "Leave_Type", align: "left" },
+        { label: "Leave Status", key: "Leave_Status", align: "center" },
+        { label: "Approval Notes", key: "Remarks_Status", align: "left" },
+      ];
 
+      const totalCols = columnConfig.length - 1;
       const worksheet = XLSX.utils.aoa_to_sheet([]);
       const workbook = XLSX.utils.book_new();
 
-      // ===============================
-      // ===== TITLE AREA A-I ==========
-      // ===============================
-      worksheet["!merges"] = [
-        {
-          s: { r: 0, c: 0 },
-          e: { r: 1, c: 9 }, // A sampai j
-        },
-      ];
-
+      // ============================================================
+      // TITLE — Row 1 (index 0)
+      // ============================================================
+      worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols } }];
       worksheet["A1"] = {
         v: "LEAVE LIST",
+        t: "s",
         s: {
-          font: { bold: true, sz: 20 },
-          alignment: {
-            horizontal: "center",
-            vertical: "center",
-          },
+          font: { name: "Times New Roman", bold: true, sz: 16 },
+          alignment: { horizontal: "center", vertical: "center" },
         },
       };
 
-      worksheet["!rows"] = [{ hpt: 40 }, { hpt: 40 }];
+      // ============================================================
+      // HEADER ROW — Row 2 (index 1)
+      // ============================================================
+      const headerStyle = {
+        font: {
+          name: "Times New Roman",
+          bold: true,
+          color: { rgb: "FFFFFF" },
+          sz: 11,
+        },
+        fill: { fgColor: { rgb: "1F6FBF" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          left: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+        },
+      };
 
-      // ===============================
-      // ===== ADD TABLE START A3 ======
-      // ===============================
-      XLSX.utils.sheet_add_json(worksheet, formattedData, {
-        origin: "A3",
+      columnConfig.forEach((col, colIdx) => {
+        const addr = XLSX.utils.encode_cell({ r: 1, c: colIdx });
+        worksheet[addr] = { v: col.label, t: "s", s: headerStyle };
       });
 
-      const headers = Object.keys(formattedData[0]);
+      // ============================================================
+      // STATUS COLOR MAP
+      // ============================================================
+      const statusColorMap = {
+        pending: { bg: "FFC107", font: "000000" }, // kuning
+        approved: { bg: "28A745", font: "FFFFFF" }, // hijau
+        rejected: { bg: "DC3545", font: "FFFFFF" }, // merah
+      };
 
-      // ===============================
-      // ===== STYLE HEADER (ROW 3) ====
-      // ===============================
-      headers.forEach((header, colIndex) => {
-        const cellAddress = XLSX.utils.encode_cell({ r: 2, c: colIndex });
+      // ============================================================
+      // DATA ROWS — mulai Row 3 (index 2)
+      // ============================================================
+      data.forEach((row, rowIdx) => {
+        columnConfig.forEach((col, colIdx) => {
+          const addr = XLSX.utils.encode_cell({ r: rowIdx + 2, c: colIdx });
+          const value = row[col.key] ?? "-";
 
-        if (!worksheet[cellAddress]) return;
-
-        worksheet[cellAddress].s = {
-          font: {
-            bold: true,
-            color: { rgb: "FFFFFF" },
-          },
-          fill: {
-            fgColor: { rgb: "007BFF" },
-          },
-          alignment: {
-            horizontal: "center",
-            vertical: "center",
-          },
-          border: {
-            top: { style: "thin" },
-            bottom: { style: "thin" },
-            left: { style: "thin" },
-            right: { style: "thin" },
-          },
-        };
-      });
-
-      // ===============================
-      // ===== STYLE ALL DATA CELLS ====
-      // ===============================
-      // ===============================
-      // ===== STYLE ALL DATA CELLS ====
-      // ===============================
-      const range = XLSX.utils.decode_range(worksheet["!ref"]);
-
-      const dateColumns = [
-        "Request Date",
-        "Start Date",
-        "End Date",
-        "Badge Number",
-      ];
-      const dateColumnIndexes = dateColumns.map((name) =>
-        headers.findIndex((h) => h === name),
-      );
-
-      for (let row = 3; row <= range.e.r; row++) {
-        for (let col = 0; col <= range.e.c; col++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-
-          if (!worksheet[cellAddress]) continue;
-
-          const existingStyle = worksheet[cellAddress].s || {};
-
-          const isDateCol = dateColumnIndexes.includes(col);
-
-          worksheet[cellAddress].s = {
-            ...existingStyle,
+          const style = {
+            font: { name: "Times New Roman", sz: 10 },
             alignment: {
-              ...(existingStyle.alignment || {}),
+              horizontal: col.align,
               vertical: "center",
-              ...(isDateCol && { horizontal: "center" }),
+              wrapText: true,
             },
             border: {
-              top: { style: "thin" },
-              bottom: { style: "thin" },
-              left: { style: "thin" },
-              right: { style: "thin" },
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } },
             },
           };
-        }
-      }
 
-      // ===============================
-      // ===== COLOR LEAVE STATUS ONLY =
-      // ===============================
-      const statusColumnIndex = headers.findIndex((h) => h === "Leave Status");
-
-      if (statusColumnIndex !== -1) {
-        for (let row = 3; row <= range.e.r; row++) {
-          const cellAddress = XLSX.utils.encode_cell({
-            r: row,
-            c: statusColumnIndex,
-          });
-
-          const cell = worksheet[cellAddress];
-          if (!cell || !cell.v) continue;
-
-          const value = String(cell.v).toLowerCase();
-
-          let bgColor = "";
-          let fontColor = "000000";
-
-          if (value === "draft") {
-            bgColor = "D9D9D9";
-          } else if (value === "pending") {
-            bgColor = "FFC107";
-          } else if (value === "completed") {
-            bgColor = "28A745";
-            fontColor = "FFFFFF";
-          } else if (value === "reject") {
-            bgColor = "DC3545";
-            fontColor = "FFFFFF";
+          // Warna Leave Status
+          if (col.key === "Leave_Status") {
+            const colorKey = String(value).toLowerCase();
+            const color = statusColorMap[colorKey];
+            if (color) {
+              style.fill = { fgColor: { rgb: color.bg } };
+              style.font = {
+                ...style.font,
+                bold: true,
+                color: { rgb: color.font },
+              };
+            }
           }
 
-          worksheet[cellAddress].s = {
-            ...worksheet[cellAddress].s,
-            font: {
-              bold: true,
-              color: { rgb: fontColor },
-            },
-            fill: {
-              fgColor: { rgb: bgColor },
-            },
-            alignment: {
-              horizontal: "center",
-              vertical: "center",
-            },
-            border: {
-              top: { style: "thin" },
-              bottom: { style: "thin" },
-              left: { style: "thin" },
-              right: { style: "thin" },
-            },
-          };
-        }
-      }
+          worksheet[addr] = { v: value, t: "s", s: style };
+        });
+      });
 
-      // ===============================
-      // ===== AUTO WIDTH ==============
-      // ===============================
-      worksheet["!cols"] = headers.map((header) => ({
-        wch: header.length + 15,
+      // ============================================================
+      // !REF, ROW HEIGHT, COLUMN WIDTH
+      // ============================================================
+      worksheet["!ref"] = XLSX.utils.encode_range({
+        s: { r: 0, c: 0 },
+        e: { r: data.length + 1, c: totalCols },
+      });
+
+      worksheet["!rows"] = [
+        { hpt: 36 }, // title
+        { hpt: 28 }, // header
+        ...Array(data.length).fill({ hpt: 20 }), // data
+      ];
+
+      worksheet["!cols"] = columnConfig.map((col) => ({
+        wch: Math.max(col.label.length, 12) + 6,
       }));
 
-      // ===============================
-      // ===== FILE NAME ===============
-      // ===============================
-      const today = new Date();
-      const formattedDate = today.toISOString().split("T")[0];
-      const fileName = `Leave_List_${formattedDate}.xlsx`;
-
+      // ============================================================
+      // EXPORT
+      // ============================================================
+      const today = new Date().toISOString().split("T")[0];
       XLSX.utils.book_append_sheet(workbook, worksheet, "Leave");
-      XLSX.writeFile(workbook, fileName);
+      XLSX.writeFile(workbook, `Leave_List_${today}.xlsx`);
     } catch (error) {
       console.error(error);
       showAlert("Error", "error", "Failed to export excel");

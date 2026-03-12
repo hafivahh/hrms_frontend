@@ -503,38 +503,38 @@ export default function IssMprEdit() {
   };
 
   const handleSave = async () => {
-  console.log("=== handleSave called ==="); // ⬅️ step 1
+    console.log("=== handleSave called ==="); // ⬅️ step 1
 
-  if (!validateForm()) {
-    console.log("=== validateForm FAILED ==="); // ⬅️ step 2
-    return;
-  }
-
-  console.log("=== validateForm PASSED ==="); // ⬅️ step 3
-
-  try {
-    const confirm = await showAlert(
-      "Are you sure?",
-      "question",
-      "Do you want to save changes to this Manpower Request?",
-      true,
-      null,
-      "Submit",
-      "Cancel",
-    );
-
-    console.log("=== confirm result ===", confirm); // ⬅️ step 4
-
-    if (!confirm?.isConfirmed) {
-      console.log("=== User cancelled ===");
+    if (!validateForm()) {
+      console.log("=== validateForm FAILED ==="); // ⬅️ step 2
       return;
     }
 
-    const decryptedId = decrypt(id);
-    console.log("=== decryptedId ===", decryptedId); // ⬅️ step 5
-    console.log("=== formData ===", formData); // ⬅️ step 6
+    console.log("=== validateForm PASSED ==="); // ⬅️ step 3
 
-    // ... sisa kode sama
+    try {
+      const confirm = await showAlert(
+        "Are you sure?",
+        "question",
+        "Do you want to save changes to this Manpower Request?",
+        true,
+        null,
+        "Submit",
+        "Cancel",
+      );
+
+      console.log("=== confirm result ===", confirm); // ⬅️ step 4
+
+      if (!confirm?.isConfirmed) {
+        console.log("=== User cancelled ===");
+        return;
+      }
+
+      const decryptedId = decrypt(id);
+      console.log("=== decryptedId ===", decryptedId); // ⬅️ step 5
+      console.log("=== formData ===", formData); // ⬅️ step 6
+
+      // ... sisa kode sama
 
       const educationMap = {
         degree: 1,
@@ -670,7 +670,7 @@ export default function IssMprEdit() {
 
   if (loading) {
     return (
-      <AuthLayout sidebarList={employee}>
+      <AuthLayout sidebarList={mprOnly}>
         <Paper radius="sm" mt="md" withBorder p="lg">
           <Text>Loading...</Text>
         </Paper>
@@ -680,7 +680,7 @@ export default function IssMprEdit() {
 
   if (!mprData) {
     return (
-      <AuthLayout sidebarList={employee}>
+      <AuthLayout sidebarList={mprOnly}>
         <Paper radius="sm" mt="md" withBorder p="lg">
           <Text>MPR not found</Text>
         </Paper>
