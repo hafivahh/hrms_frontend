@@ -1,6 +1,6 @@
 import AuthLayout from "@/components/layout/authLayout";
 import Head from "next/head";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Paper, Select, Badge } from "@mantine/core";
 import {
   IconCalendar,
@@ -75,7 +75,6 @@ function DeptCarousel({ data, loading }) {
       >
         <IconChevronLeft size={18} />
       </button>
-
       <div className="flex flex-1 gap-3 overflow-hidden">
         {visible.map((d) => (
           <div
@@ -90,7 +89,6 @@ function DeptCarousel({ data, loading }) {
           </div>
         ))}
       </div>
-
       <button
         onClick={() => setCurrent((c) => Math.min(total - visibleCount, c + 1))}
         disabled={!canNext}
@@ -106,9 +104,11 @@ export default function LeaveDashboard() {
   const { user } = useUser();
   const { API_URL } = useApi();
 
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(String(currentYear));
-  const [availableYears, setAvailableYears] = useState([]);
+  // ← default "all"
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [availableYears, setAvailableYears] = useState([
+    { value: "all", label: "All Years" },
+  ]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
@@ -138,9 +138,10 @@ export default function LeaveDashboard() {
         recentRequests: data.recent_requests || [],
       });
       if (data.available_years?.length > 0) {
-        setAvailableYears(
-          data.available_years.map((y) => ({ value: String(y), label: String(y) })),
-        );
+        setAvailableYears([
+          { value: "all", label: "All Years" },
+          ...data.available_years.map((y) => ({ value: String(y), label: String(y) })),
+        ]);
       }
     } catch (err) {
       console.error("Failed to fetch leave stats:", err);
@@ -154,9 +155,9 @@ export default function LeaveDashboard() {
   }, [fetchStats]);
 
   const statCards = [
-    { label: "Total Requests", value: stats.total, color: "#228be6", bg: "#e7f5ff" },
-    { label: "Pending Approval", value: stats.pending, color: "#f08c00", bg: "#fff3bf" },
-    { label: "Completed", value: stats.completed, color: "#2f9e44", bg: "#ebfbee" },
+    { label: "Total Requests",  value: stats.total,     color: "#228be6", bg: "#e7f5ff" },
+    { label: "Pending Approval",value: stats.pending,   color: "#f08c00", bg: "#fff3bf" },
+    { label: "Completed",       value: stats.completed, color: "#2f9e44", bg: "#ebfbee" },
   ];
 
   const maxMonthly = Math.max(...stats.monthlyRequests.map((m) => m.count), 1);
@@ -217,7 +218,8 @@ export default function LeaveDashboard() {
           <div className="flex items-center gap-2 mb-6">
             <IconCalendar size={18} className="text-blue-600" />
             <h2 className="text-md font-semibold">
-              Leave Requests per Month — {selectedYear}
+              Leave Requests per Month —{" "}
+              {selectedYear === "all" ? "All Years" : selectedYear}
             </h2>
           </div>
           {loading ? (

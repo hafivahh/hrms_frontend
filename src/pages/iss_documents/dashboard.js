@@ -31,23 +31,15 @@ function BreakdownCard({ title, icon, data, color }) {
           data.map((d) => (
             <div key={d.name}>
               <div className="flex justify-between text-xs mb-1">
-                <span
-                  className="text-gray-700 truncate max-w-[70%]"
-                  title={d.name}
-                >
+                <span className="text-gray-700 truncate max-w-[70%]" title={d.name}>
                   {d.name}
                 </span>
-                <span className="font-semibold text-gray-800 ml-2">
-                  {d.count}
-                </span>
+                <span className="font-semibold text-gray-800 ml-2">{d.count}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div
                   className="h-1.5 rounded-full"
-                  style={{
-                    width: `${(d.count / max) * 100}%`,
-                    backgroundColor: color,
-                  }}
+                  style={{ width: `${(d.count / max) * 100}%`, backgroundColor: color }}
                 />
               </div>
             </div>
@@ -62,9 +54,11 @@ export default function IssDocumentsDashboard() {
   const { user } = useUser();
   const { API_URL } = useApi();
 
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(String(currentYear));
-  const [availableYears, setAvailableYears] = useState([]);
+  // ← default "all", bukan tahun sekarang
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [availableYears, setAvailableYears] = useState([
+    { value: "all", label: "All Years" },
+  ]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
@@ -88,12 +82,13 @@ export default function IssDocumentsDashboard() {
         recentUploads: data.recent_uploads || [],
       });
       if (data.available_years?.length > 0) {
-        setAvailableYears(
-          data.available_years.map((y) => ({
+        setAvailableYears([
+          { value: "all", label: "All Years" },
+          ...data.available_years.map((y) => ({
             value: String(y),
             label: String(y),
           })),
-        );
+        ]);
       }
     } catch (err) {
       console.error("Failed to fetch stats:", err);
@@ -117,9 +112,7 @@ export default function IssDocumentsDashboard() {
       <div className="py-6 px-4 sm:px-6 lg:px-8">
         {/* HEADER */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Documents Dashboard
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">Documents Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">
             Overview of all uploaded documents
           </p>
@@ -129,10 +122,7 @@ export default function IssDocumentsDashboard() {
         <div className="mb-6 max-w-xs">
           <Paper radius="md" withBorder p="lg">
             <div className="flex items-center gap-4">
-              <div
-                className="rounded-xl p-3"
-                style={{ backgroundColor: "#e7f5ff", color: "#228be6" }}
-              >
+              <div className="rounded-xl p-3" style={{ backgroundColor: "#e7f5ff", color: "#228be6" }}>
                 <IconFiles size={28} />
               </div>
               <div>
@@ -151,17 +141,17 @@ export default function IssDocumentsDashboard() {
             <div className="flex items-center gap-2">
               <IconCalendar size={18} className="text-blue-600" />
               <h2 className="text-md font-semibold">
-                Uploads per Month — {selectedYear}
+                Uploads per Month —{" "}
+                {selectedYear === "all" ? "All Years" : selectedYear}
               </h2>
             </div>
-            {/* ← FILTER TAHUN */}
             <Select
               size="xs"
               value={selectedYear}
               onChange={(val) => setSelectedYear(val)}
               data={availableYears}
               placeholder="Select year"
-              style={{ width: 100 }}
+              style={{ width: 110 }}
             />
           </div>
           {loading ? (
@@ -169,10 +159,7 @@ export default function IssDocumentsDashboard() {
           ) : (
             <div className="flex items-end gap-2 h-40">
               {stats.monthlyUploads.map((m) => (
-                <div
-                  key={m.month}
-                  className="flex flex-col items-center flex-1 gap-1"
-                >
+                <div key={m.month} className="flex flex-col items-center flex-1 gap-1">
                   <span className="text-xs font-semibold text-gray-600">
                     {m.count > 0 ? m.count : ""}
                   </span>

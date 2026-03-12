@@ -12,14 +12,24 @@ import {
   IconBuildingSkyscraper,
   IconBriefcase,
   IconBuildingFactory2,
+  IconChevronLeft,
+  IconChevronRight,
 } from "@tabler/icons-react";
 import axios from "axios";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { employeeOnly } from "@/data/sidebar/employee";
 
-function BreakdownCard({ title, icon, data, color }) {
-  const max = Math.max(...data.map((d) => d.count), 1);
+// ─── CAROUSEL CARD ────────────────────────────────────────────────────────────
+
+function CarouselCard({ title, icon, data, loading, subtitle = "Total" }) {
+  const [current, setCurrent] = useState(0);
+  const visibleCount = 4;
+  const total = data.length;
+  const canPrev = current > 0;
+  const canNext = current + visibleCount < total;
+  const visible = data.slice(current, current + visibleCount);
+
   return (
     <Paper radius="md" withBorder p="lg">
       <div className="flex items-center gap-2 mb-4">
@@ -27,34 +37,53 @@ function BreakdownCard({ title, icon, data, color }) {
         <h2 className="text-md font-semibold">{title}</h2>
         <span className="ml-auto text-xs text-gray-400">{data.length} types</span>
       </div>
-      <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-        {data.length === 0 ? (
-          <p className="text-sm text-gray-400">No data</p>
-        ) : (
-          data.map((d) => (
-            <div key={d.name}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-gray-700 truncate max-w-[70%]" title={d.name}>
+
+      {loading ? (
+        <p className="text-sm text-gray-400 text-center py-4">Loading...</p>
+      ) : total === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-4">No data</p>
+      ) : (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+            disabled={!canPrev}
+            className="p-1 rounded-full border text-gray-500 disabled:opacity-30 hover:bg-gray-50"
+          >
+            <IconChevronLeft size={18} />
+          </button>
+
+          <div className="flex flex-1 gap-3 overflow-hidden">
+            {visible.map((d) => (
+              <div
+                key={d.name}
+                className="flex-1 border rounded-xl p-4 text-center shadow-sm bg-white"
+              >
+                <p
+                  className="text-sm font-semibold text-cyan-600 mb-1 truncate"
+                  title={d.name}
+                >
                   {d.name}
-                </span>
-                <span className="font-semibold text-gray-800 ml-2">{d.count}</span>
+                </p>
+                <p className="text-3xl font-bold text-gray-800">{d.count}</p>
+                <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div
-                  className="h-1.5 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${(d.count / max) * 100}%`,
-                    backgroundColor: color,
-                  }}
-                />
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setCurrent((c) => Math.min(total - visibleCount, c + 1))}
+            disabled={!canNext}
+            className="p-1 rounded-full border text-gray-500 disabled:opacity-30 hover:bg-gray-50"
+          >
+            <IconChevronRight size={18} />
+          </button>
+        </div>
+      )}
     </Paper>
   );
 }
+
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 export default function EmployeeDashboard() {
   const { user } = useUser();
@@ -62,7 +91,9 @@ export default function EmployeeDashboard() {
 
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
-  const [availableYears, setAvailableYears] = useState([]);
+  const [availableYears, setAvailableYears] = useState([
+    { value: "all", label: "All Years" },
+  ]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
@@ -94,9 +125,10 @@ export default function EmployeeDashboard() {
         byCompany: data.by_company || [],
       });
       if (data.available_years?.length > 0) {
-        setAvailableYears(
-          data.available_years.map((y) => ({ value: String(y), label: String(y) })),
-        );
+        setAvailableYears([
+          { value: "all", label: "All Years" },
+          ...data.available_years.map((y) => ({ value: String(y), label: String(y) })),
+        ]);
       }
     } catch (err) {
       console.error("Failed to fetch employee stats:", err);
@@ -110,11 +142,11 @@ export default function EmployeeDashboard() {
   }, [fetchStats]);
 
   const statCards = [
-    { label: "Total Employees", value: stats.total, icon: <IconUsers size={26} />, color: "#228be6", bg: "#e7f5ff" },
-    { label: "Active", value: stats.active, icon: <IconUserCheck size={26} />, color: "#2f9e44", bg: "#ebfbee" },
-    { label: "Inactive", value: stats.inactive, icon: <IconUserOff size={26} />, color: "#e03131", bg: "#fff5f5" },
-    { label: "Male", value: stats.byGender.male, icon: <IconGenderMale size={26} />, color: "#1971c2", bg: "#d0ebff" },
-    { label: "Female", value: stats.byGender.female, icon: <IconGenderFemale size={26} />, color: "#c2255c", bg: "#ffdeeb" },
+    { label: "Total Employees", value: stats.total,          icon: <IconUsers size={26} />,       color: "#228be6", bg: "#e7f5ff" },
+    { label: "Active",          value: stats.active,         icon: <IconUserCheck size={26} />,   color: "#2f9e44", bg: "#ebfbee" },
+    { label: "Inactive",        value: stats.inactive,       icon: <IconUserOff size={26} />,     color: "#e03131", bg: "#fff5f5" },
+    { label: "Male",            value: stats.byGender.male,  icon: <IconGenderMale size={26} />,  color: "#1971c2", bg: "#d0ebff" },
+    { label: "Female",          value: stats.byGender.female,icon: <IconGenderFemale size={26} />,color: "#c2255c", bg: "#ffdeeb" },
   ];
 
   const maxMonthly = Math.max(...stats.monthlyJoined.map((m) => m.count), 1);
@@ -126,6 +158,7 @@ export default function EmployeeDashboard() {
       </Head>
 
       <div className="py-6 px-4 sm:px-6 lg:px-8">
+
         {/* HEADER */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Employee Dashboard</h1>
@@ -193,27 +226,31 @@ export default function EmployeeDashboard() {
           )}
         </Paper>
 
-        {/* BREAKDOWN CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <BreakdownCard
+        {/* CAROUSEL CARDS */}
+        <div className="flex flex-col gap-4">
+          <CarouselCard
             title="By Department"
             icon={<IconBuildingSkyscraper size={18} className="text-blue-600" />}
             data={loading ? [] : stats.byDepartment}
-            color="#228be6"
+            loading={loading}
+            subtitle="Employees"
           />
-          <BreakdownCard
+          <CarouselCard
             title="By Position"
             icon={<IconBriefcase size={18} className="text-violet-600" />}
             data={loading ? [] : stats.byPosition}
-            color="#7048e8"
+            loading={loading}
+            subtitle="Employees"
           />
-          <BreakdownCard
+          <CarouselCard
             title="By Company"
             icon={<IconBuildingFactory2 size={18} className="text-orange-500" />}
             data={loading ? [] : stats.byCompany}
-            color="#e8590c"
+            loading={loading}
+            subtitle="Employees"
           />
         </div>
+
       </div>
     </AuthLayout>
   );
