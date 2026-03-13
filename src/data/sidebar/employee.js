@@ -5,7 +5,6 @@ import {
   IconFileLambda,
 } from "@tabler/icons-react";
 
-// ⬅️ tambah di bawah export yang sudah ada
 export const adminOnly = [
   {
     title: "Administrator",
@@ -15,6 +14,11 @@ export const adminOnly = [
       {
         title: "Dashboard",
         href: "/portal/dashboard",
+        icon: <IconCaretRightFilled size={14} />,
+      },
+      {
+        title: "Control Permission",
+        href: "/permission/application",
         icon: <IconCaretRightFilled size={14} />,
       },
       {
@@ -188,6 +192,11 @@ const recruitmentMenu = {
   href: "",
   icon: <IconListLetters size={14} />,
   child: [
+    {
+      title: "Dashboard",
+      href: "/iss_recruitment/dashboard",
+      icon: <IconCaretRightFilled size={14} />,
+    },
     {
       title: "All",
       href: "/iss_recruitment/list/all",

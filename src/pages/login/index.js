@@ -63,7 +63,7 @@ useEffect(() => {
       Cookies.set("portal_login_name", data.name, { expires: 1 });
       Cookies.set("portal_login_id", String(data.id), { expires: 1 });
       setUser({ id: data.id, name: data.name, token: data.access_token });
-      router.push("/portal/user");
+      router.push("/");
     } catch (err) {
       setError("Invalid username or password");
     } finally {

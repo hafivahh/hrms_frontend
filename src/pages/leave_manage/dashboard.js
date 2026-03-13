@@ -8,6 +8,7 @@ import {
   IconClock,
   IconChevronLeft,
   IconChevronRight,
+  IconClipboardList,
 } from "@tabler/icons-react";
 import axios from "axios";
 import useApi from "@/hooks/useApi";
@@ -19,6 +20,8 @@ const statusMap = {
   1: { label: "Pending", color: "yellow" },
   4: { label: "Completed", color: "green" },
 };
+
+// ─── BREAKDOWN CARD ───────────────────────────────────────────────────────────
 
 function BreakdownCard({ title, icon, data, color }) {
   const max = Math.max(...data.map((d) => d.count), 1);
@@ -54,6 +57,8 @@ function BreakdownCard({ title, icon, data, color }) {
     </Paper>
   );
 }
+
+// ─── DEPT CAROUSEL ────────────────────────────────────────────────────────────
 
 function DeptCarousel({ data, loading }) {
   const [current, setCurrent] = useState(0);
@@ -100,11 +105,12 @@ function DeptCarousel({ data, loading }) {
   );
 }
 
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
+
 export default function LeaveDashboard() {
   const { user } = useUser();
   const { API_URL } = useApi();
 
-  // ← default "all"
   const [selectedYear, setSelectedYear] = useState("all");
   const [availableYears, setAvailableYears] = useState([
     { value: "all", label: "All Years" },
@@ -115,6 +121,7 @@ export default function LeaveDashboard() {
     pending: 0,
     completed: 0,
     byDepartment: [],
+    byProject: [],       // ← tambah
     byLeaveType: [],
     monthlyRequests: [],
     recentRequests: [],
@@ -133,6 +140,7 @@ export default function LeaveDashboard() {
         pending: data.pending,
         completed: data.completed,
         byDepartment: data.by_department || [],
+        byProject: data.by_project || [],     // ← tambah
         byLeaveType: data.by_leave_type || [],
         monthlyRequests: data.monthly_requests || [],
         recentRequests: data.recent_requests || [],
@@ -169,6 +177,7 @@ export default function LeaveDashboard() {
       </Head>
 
       <div className="py-6 px-4 sm:px-6 lg:px-8">
+
         {/* HEADER + FILTER TAHUN */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -204,16 +213,7 @@ export default function LeaveDashboard() {
           ))}
         </div>
 
-        {/* CAROUSEL BY DEPARTMENT */}
-        <Paper radius="md" withBorder p="lg" mb="md">
-          <div className="flex items-center gap-2 mb-4">
-            <IconChartBar size={18} className="text-cyan-600" />
-            <h2 className="text-md font-semibold">Overall Request By Department</h2>
-          </div>
-          <DeptCarousel data={stats.byDepartment} loading={loading} />
-        </Paper>
-
-        {/* MONTHLY CHART */}
+        {/* 1. MONTHLY CHART ← naik ke atas */}
         <Paper radius="md" withBorder p="lg" mb="md">
           <div className="flex items-center gap-2 mb-6">
             <IconCalendar size={18} className="text-blue-600" />
@@ -246,7 +246,26 @@ export default function LeaveDashboard() {
           )}
         </Paper>
 
+        {/* 2. CAROUSEL BY DEPARTMENT ← turun */}
+        <Paper radius="md" withBorder p="lg" mb="md">
+          <div className="flex items-center gap-2 mb-4">
+            <IconChartBar size={18} className="text-cyan-600" />
+            <h2 className="text-md font-semibold">Overall Request By Department</h2>
+          </div>
+          <DeptCarousel data={stats.byDepartment} loading={loading} />
+        </Paper>
+
+          <Paper radius="md" withBorder p="lg" mb="md">
+          <div className="flex items-center gap-2 mb-4">
+            <IconClipboardList size={18} className="text-green-600" />
+            <h2 className="text-md font-semibold">Overall Request By Project</h2>
+          </div>
+          <DeptCarousel data={stats.byProject} loading={loading} />
+        </Paper>
+
+        {/* 3. BOTTOM ROW: BY LEAVE TYPE + RECENT */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
           {/* BY LEAVE TYPE */}
           <BreakdownCard
             title="By Leave Type"
@@ -290,6 +309,7 @@ export default function LeaveDashboard() {
               </div>
             )}
           </Paper>
+
         </div>
       </div>
     </AuthLayout>

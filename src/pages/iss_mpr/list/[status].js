@@ -115,7 +115,7 @@ export default function IssMprList({ mpr_status }) {
     setFilterProject(null);
     setFilterPosition(null);
     setFilterMprStatus(null);
-      setColumnFilters([]);
+    setColumnFilters([]);
     setAppliedFilter({});
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   }, [mpr_status]);
@@ -729,45 +729,45 @@ export default function IssMprList({ mpr_status }) {
               );
             }
           };
-const editable = row.mpr_status === 2;
+          const editable = row.mpr_status === 2;
           return (
-           <Select
-  value={currentStatus ? String(currentStatus) : ""}
-  onChange={handleStatusChange}
-  data={statusOptions}
-  size="xs"
-  disabled={!editable}
-  styles={{
-    input: {
-      textAlign: "center",
-      textAlignLast: "center",
-      fontWeight: 600,
-      cursor: editable ? "pointer" : "not-allowed",
+            <Select
+              value={currentStatus ? String(currentStatus) : ""}
+              onChange={handleStatusChange}
+              data={statusOptions}
+              size="xs"
+              disabled={!editable}
+              styles={{
+                input: {
+                  textAlign: "center",
+                  textAlignLast: "center",
+                  fontWeight: 600,
+                  cursor: editable ? "pointer" : "not-allowed",
 
-      backgroundColor: !editable
-        ? "#343a40" // 🔒 abu gelap kalau tidak bisa edit
-        : statusColor === "green"
-        ? "#d3f9d8"
-        : statusColor === "blue"
-        ? "#d0ebff"
-        : statusColor === "red"
-        ? "#ffc9c9"
-        : "#fff3bf", // 🟡 kuning kalau belum dipilih
+                  backgroundColor: !editable
+                    ? "#343a40" // 🔒 abu gelap kalau tidak bisa edit
+                    : statusColor === "green"
+                      ? "#d3f9d8"
+                      : statusColor === "blue"
+                        ? "#d0ebff"
+                        : statusColor === "red"
+                          ? "#ffc9c9"
+                          : "#fff3bf", // 🟡 kuning kalau belum dipilih
 
-      color: !editable
-        ? "#ffffff"
-        : statusColor === "green"
-        ? "#2b8a3e"
-        : statusColor === "blue"
-        ? "#1864ab"
-        : statusColor === "red"
-        ? "#c92a2a"
-        : "#e67700",
+                  color: !editable
+                    ? "#ffffff"
+                    : statusColor === "green"
+                      ? "#2b8a3e"
+                      : statusColor === "blue"
+                        ? "#1864ab"
+                        : statusColor === "red"
+                          ? "#c92a2a"
+                          : "#e67700",
 
-      border: "1px solid transparent",
-    },
-  }}
-/>
+                  border: "1px solid transparent",
+                },
+              }}
+            />
           );
         },
       },
@@ -778,6 +778,8 @@ const editable = row.mpr_status === 2;
         cell: ({ row }) => {
           const id = row.original?.id;
           const encryptedId = encrypt(String(id));
+          const status = row.original?.mpr_status;
+          const isLocked = status === 2 || status === 3;
 
           return (
             <Button.Group>
@@ -789,14 +791,16 @@ const editable = row.mpr_status === 2;
               >
                 Detail
               </Button>
-              <Button
-                size="xs"
-                color="yellow"
-                leftSection={<IconPencil size={16} />}
-                onClick={() => router.push(`/iss_mpr/edit/${encryptedId}`)}
-              >
-                Edit
-              </Button>
+              {!isLocked && (
+                <Button
+                  size="xs"
+                  color="yellow"
+                  leftSection={<IconPencil size={16} />}
+                  onClick={() => router.push(`/iss_mpr/edit/${encryptedId}`)}
+                >
+                  Edit
+                </Button>
+              )}
             </Button.Group>
           );
         },
@@ -997,7 +1001,11 @@ const editable = row.mpr_status === 2;
 
             {/* DATATABLE */}
             <div className="p-4 overflow-x-auto">
-              <Datatables table={table} totalPages={totalPages}  key={mpr_status}  />
+              <Datatables
+                table={table}
+                totalPages={totalPages}
+                key={mpr_status}
+              />
             </div>
           </Paper>
         </div>

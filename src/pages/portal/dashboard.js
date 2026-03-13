@@ -19,9 +19,11 @@ export default function Dashboard() {
   const API = useApi();
   const API_URL = API.API_URL;
 
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(String(currentYear));
-  const [availableYears, setAvailableYears] = useState([]);
+  // ← default "all"
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [availableYears, setAvailableYears] = useState([
+    { value: "all", label: "All Years" },
+  ]);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -50,12 +52,13 @@ export default function Dashboard() {
       });
 
       if (data.available_years?.length > 0) {
-        setAvailableYears(
-          data.available_years.map((y) => ({
+        setAvailableYears([
+          { value: "all", label: "All Years" },
+          ...data.available_years.map((y) => ({
             value: String(y),
             label: String(y),
           })),
-        );
+        ]);
       }
     } catch (err) {
       console.error("Failed to fetch stats:", err);
@@ -69,27 +72,9 @@ export default function Dashboard() {
   }, [fetchStats]);
 
   const statCards = [
-    {
-      label: "Total Users",
-      value: stats.total,
-      icon: <IconUsers size={28} />,
-      color: "#228be6",
-      bg: "#e7f5ff",
-    },
-    {
-      label: "Active Users",
-      value: stats.active,
-      icon: <IconUserCheck size={28} />,
-      color: "#2f9e44",
-      bg: "#ebfbee",
-    },
-    {
-      label: "Inactive Users",
-      value: stats.inactive,
-      icon: <IconUserOff size={28} />,
-      color: "#e03131",
-      bg: "#fff5f5",
-    },
+    { label: "Total Users",    value: stats.total,    icon: <IconUsers size={28} />,     color: "#228be6", bg: "#e7f5ff" },
+    { label: "Active Users",   value: stats.active,   icon: <IconUserCheck size={28} />, color: "#2f9e44", bg: "#ebfbee" },
+    { label: "Inactive Users", value: stats.inactive, icon: <IconUserOff size={28} />,   color: "#e03131", bg: "#fff5f5" },
   ];
 
   const maxCount = Math.max(
@@ -104,33 +89,25 @@ export default function Dashboard() {
       </Head>
 
       <div className="py-6 px-4 sm:px-6 lg:px-8">
-        {/* ===== HEADER ===== */}
+        {/* HEADER */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Portal User Dashboard
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">Portal User Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">
             Overview of all registered portal users
           </p>
         </div>
 
-        {/* ===== STAT CARDS ===== */}
+        {/* STAT CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {statCards.map((card) => (
             <Paper key={card.label} radius="md" withBorder p="lg">
               <div className="flex items-center gap-4">
-                <div
-                  className="rounded-xl p-3"
-                  style={{ backgroundColor: card.bg, color: card.color }}
-                >
+                <div className="rounded-xl p-3" style={{ backgroundColor: card.bg, color: card.color }}>
                   {card.icon}
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">{card.label}</p>
-                  <p
-                    className="text-3xl font-bold"
-                    style={{ color: card.color }}
-                  >
+                  <p className="text-3xl font-bold" style={{ color: card.color }}>
                     {loading ? "—" : card.value}
                   </p>
                 </div>
@@ -139,24 +116,23 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* ===== MONTHLY REGISTRATIONS ===== */}
+        {/* MONTHLY REGISTRATIONS */}
         <Paper radius="md" withBorder p="lg" mb="md">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <IconCalendar size={18} className="text-blue-600" />
               <h2 className="text-md font-semibold">
-                User Registrations — {selectedYear}
+                User Registrations —{" "}
+                {selectedYear === "all" ? "All Years" : selectedYear}
               </h2>
             </div>
-
-            {/* ← FILTER TAHUN */}
             <Select
               size="xs"
               value={selectedYear}
               onChange={(val) => setSelectedYear(val)}
               data={availableYears}
               placeholder="Select year"
-              style={{ width: 100 }}
+              style={{ width: 110 }}
             />
           </div>
 
@@ -165,10 +141,7 @@ export default function Dashboard() {
           ) : (
             <div className="flex items-end gap-2 h-40">
               {stats.monthlyRegistrations.map((m) => (
-                <div
-                  key={m.month}
-                  className="flex flex-col items-center flex-1 gap-1"
-                >
+                <div key={m.month} className="flex flex-col items-center flex-1 gap-1">
                   <span className="text-xs font-semibold text-gray-600">
                     {m.count > 0 ? m.count : ""}
                   </span>
@@ -187,7 +160,7 @@ export default function Dashboard() {
           )}
         </Paper>
 
-        {/* ===== RECENT USERS ===== */}
+        {/* RECENT USERS */}
         <Paper radius="md" withBorder p="lg">
           <div className="flex items-center gap-2 mb-4">
             <IconClock size={18} className="text-blue-600" />
@@ -212,18 +185,11 @@ export default function Dashboard() {
                 </thead>
                 <tbody>
                   {stats.recentUsers.map((u) => (
-                    <tr
-                      key={u.id_user}
-                      className="border-b last:border-0 hover:bg-gray-50"
-                    >
-                      <td className="py-2 pr-4 font-medium text-gray-800">
-                        {u.full_name}
-                      </td>
+                    <tr key={u.id_user} className="border-b last:border-0 hover:bg-gray-50">
+                      <td className="py-2 pr-4 font-medium text-gray-800">{u.full_name}</td>
                       <td className="py-2 pr-4 text-gray-500">{u.username}</td>
                       <td className="py-2 pr-4 text-gray-500">{u.role_name}</td>
-                      <td className="py-2 pr-4 text-gray-500">
-                        {u.created_date}
-                      </td>
+                      <td className="py-2 pr-4 text-gray-500">{u.created_date}</td>
                       <td className="py-2">
                         <Badge
                           color={Number(u.status_user) === 1 ? "green" : "red"}

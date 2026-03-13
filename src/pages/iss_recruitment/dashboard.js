@@ -9,64 +9,29 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconUsers,
+  IconUserCheck,
   IconChecklist,
   IconX,
   IconClipboardList,
+  IconCircleCheck,
 } from "@tabler/icons-react";
 import axios from "axios";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
-import { mprOnly } from "@/data/sidebar/employee";
+import { recruitmentOnly } from "@/data/sidebar/employee";
 
 // ─── STATUS MAP ───────────────────────────────────────────────────────────────
 
-const statusMap = {
-  0: { label: "Draft", color: "gray" },
-  1: { label: "Pending Approval", color: "yellow" },
-  2: { label: "Completed", color: "green" },
-  3: { label: "Rejected", color: "red" },
+const recruitmentStatusMap = {
+  1: { label: "Open",                  color: "green"  },
+  2: { label: "Fulfillment in Progress", color: "blue" },
+  3: { label: "Closed",                color: "gray"   },
+  4: { label: "Cancel",                color: "red"    },
 };
-
-// ─── BREAKDOWN CARD ───────────────────────────────────────────────────────────
-
-function BreakdownCard({ title, icon, data, color }) {
-  const max = Math.max(...data.map((d) => d.count), 1);
-  return (
-    <Paper radius="md" withBorder p="lg">
-      <div className="flex items-center gap-2 mb-4">
-        {icon}
-        <h2 className="text-md font-semibold">{title}</h2>
-        <span className="ml-auto text-xs text-gray-400">{data.length} types</span>
-      </div>
-      <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-        {data.length === 0 ? (
-          <p className="text-sm text-gray-400">No data</p>
-        ) : (
-          data.map((d) => (
-            <div key={d.name}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-gray-700 truncate max-w-[70%]" title={d.name}>
-                  {d.name}
-                </span>
-                <span className="font-semibold text-gray-800 ml-2">{d.count}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div
-                  className="h-1.5 rounded-full"
-                  style={{ width: `${(d.count / max) * 100}%`, backgroundColor: color }}
-                />
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </Paper>
-  );
-}
 
 // ─── DEPT CAROUSEL ────────────────────────────────────────────────────────────
 
-function DeptCarousel({ data, loading }) {
+function DeptCarousel({ title, icon, data, loading }) {
   const [current, setCurrent] = useState(0);
   const visibleCount = 4;
   const total = data.length;
@@ -74,60 +39,71 @@ function DeptCarousel({ data, loading }) {
   const canNext = current + visibleCount < total;
   const visible = data.slice(current, current + visibleCount);
 
-  if (loading) return <p className="text-sm text-gray-400 text-center py-4">Loading...</p>;
-  if (total === 0) return <p className="text-sm text-gray-400 text-center py-4">No data</p>;
-
   return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => setCurrent((c) => Math.max(0, c - 1))}
-        disabled={!canPrev}
-        className="p-1 rounded-full border text-gray-500 disabled:opacity-30 hover:bg-gray-50"
-      >
-        <IconChevronLeft size={18} />
-      </button>
-      <div className="flex flex-1 gap-3 overflow-hidden">
-        {visible.map((d) => (
-          <div
-            key={d.name}
-            className="flex-1 border rounded-xl p-4 text-center shadow-sm bg-white"
-          >
-            <p className="text-sm font-semibold text-cyan-600 mb-1 truncate" title={d.name}>
-              {d.name}
-            </p>
-            <p className="text-3xl font-bold text-gray-800">{d.count}</p>
-            <p className="text-xs text-gray-400 mt-1">Total</p>
-          </div>
-        ))}
+    <Paper radius="md" withBorder p="lg" mb="md">
+      <div className="flex items-center gap-2 mb-4">
+        {icon}
+        <h2 className="text-md font-semibold">{title}</h2>
+        <span className="ml-auto text-xs text-gray-400">{data.length} items</span>
       </div>
-      <button
-        onClick={() => setCurrent((c) => Math.min(total - visibleCount, c + 1))}
-        disabled={!canNext}
-        className="p-1 rounded-full border text-gray-500 disabled:opacity-30 hover:bg-gray-50"
-      >
-        <IconChevronRight size={18} />
-      </button>
-    </div>
+      {loading ? (
+        <p className="text-sm text-gray-400 text-center py-4">Loading...</p>
+      ) : total === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-4">No data</p>
+      ) : (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+            disabled={!canPrev}
+            className="p-1 rounded-full border text-gray-500 disabled:opacity-30 hover:bg-gray-50"
+          >
+            <IconChevronLeft size={18} />
+          </button>
+          <div className="flex flex-1 gap-3 overflow-hidden">
+            {visible.map((d) => (
+              <div
+                key={d.name}
+                className="flex-1 border rounded-xl p-4 text-center shadow-sm bg-white"
+              >
+                <p className="text-sm font-semibold text-cyan-600 mb-1 truncate" title={d.name}>
+                  {d.name}
+                </p>
+                <p className="text-3xl font-bold text-gray-800">{d.count}</p>
+                <p className="text-xs text-gray-400 mt-1">Total</p>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => setCurrent((c) => Math.min(total - visibleCount, c + 1))}
+            disabled={!canNext}
+            className="p-1 rounded-full border text-gray-500 disabled:opacity-30 hover:bg-gray-50"
+          >
+            <IconChevronRight size={18} />
+          </button>
+        </div>
+      )}
+    </Paper>
   );
 }
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
-export default function IssMprDashboard() {
+export default function RecruitmentDashboard() {
   const { user } = useUser();
   const { API_URL } = useApi();
 
-  // ← default "all"
   const [selectedYear, setSelectedYear] = useState("all");
   const [availableYears, setAvailableYears] = useState([
     { value: "all", label: "All Years" },
   ]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    completed: 0,
-    rejected: 0,
+    totalMpr: 0,
+    totalApplicants: 0,
+    open: 0,
+    fulfillment: 0,
+    closed: 0,
+    cancel: 0,
     byDepartment: [],
     byProject: [],
     monthlyRequests: [],
@@ -139,18 +115,20 @@ export default function IssMprDashboard() {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `${API_URL}/api/iss_mpr/dashboard?year=${selectedYear}`,
+        `${API_URL}/api/iss_recruitment/dashboard?year=${selectedYear}`,
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
       setStats({
-        total: data.total ?? 0,
-        pending: data.pending ?? 0,
-        completed: data.completed ?? 0,
-        rejected: data.rejected ?? 0,
-        byDepartment: data.by_department || [],
-        byProject: data.by_project || [],
+        totalMpr:        data.total_mpr        ?? 0,
+        totalApplicants: data.total_applicants ?? 0,
+        open:            data.open             ?? 0,
+        fulfillment:     data.fulfillment      ?? 0,
+        closed:          data.closed           ?? 0,
+        cancel:          data.cancel           ?? 0,
+        byDepartment:    data.by_department    || [],
+        byProject:       data.by_project       || [],
         monthlyRequests: data.monthly_requests || [],
-        recent: data.recent || [],
+        recent:          data.recent           || [],
       });
       if (data.available_years?.length > 0) {
         setAvailableYears([
@@ -159,7 +137,7 @@ export default function IssMprDashboard() {
         ]);
       }
     } catch (err) {
-      console.error("Failed to fetch MPR stats:", err);
+      console.error("Failed to fetch recruitment dashboard:", err);
     } finally {
       setLoading(false);
     }
@@ -170,18 +148,20 @@ export default function IssMprDashboard() {
   }, [fetchDashboard]);
 
   const statCards = [
-    { label: "Total MPR",       value: stats.total,     color: "#228be6", bg: "#e7f5ff", icon: <IconUsers size={28} /> },
-    { label: "Pending Approval",value: stats.pending,   color: "#f08c00", bg: "#fff3bf", icon: <IconClock size={28} /> },
-    { label: "Completed",       value: stats.completed, color: "#2f9e44", bg: "#ebfbee", icon: <IconChecklist size={28} /> },
-    { label: "Rejected",        value: stats.rejected,  color: "#e03131", bg: "#ffe3e3", icon: <IconX size={28} /> },
+    { label: "Total MPR",          value: stats.totalMpr,        color: "#228be6", bg: "#e7f5ff", icon: <IconChartBar size={28} /> },
+    { label: "Total Applicants",   value: stats.totalApplicants, color: "#7048e8", bg: "#f3f0ff", icon: <IconUsers size={28} /> },
+    { label: "Open",               value: stats.open,            color: "#2f9e44", bg: "#ebfbee", icon: <IconCircleCheck size={28} /> },
+    { label: "Fulfillment",        value: stats.fulfillment,     color: "#1971c2", bg: "#d0ebff", icon: <IconUserCheck size={28} /> },
+    { label: "Closed",             value: stats.closed,          color: "#495057", bg: "#e9ecef", icon: <IconChecklist size={28} /> },
+    { label: "Cancel",             value: stats.cancel,          color: "#e03131", bg: "#ffe3e3", icon: <IconX size={28} /> },
   ];
 
   const maxMonthly = Math.max(...stats.monthlyRequests.map((m) => m.count), 1);
 
   return (
-    <AuthLayout sidebarList={mprOnly}>
+    <AuthLayout sidebarList={recruitmentOnly}>
       <Head>
-        <title>MPR Dashboard — HRMS</title>
+        <title>Recruitment Dashboard — HRMS</title>
       </Head>
 
       <div className="py-6 px-4 sm:px-6 lg:px-8">
@@ -189,8 +169,8 @@ export default function IssMprDashboard() {
         {/* HEADER + YEAR FILTER */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Manpower Request Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">Overview of all manpower requests</p>
+            <h1 className="text-2xl font-bold text-gray-800">Recruitment Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-1">Overview of all recruitment activities</p>
           </div>
           <Select
             size="sm"
@@ -203,16 +183,16 @@ export default function IssMprDashboard() {
         </div>
 
         {/* STAT CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           {statCards.map((card) => (
-            <Paper key={card.label} radius="md" withBorder p="lg">
-              <div className="flex items-center gap-4">
-                <div className="rounded-xl p-3" style={{ backgroundColor: card.bg, color: card.color }}>
+            <Paper key={card.label} radius="md" withBorder p="md">
+              <div className="flex flex-col gap-2">
+                <div className="rounded-xl p-2 w-fit" style={{ backgroundColor: card.bg, color: card.color }}>
                   {card.icon}
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">{card.label}</p>
-                  <p className="text-3xl font-bold" style={{ color: card.color }}>
+                  <p className="text-xs text-gray-500">{card.label}</p>
+                  <p className="text-2xl font-bold" style={{ color: card.color }}>
                     {loading ? "—" : card.value}
                   </p>
                 </div>
@@ -255,28 +235,26 @@ export default function IssMprDashboard() {
         </Paper>
 
         {/* CAROUSEL BY DEPARTMENT */}
-        <Paper radius="md" withBorder p="lg" mb="md">
-          <div className="flex items-center gap-2 mb-4">
-            <IconChartBar size={18} className="text-cyan-600" />
-            <h2 className="text-md font-semibold">Overall Request By Department</h2>
-          </div>
-          <DeptCarousel data={stats.byDepartment} loading={loading} />
-        </Paper>
+        <DeptCarousel
+          title="Overall MPR By Department"
+          icon={<IconChartBar size={18} className="text-cyan-600" />}
+          data={loading ? [] : stats.byDepartment}
+          loading={loading}
+        />
 
         {/* CAROUSEL BY PROJECT */}
-        <Paper radius="md" withBorder p="lg" mb="md">
-          <div className="flex items-center gap-2 mb-4">
-            <IconClipboardList size={18} className="text-green-600" />
-            <h2 className="text-md font-semibold">Overall Request By Project</h2>
-          </div>
-          <DeptCarousel data={stats.byProject} loading={loading} />
-        </Paper>
+        <DeptCarousel
+          title="Overall MPR By Project"
+          icon={<IconClipboardList size={18} className="text-green-600" />}
+          data={loading ? [] : stats.byProject}
+          loading={loading}
+        />
 
         {/* RECENT REQUESTS */}
         <Paper radius="md" withBorder p="lg">
           <div className="flex items-center gap-2 mb-4">
             <IconClock size={18} className="text-blue-600" />
-            <h2 className="text-md font-semibold">Recent Manpower Requests</h2>
+            <h2 className="text-md font-semibold">Recent Recruitment</h2>
           </div>
           {loading ? (
             <p className="text-sm text-gray-400">Loading...</p>
@@ -292,18 +270,15 @@ export default function IssMprDashboard() {
                   <div>
                     <p className="text-sm font-medium text-gray-800">{r.mpr_no}</p>
                     <p className="text-xs text-gray-400">
-                      {r.department} · {r.project} ·{" "}
-                      {r.created_date
-                        ? new Date(r.created_date).toISOString().split("T")[0]
-                        : "-"}
+                      {r.department} · {r.project} · {r.position} · {r.created_date}
                     </p>
                   </div>
                   <Badge
-                    color={statusMap[r.mpr_status]?.color ?? "gray"}
+                    color={recruitmentStatusMap[r.recruitment_status]?.color ?? "gray"}
                     variant="filled"
                     size="sm"
                   >
-                    {statusMap[r.mpr_status]?.label ?? "Unknown"}
+                    {recruitmentStatusMap[r.recruitment_status]?.label ?? "—"}
                   </Badge>
                 </div>
               ))}

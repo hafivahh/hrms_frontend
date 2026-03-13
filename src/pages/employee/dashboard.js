@@ -10,10 +10,10 @@ import {
   IconGenderMale,
   IconGenderFemale,
   IconBuildingSkyscraper,
-  IconBriefcase,
   IconBuildingFactory2,
   IconChevronLeft,
   IconChevronRight,
+  IconClipboardList,
 } from "@tabler/icons-react";
 import axios from "axios";
 import useApi from "@/hooks/useApi";
@@ -58,10 +58,7 @@ function CarouselCard({ title, icon, data, loading, subtitle = "Total" }) {
                 key={d.name}
                 className="flex-1 border rounded-xl p-4 text-center shadow-sm bg-white"
               >
-                <p
-                  className="text-sm font-semibold text-cyan-600 mb-1 truncate"
-                  title={d.name}
-                >
+                <p className="text-sm font-semibold text-cyan-600 mb-1 truncate" title={d.name}>
                   {d.name}
                 </p>
                 <p className="text-3xl font-bold text-gray-800">{d.count}</p>
@@ -89,8 +86,7 @@ export default function EmployeeDashboard() {
   const { user } = useUser();
   const { API_URL } = useApi();
 
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(String(currentYear));
+  const [selectedYear, setSelectedYear] = useState("all");
   const [availableYears, setAvailableYears] = useState([
     { value: "all", label: "All Years" },
   ]);
@@ -102,7 +98,7 @@ export default function EmployeeDashboard() {
     byGender: { male: 0, female: 0 },
     monthlyJoined: [],
     byDepartment: [],
-    byPosition: [],
+    byProject: [],   // ← ganti dari byPosition
     byCompany: [],
   });
 
@@ -121,7 +117,7 @@ export default function EmployeeDashboard() {
         byGender: data.by_gender || { male: 0, female: 0 },
         monthlyJoined: data.monthly_joined || [],
         byDepartment: data.by_department || [],
-        byPosition: data.by_position || [],
+        byProject: data.by_project || [],   // ← ganti
         byCompany: data.by_company || [],
       });
       if (data.available_years?.length > 0) {
@@ -190,7 +186,8 @@ export default function EmployeeDashboard() {
             <div className="flex items-center gap-2">
               <IconCalendar size={18} className="text-blue-600" />
               <h2 className="text-md font-semibold">
-                Employee Join per Month — {selectedYear}
+                Employee Join per Month —{" "}
+                {selectedYear === "all" ? "All Years" : selectedYear}
               </h2>
             </div>
             <Select
@@ -199,7 +196,7 @@ export default function EmployeeDashboard() {
               onChange={(val) => setSelectedYear(val)}
               data={availableYears}
               placeholder="Select year"
-              style={{ width: 100 }}
+              style={{ width: 110 }}
             />
           </div>
           {loading ? (
@@ -236,9 +233,9 @@ export default function EmployeeDashboard() {
             subtitle="Employees"
           />
           <CarouselCard
-            title="By Position"
-            icon={<IconBriefcase size={18} className="text-violet-600" />}
-            data={loading ? [] : stats.byPosition}
+            title="By Project"
+            icon={<IconClipboardList size={18} className="text-violet-600" />}
+            data={loading ? [] : stats.byProject}
             loading={loading}
             subtitle="Employees"
           />

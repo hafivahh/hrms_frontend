@@ -56,7 +56,7 @@ const navigation = [
       },
       {
         title: "Recruitment",
-        url: "/iss_recruitment/list/all",
+        url: "/iss_recruitment/dashboard",
         icon: <IconList size={14} />,
       },
     ],

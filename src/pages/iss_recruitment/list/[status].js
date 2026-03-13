@@ -6,13 +6,13 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { recruitmentOnly  } from "@/data/sidebar/employee";
+import { recruitmentOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useEncrypt from "@/hooks/useEncrypt";
 import useSwal from "@/hooks/useSwal";
 
-import { Button, Paper, Select } from "@mantine/core";
+import { Badge, Button, Paper, Select } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
 import { IconList } from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
@@ -32,7 +32,6 @@ export default function IssRecruitmentList() {
   /* ================= VALIDATE STATUS ================= */
   useEffect(() => {
     if (!status) return;
-
     if (!allowedStatus.includes(status)) {
       Swal.fire({
         text: `Invalid status: "${status}"`,
@@ -40,7 +39,6 @@ export default function IssRecruitmentList() {
         timer: 2000,
         showConfirmButton: false,
       });
-
       router.replace("/iss_recruitment/list/all");
     }
   }, [status, router]);
@@ -65,9 +63,9 @@ export default function IssRecruitmentList() {
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-  setColumnFilters([]);
-  setPagination({ pageIndex: 0, pageSize: 10 });
-}, [status]);
+    setColumnFilters([]);
+    setPagination({ pageIndex: 0, pageSize: 10 });
+  }, [status]);
 
   /* ================= FETCH DATA ================= */
   const fetchData = useCallback(async () => {
@@ -76,9 +74,7 @@ export default function IssRecruitmentList() {
     try {
       const searchQuery = {};
       columnFilters.forEach((filter) => {
-        if (filter.value) {
-          searchQuery[filter.id] = filter.value;
-        }
+        if (filter.value) searchQuery[filter.id] = filter.value;
       });
 
       const filterParams =
@@ -94,11 +90,7 @@ export default function IssRecruitmentList() {
       const { data } = await axios.post(
         `${API_URL}/api/iss_recruitment/serverside/${status}?${filterParams}&page=${pagination.pageIndex}&size=${pagination.pageSize}&sort=${sort}`,
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
       setData(data.data);
@@ -146,128 +138,143 @@ export default function IssRecruitmentList() {
         header: "Request",
         size: 80,
       },
-{
-  accessorKey: "recruitment_status",
-  header: "Recruitment Status",
-  cell: ({ row }) => {
-    const currentStatus = row.original.recruitment_status;
+      // ─── KOLOM BARU ───────────────────────────────────────────
+      {
+        accessorKey: "applicants_count",
+        header: "Applicants",
+        size: 100,
+        cell: ({ row }) => {
+          const count = row.original.applicants_count ?? 0;
+          return (
+            <div className="flex justify-center">
+              <Badge
+                color={count > 0 ? "blue" : "gray"}
+                variant="filled"
+                size="sm"
+              >
+                {count}
+              </Badge>
+            </div>
+          );
+        },
+      },
+      // ──────────────────────────────────────────────────────────
+      {
+        accessorKey: "recruitment_status",
+        header: "Recruitment Status",
+        cell: ({ row }) => {
+          const currentStatus = row.original.recruitment_status;
 
-    const statusOptions = [
-      { value: "", label: "---", color: "gray" },
-      { value: "1", label: "Open", color: "green" },
-      { value: "2", label: "Fulfillment in Progress", color: "blue" },
-      { value: "3", label: "Closed", color: "gray" },
-      { value: "4", label: "Cancel", color: "red" },
-    ];
+          const statusOptions = [
+            { value: "", label: "---", color: "gray" },
+            { value: "1", label: "Open", color: "green" },
+            { value: "2", label: "Fulfillment in Progress", color: "blue" },
+            { value: "3", label: "Closed", color: "gray" },
+            { value: "4", label: "Cancel", color: "red" },
+          ];
 
-    const selectedOption = statusOptions.find(
-      (opt) => opt.value === String(currentStatus)
-    );
+          const selectedOption = statusOptions.find(
+            (opt) => opt.value === String(currentStatus),
+          );
+          const statusColor = selectedOption?.color || "gray";
 
-    const statusColor = selectedOption?.color || "gray";
+          const handleStatusChange = async (newStatus) => {
+            if (!newStatus) return;
 
-    const handleStatusChange = async (newStatus) => {
-      if (!newStatus) return;
+            const confirm = await showAlert(
+              "Are you sure?",
+              "question",
+              "Update recruitment status?",
+              true,
+              null,
+              "Yes, Update",
+              "Cancel",
+            );
+            if (!confirm?.isConfirmed) return;
 
-      const confirm = await showAlert(
-        "Are you sure?",
-        "question",
-        "Update recruitment status?",
-        true,
-        null,
-        "Yes, Update",
-        "Cancel"
-      );
+            try {
+              await axios.patch(
+                `${API_URL}/api/iss_mpr/${row.original.id}/recruitment-status`,
+                { recruitment_status: Number(newStatus) },
+                { headers: { Authorization: `Bearer ${user.token}` } },
+              );
+              await fetchData();
+              await showAlert("Success", "success", "Status updated", false, 1500);
+            } catch (err) {
+              await showAlert(
+                "Error",
+                "error",
+                err.response?.data?.message || "Update failed",
+                false,
+                2000,
+              );
+            }
+          };
 
-      if (!confirm?.isConfirmed) return;
-
-      try {
-        await axios.patch(
-          `${API_URL}/api/iss_mpr/${row.original.id}/recruitment-status`,
-          { recruitment_status: Number(newStatus) },
-          {
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
-
-        await fetchData();
-        await showAlert("Success", "success", "Status updated", false, 1500);
-      } catch (err) {
-        await showAlert(
-          "Error",
-          "error",
-          err.response?.data?.message || "Update failed",
-          false,
-          2000
-        );
-      }
-    };
-
-   return (
-      <div style={{ display: "flex", justifyContent: "center" }}>
-        <Select
-          size="xs"
-          value={currentStatus ? String(currentStatus) : ""}
-          onChange={handleStatusChange}
-          data={statusOptions}
-          disabled={row.original.mpr_status !== 2}
-          styles={{
-            input: {
-              textAlign: "center",
-              textAlignLast: "center",
-              fontWeight: 600,
-              backgroundColor:
-                statusColor === "green"
-                  ? "#d3f9d8"
-                  : statusColor === "blue"
-                  ? "#d0ebff"
-                  : statusColor === "red"
-                  ? "#ffc9c9"
-                  : "#e9ecef",
-              color:
-                statusColor === "green"
-                  ? "#2b8a3e"
-                  : statusColor === "blue"
-                  ? "#1864ab"
-                  : statusColor === "red"
-                  ? "#c92a2a"
-                  : "#495057",
-              border: "1px solid transparent",
-            },
-          }}
-        />
-      </div>
-    );
-  },
-},
+          return (
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <Select
+                size="xs"
+                value={currentStatus ? String(currentStatus) : ""}
+                onChange={handleStatusChange}
+                data={statusOptions}
+                disabled={row.original.mpr_status !== 2}
+                styles={{
+                  input: {
+                    textAlign: "center",
+                    textAlignLast: "center",
+                    fontWeight: 600,
+                    backgroundColor:
+                      statusColor === "green"
+                        ? "#d3f9d8"
+                        : statusColor === "blue"
+                          ? "#d0ebff"
+                          : statusColor === "red"
+                            ? "#ffc9c9"
+                            : "#e9ecef",
+                    color:
+                      statusColor === "green"
+                        ? "#2b8a3e"
+                        : statusColor === "blue"
+                          ? "#1864ab"
+                          : statusColor === "red"
+                            ? "#c92a2a"
+                            : "#495057",
+                    border: "1px solid transparent",
+                  },
+                }}
+              />
+            </div>
+          );
+        },
+      },
       {
         id: "actions",
         header: "Action",
         cell: ({ row }) => {
           const encryptedId = encrypt(String(row.original.id));
-
           return (
-           <Button
-        size="xs"
-        leftSection={<IconList size={16} />}
-        onClick={() =>
-          router.push({
-            pathname: `/iss_recruitment/detail/${encryptedId}`,
-            query: {
-              mpr_id: row.original.id,        // ← ID asli untuk fetch applicants
-              mpr_no: row.original.mpr_no,    // ← untuk ditampilkan di header
-              position: row.original.position, // ← untuk ditampilkan di header
-            },
-          })
-        }
-      >
-        Detail
-      </Button>
+            <Button
+              size="xs"
+              leftSection={<IconList size={16} />}
+              onClick={() =>
+                router.push({
+                  pathname: `/iss_recruitment/detail/${encryptedId}`,
+                  query: {
+                    mpr_id: row.original.id,
+                    mpr_no: row.original.mpr_no,
+                    position: row.original.position,
+                  },
+                })
+              }
+            >
+              Detail
+            </Button>
           );
         },
       },
     ],
-    [encrypt, router, showAlert, fetchData, API_URL, user?.token]
+    [encrypt, router, showAlert, fetchData, API_URL, user?.token],
   );
 
   /* ================= TABLE ================= */
@@ -292,11 +299,8 @@ export default function IssRecruitmentList() {
           <Paper radius="sm" mt="md" withBorder>
             <div className="px-4 py-3 border-b flex items-center gap-2">
               <IconList size={20} />
-              <h2 className="text-lg font-semibold uppercase">
-                {pageTitle}
-              </h2>
+              <h2 className="text-lg font-semibold uppercase">{pageTitle}</h2>
             </div>
-
             <div className="p-4 overflow-x-auto">
               <Datatables table={table} totalPages={totalPages} key={status} />
             </div>

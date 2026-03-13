@@ -5,7 +5,7 @@ export default function Document() {
     <Html lang="en">
       <link
           rel="icon"
-          href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/favicon.ico`}
+          href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/images/logo.png`}
         />
       <Head />
       <body className="antialiased">

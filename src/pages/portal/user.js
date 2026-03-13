@@ -69,15 +69,19 @@ export default function PortalUser() {
         header: "Role",
       },
       {
-  accessorFn: (row) => row.status_user,
-  id: "status_user",
-  header: "Account Status",
-  cell: (info) => {
-    const val = Number(info.getValue());
-    const st = statusMap[val] ?? { label: "Unknown", color: "gray" };
-    return <Badge color={st.color} variant="filled" size="sm">{st.label}</Badge>;
-  },
-},
+        accessorFn: (row) => row.status_user,
+        id: "status_user",
+        header: "Account Status",
+        cell: (info) => {
+          const val = Number(info.getValue());
+          const st = statusMap[val] ?? { label: "Unknown", color: "gray" };
+          return (
+            <Badge color={st.color} variant="filled" size="sm">
+              {st.label}
+            </Badge>
+          );
+        },
+      },
       // ===============================
       // ACTIONS
       // ===============================
@@ -106,7 +110,7 @@ export default function PortalUser() {
                 leftSection={<IconLock size={14} />}
                 style={{ flex: 1 }}
                 // Di list page, ganti encryptedId → id_user biasa
-               onClick={() => router.push(`/portal/change/${encryptedId}`)}
+                onClick={() => router.push(`/portal/change/${encryptedId}`)}
               >
                 Change Password
               </Button>
