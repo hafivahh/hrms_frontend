@@ -18,7 +18,7 @@ import Cookies from "js-cookie";
 export default function Login() {
   const router = useRouter();
   const { API_URL } = useApi();
-  const { setUser } = useUser();
+  const { user, setUser } = useUser();
 
 const [checking, setChecking] = useState(true);
   const [mode, setMode] = useState("login"); // "login" | "forgot" | "sent"
@@ -31,13 +31,14 @@ const [checking, setChecking] = useState(true);
    // ← TAMBAHKAN INI
 useEffect(() => {
   const token = Cookies.get("portal_login_token");
-  console.log("TOKEN CEK:", token); // ← lihat di browser console
+
   if (token) {
     router.replace("/");
-  } else {
-    setChecking(false);
+    return;
   }
-}, []);
+
+  setChecking(false);
+}, [router]);
 
   const resetForm = () => {
     setUsername("");
@@ -47,29 +48,53 @@ useEffect(() => {
   };
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      setError("Username and password are required");
-      return;
-    }
-    try {
-      setLoading(true);
-      setError("");
-      const res = await axios.post(`${API_URL}/api/auth/validate`, {
-        username,
-        password,
-      });
-      const data = res.data;
-      Cookies.set("portal_login_token", data.access_token, { expires: 1 });
-      Cookies.set("portal_login_name", data.name, { expires: 1 });
-      Cookies.set("portal_login_id", String(data.id), { expires: 1 });
-      setUser({ id: data.id, name: data.name, token: data.access_token });
-      router.push("/");
-    } catch (err) {
-      setError("Invalid username or password");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!username || !password) {
+    setError("Username and password are required");
+    return;
+  }
+  try {
+    setLoading(true);
+    setError("");
+    const res = await axios.post(`${API_URL}/api/auth/validate`, {
+      username,
+      password,
+    });
+    const data = res.data;
+
+    Cookies.set("portal_login_token", data.access_token, { expires: 1 });
+    Cookies.set("portal_login_name", data.name, { expires: 1 });
+    Cookies.set("portal_login_id", String(data.id), { expires: 1 });
+
+    console.log("BEFORE SETUSER - data:", {
+  id: data.id,
+  id_role: data.id_role,
+  permissions: data.permissions,
+  token: data.access_token ? "ada" : "tidak ada",
+});
+
+ const userData = {
+  id: data.id,
+  id_user: data.id,
+  id_role: data.id_role,
+  name: data.name,
+  token: data.access_token,
+  permissions: Array.isArray(data.permissions)
+    ? data.permissions.map(Number)
+    : [],
+};
+
+    setUser(userData);
+
+    // simpan manual ke localStorage
+  localStorage.setItem("user", JSON.stringify(userData));
+
+   router.push("/");
+  } catch (err) {
+    setError("Invalid username or password");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleForgotPassword = async () => {
     if (!username || !email) {
@@ -93,6 +118,7 @@ useEffect(() => {
     }
   };
 
+  if (checking) return null;
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Container size={420} w="100%">

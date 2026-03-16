@@ -108,11 +108,55 @@ export default function AddPortalUser() {
   // copy from — hanya set state, tidak auto check
   const handleCopyFrom = (userId) => setCopyFrom(userId);
 
-
   // toggle satu checkbox manual
   const handleCheckOne = (permId, val) => {
     setChecked((prev) => ({ ...prev, [String(permId)]: val }));
   };
+
+  // ── Auto-load permission dari role yang dipilih ───────────────────────
+useEffect(() => {
+  if (!form.values.id_role || !user?.token || apps.length === 0) return;
+
+  const loadRolePermissions = async () => {
+    try {
+      // 1. Fetch default permission dari role
+      const { data: rolePerms } = await axios.get(
+        `${API_URL}/api/master/role/permissions/${form.values.id_role}`,
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
+
+      // 2. Load semua app permissions ke permMap dulu (kalau belum)
+      const updatedPermMap = { ...permMap };
+      for (const app of apps) {
+        if (!updatedPermMap[app.id_application]) {
+          try {
+            const { data } = await axios.get(
+              `${API_URL}/api/permission/detail/${app.id_application}?page=0&size=500`,
+              { headers: { Authorization: `Bearer ${user.token}` } },
+            );
+            updatedPermMap[app.id_application] = data.data || [];
+          } catch {
+            updatedPermMap[app.id_application] = [];
+          }
+        }
+      }
+      setPermMap(updatedPermMap);
+
+      // 3. Set checked berdasarkan role permissions
+      const newChecked = {};
+      (rolePerms || []).forEach((p) => {
+        if (p.id_permission) newChecked[String(p.id_permission)] = true;
+      });
+      setChecked(newChecked);
+
+    } catch (err) {
+      console.error("Load role permissions error:", err);
+      setChecked({});
+    }
+  };
+
+  loadRolePermissions();
+}, [form.values.id_role, apps]);
 
   // group by permission_group
   const groupByGroup = (perms) =>

@@ -94,19 +94,22 @@ if (isPublicPage) {
         return;
       }
 
-      // ===============================
-      // FLOW 2 — Login biasa via token cookie
-      // ===============================
-      const loginToken = Cookies.get("portal_login_token");
-      if (loginToken) {
-        setUser({
-          token: loginToken,
-          name: Cookies.get("portal_login_name") || "",
-          id: Cookies.get("portal_login_id") || "",
-        });
-        setIsAuthenticated(true);
-        return;
-      }
+     // ===============================
+// FLOW 2 — Login biasa via token cookie
+// ===============================
+const loginToken = Cookies.get("portal_login_token");
+if (loginToken) {
+  // ← hanya override kalau store belum punya permissions
+  if (!user?.permissions?.length) {
+    setUser({
+      token: loginToken,
+      name: Cookies.get("portal_login_name") || "",
+      id: Cookies.get("portal_login_id") || "",
+    });
+  }
+  setIsAuthenticated(true);
+  return;
+}
 
       // ===============================
       // FLOW 3 — SSO via portal_user cookie

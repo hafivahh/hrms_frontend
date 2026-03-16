@@ -2,141 +2,102 @@ import useCollapseStore from "@/store/useLayout";
 import { ActionIcon, Collapse, Menu, NavLink } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
-  IconMenu2,
-  IconHomeFilled,
-  IconUserCog,
-  IconAccessible,
-  IconDatabase,
-  IconUsers,
-  IconList,
-  IconSettingsPlus,
+  IconMenu2, IconHomeFilled, IconUserCog, IconAccessible,
+  IconDatabase, IconUsers, IconList, IconSettingsPlus,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/router";
 import React from "react";
-
-const navigation = [
-  {
-    name: "Dashboard",
-    url: "/",
-    icon: <IconHomeFilled size={20} />,
-    permission: 1,
-  },
-  {
-    name: "Administrator",
-    url: "/portal/dashboard",
-    icon: <IconSettingsPlus size={20} />,
-    permission: 1,
-  },
-  {
-    name: "ISS",
-    icon: <IconUserCog size={20} />,
-    permission: 1,
-    child: [
-      {
-        title: "Employee",
-        url: "/employee/dashboard",
-        icon: <IconUserCog size={18} />,
-      },
-      {
-        title: "Document Work",
-        url: "/iss_documents/dashboard",
-        icon: <IconUserCog size={18} />,
-      },
-      {
-        title: "Leave",
-        url: "/leave_manage/dashboard",
-        icon: <IconList size={18} />,
-      },
-      {
-        title: "MPR",
-        url: "/iss_mpr/dashboard",
-        icon: <IconList size={18} />,
-      },
-      {
-        title: "Recruitment",
-        url: "/iss_recruitment/dashboard",
-        icon: <IconList size={14} />,
-      },
-    ],
-  },
-  {
-    name: "ESS",
-    icon: <IconUsers size={20} />,
-    permission: 1,
-    child: [
-      {
-        title: "Profile",
-        url: "/ess_profile",
-        icon: <IconUsers size={18} />,
-      },
-      {
-        title: "Leave Request",
-        url: "/ess_leave/list",
-        icon: <IconList size={18} />,
-      },
-      {
-        title: "Documents",
-        url: "/ess_documents",
-        icon: <IconList size={18} />,
-      },
-      {
-        title: "Attendance",
-        url: "/pss/attendance",
-        icon: <IconAccessible size={18} />,
-      },
-    ],
-  },
-  {
-    name: "Master Data",
-    icon: <IconDatabase size={20} />,
-    permission: 1,
-    child: [
-      {
-        title: "Master Departement",
-        url: "/master/departement/list",
-        icon: <IconDatabase size={18} />,
-      },
-      {
-        title: "Master Project",
-        url: "/master/project/list",
-        icon: <IconDatabase size={18} />,
-      },
-      {
-        title: "Master Company",
-        url: "/master/company/list",
-        icon: <IconDatabase size={18} />,
-      },
-      {
-        title: "Master Position",
-        url: "/master/position/list",
-        icon: <IconDatabase size={18} />,
-      },
-      {
-        title: "Master Role",
-        url: "/master/role/list",
-        icon: <IconDatabase size={18} />,
-      },
-      {
-        title: "Master Leave Type",
-        url: "/master/leave/list",
-        icon: <IconDatabase size={18} />,
-      },
-    ],
-  },
-];
+import useUser from "@/store/useUser";
+import Cookies from "js-cookie";
 
 export default function Navigation() {
   const router = useRouter();
   const [opened, { toggle }] = useDisclosure(false);
   const { toggleCollapse } = useCollapseStore();
   const path = usePathname();
+ const { user } = useUser();
 
-  // Render desktop menu
-  const desktopItems = navigation.map((link, index) => {
+const permissions =
+  user?.permissions?.length > 0
+    ? user.permissions
+    : JSON.parse(Cookies.get("portal_login_permissions") || "[]");
+
+  const hasPermission = (indexKey) => {
+    console.log("ini user", user)
+    console.log("ini index", indexKey)
+    console.log("ini permissions", permissions)
+     console.log("cek", indexKey, permissions.includes(indexKey));
+    if (indexKey === null) return true;
+    return permissions.some((p) => Number(p) === Number(indexKey));
+  };
+
+  const navigation = [
+    {
+      name: "Dashboard",
+      url: "/",
+      icon: <IconHomeFilled size={20} />,
+      indexKey: null,
+    },
+    {
+      name: "Administrator",
+      url: "/portal/dashboard",
+      icon: <IconSettingsPlus size={20} />,
+      indexKey: 50,
+    },
+    {
+      name: "ISS",
+      icon: <IconUserCog size={20} />,
+      indexKey: null,
+      child: [
+        { title: "Employee",      url: "/employee/dashboard",        icon: <IconUserCog size={18} />, indexKey: 45 },
+        { title: "Document Work", url: "/iss_documents/dashboard",   icon: <IconUserCog size={18} />, indexKey: 46 },
+        { title: "Leave",         url: "/leave_manage/dashboard",    icon: <IconList size={18} />,    indexKey: 47 },
+        { title: "MPR",           url: "/iss_mpr/dashboard",         icon: <IconList size={18} />,    indexKey: 48 },
+        { title: "Recruitment",   url: "/iss_recruitment/dashboard", icon: <IconList size={14} />,    indexKey: 49 },
+      ],
+    },
+    {
+      name: "ESS",
+      icon: <IconUsers size={20} />,
+      indexKey: null,
+      child: [
+        { title: "Profile",       url: "/ess_profile",    icon: <IconUsers size={18} />,      indexKey: 52 },
+        { title: "Leave Request", url: "/ess_leave/list", icon: <IconList size={18} />,       indexKey: 53 },
+        { title: "Documents",     url: "/ess_documents",  icon: <IconList size={18} />,       indexKey: 54 },
+      ],
+    },
+    {
+      name: "Master Data",
+      icon: <IconDatabase size={20} />,
+      indexKey: 51,
+      child: [
+        { title: "Master Departement", url: "/master/departement/list", icon: <IconDatabase size={18} />, indexKey: 51 },
+        { title: "Master Project",     url: "/master/project/list",     icon: <IconDatabase size={18} />, indexKey: 51 },
+        { title: "Master Company",     url: "/master/company/list",     icon: <IconDatabase size={18} />, indexKey: 51 },
+        { title: "Master Position",    url: "/master/position/list",    icon: <IconDatabase size={18} />, indexKey: 51 },
+        { title: "Master Role",        url: "/master/role/list",        icon: <IconDatabase size={18} />, indexKey: 51 },
+        { title: "Master Leave Type",  url: "/master/leave/list",       icon: <IconDatabase size={18} />, indexKey: 51 },
+      ],
+    },
+  ];
+
+  const filteredNavigation = navigation
+    .map((link) => {
+      if (link.child) {
+const filteredChildren = link.child.filter((c) => hasPermission(c.indexKey));
+        // console.log("ini filterchildren", filteredChildren)
+        if (filteredChildren.length === 0) return null;
+        return { ...link, child: filteredChildren };
+      }
+      if (!hasPermission(link.indexKey)) return null;
+      return link;
+    })
+    .filter(Boolean);
+
+  const desktopItems = filteredNavigation.map((link, index) => {
     if (link.child) {
-      // Parent menu with dropdown
       return (
         <Menu key={index} shadow="md" position="bottom-start">
           <Menu.Target>
@@ -148,17 +109,15 @@ export default function Navigation() {
           <Menu.Dropdown>
             {link.child.map((item, idx) => (
               <Link href={item.url} key={idx}>
-              <Menu.Item icon={item.icon}>
-                {item.title}
-              </Menu.Item>
+                <Menu.Item icon={item.icon}>
+                  {item.title}
+                </Menu.Item>
               </Link>
             ))}
           </Menu.Dropdown>
         </Menu>
       );
     }
-
-    // Normal single link
     return (
       <Link
         key={index}
@@ -173,8 +132,7 @@ export default function Navigation() {
     );
   });
 
-  // Render mobile menu
-  const mobileItems = navigation.map((link, index) => (
+  const mobileItems = filteredNavigation.map((link, index) => (
     <div key={index} className="text-white">
       {link.child ? (
         <NavLink
@@ -207,7 +165,6 @@ export default function Navigation() {
 
   return (
     <>
-      {/* Desktop & tablet navbar */}
       <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-blue-900 px-4 py-2 hidden">
         <div className="flex items-center gap-2">
           <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
@@ -217,7 +174,6 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* Mobile Navbar */}
       <nav className="md:hidden w-full flex items-center justify-between bg-blue-900 px-4 py-2 sticky top-0 z-50">
         <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
           <IconMenu2 color="white" />
@@ -227,7 +183,6 @@ export default function Navigation() {
         </ActionIcon>
       </nav>
 
-      {/* Mobile menu collapse */}
       <Collapse in={opened} className="md:hidden w-full bg-blue-900">
         <nav className="flex flex-col px-4 py-2">{mobileItems}</nav>
       </Collapse>

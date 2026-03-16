@@ -6,6 +6,7 @@ import useSwal from "@/hooks/useSwal";
 import useUser from "@/store/useUser";
 import { Button, Paper, Select, Badge } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
+import usePermission from "@/hooks/usePermission";
 import {
   IconTrash,
   IconPencil,
@@ -27,6 +28,7 @@ export default function List() {
   const API = useApi();
   const API_URL = API.API_URL;
   const { showAlert } = useSwal();
+  const { hasPermission } = usePermission(); 
 
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
@@ -166,14 +168,16 @@ export default function List() {
               >
                 Detail
               </Button>
-              <Button
-                size="xs"
-                color="yellow"
-                onClick={() => router.push(`/employee/edit/${encryptedId}`)}
-                leftSection={<IconPencil size={16} />}
-              >
-                Edit
-              </Button>
+              {hasPermission(4) && (
+                <Button
+                  size="xs"
+                  color="yellow"
+                  onClick={() => router.push(`/employee/edit/${encryptedId}`)}
+                  leftSection={<IconPencil size={16} />}
+                >
+                  Edit
+                </Button>
+              )}
               <Button
                 size="xs"
                 color="red"
@@ -187,9 +191,10 @@ export default function List() {
         },
       },
     ],
-    [encrypt],
+   [encrypt, hasPermission],
   );
 
+  
   const handleDelete = async (encryptedId) => {
     const confirm = await showAlert(
       "Are You Sure?",
@@ -587,13 +592,15 @@ export default function List() {
                 >
                   Download
                 </Button>
-                <Button
-                  size="xs"
-                  leftSection={<IconPlus size={16} />}
-                  onClick={() => router.push("/employee/create")}
-                >
-                  Add Employee
-                </Button>
+               {hasPermission(2) && (
+                  <Button
+                    size="xs"
+                    leftSection={<IconPlus size={16} />}
+                    onClick={() => router.push("/employee/create")}
+                  >
+                    Add Employee
+                  </Button>
+                )}
               </div>
             </div>
             <div className="p-4 overflow-x-auto">
