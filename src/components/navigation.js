@@ -2,37 +2,42 @@ import useCollapseStore from "@/store/useLayout";
 import { ActionIcon, Collapse, Menu, NavLink } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
-  IconMenu2, IconHomeFilled, IconUserCog, IconAccessible,
-  IconDatabase, IconUsers, IconList, IconSettingsPlus,
+  IconMenu2,
+  IconHomeFilled,
+  IconUserCog,
+  IconDatabase,
+  IconUsers,
+  IconList,
+  IconSettingsPlus,
+  IconFolder,
+  IconCalendar,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRouter } from "next/router";
 import React from "react";
 import useUser from "@/store/useUser";
-import Cookies from "js-cookie";
 
 export default function Navigation() {
-  const router = useRouter();
   const [opened, { toggle }] = useDisclosure(false);
   const { toggleCollapse } = useCollapseStore();
   const path = usePathname();
- const { user } = useUser();
+  const { user } = useUser();
 
-const permissions =
-  user?.permissions?.length > 0
-    ? user.permissions
-    : JSON.parse(Cookies.get("portal_login_permissions") || "[]");
+  const permissions = user?.permissions || [];
+  const isHR = Number(user?.id_role) === 2;
+  const isDashboard = path === "/";
 
+  // ✅ Permission logic
   const hasPermission = (indexKey) => {
-    console.log("ini user", user)
-    console.log("ini index", indexKey)
-    console.log("ini permissions", permissions)
-     console.log("cek", indexKey, permissions.includes(indexKey));
     if (indexKey === null) return true;
+
+    // HR tidak boleh akses Administrator
+    if (isHR) return Number(indexKey) !== 50;
+
     return permissions.some((p) => Number(p) === Number(indexKey));
   };
 
+  // ✅ SATU NAVIGATION UNTUK SEMUA ROLE
   const navigation = [
     {
       name: "Dashboard",
@@ -42,7 +47,7 @@ const permissions =
     },
     {
       name: "Administrator",
-      url: "/portal/dashboard",
+      url: "/portal/user",
       icon: <IconSettingsPlus size={20} />,
       indexKey: 50,
     },
@@ -51,11 +56,36 @@ const permissions =
       icon: <IconUserCog size={20} />,
       indexKey: null,
       child: [
-        { title: "Employee",      url: "/employee/dashboard",        icon: <IconUserCog size={18} />, indexKey: 45 },
-        { title: "Document Work", url: "/iss_documents/dashboard",   icon: <IconUserCog size={18} />, indexKey: 46 },
-        { title: "Leave",         url: "/leave_manage/dashboard",    icon: <IconList size={18} />,    indexKey: 47 },
-        { title: "MPR",           url: "/iss_mpr/dashboard",         icon: <IconList size={18} />,    indexKey: 48 },
-        { title: "Recruitment",   url: "/iss_recruitment/dashboard", icon: <IconList size={14} />,    indexKey: 49 },
+        {
+          title: "Employee",
+          url: "/employee/dashboard",
+          icon: <IconUserCog size={18} />,
+          indexKey: 45,
+        },
+        {
+          title: "Document Work",
+          url: "/iss_documents/dashboard",
+          icon: <IconUserCog size={18} />,
+          indexKey: 46,
+        },
+        {
+          title: "Leave",
+          url: "/leave_manage/list/all",
+          icon: <IconList size={18} />,
+          indexKey: 47,
+        },
+        {
+          title: "MPR",
+          url: "/iss_mpr/dashboard",
+          icon: <IconList size={18} />,
+          indexKey: 48,
+        },
+        {
+          title: "Recruitment",
+          url: "/iss_recruitment/dashboard",
+          icon: <IconList size={14} />,
+          indexKey: 49,
+        },
       ],
     },
     {
@@ -63,9 +93,24 @@ const permissions =
       icon: <IconUsers size={20} />,
       indexKey: null,
       child: [
-        { title: "Profile",       url: "/ess_profile",    icon: <IconUsers size={18} />,      indexKey: 52 },
-        { title: "Leave Request", url: "/ess_leave/list", icon: <IconList size={18} />,       indexKey: 53 },
-        { title: "Documents",     url: "/ess_documents",  icon: <IconList size={18} />,       indexKey: 54 },
+        {
+          title: "Profile",
+          url: "/ess_profile",
+          icon: <IconUsers size={18} />,
+          indexKey: 52,
+        },
+        {
+          title: "Leave Request",
+          url: "/ess_leave/list",
+          icon: <IconCalendar size={18} />,
+          indexKey: 53,
+        },
+        {
+          title: "Documents",
+          url: "/ess_documents",
+          icon: <IconFolder size={18} />,
+          indexKey: 54,
+        },
       ],
     },
     {
@@ -73,29 +118,68 @@ const permissions =
       icon: <IconDatabase size={20} />,
       indexKey: 51,
       child: [
-        { title: "Master Departement", url: "/master/departement/list", icon: <IconDatabase size={18} />, indexKey: 51 },
-        { title: "Master Project",     url: "/master/project/list",     icon: <IconDatabase size={18} />, indexKey: 51 },
-        { title: "Master Company",     url: "/master/company/list",     icon: <IconDatabase size={18} />, indexKey: 51 },
-        { title: "Master Position",    url: "/master/position/list",    icon: <IconDatabase size={18} />, indexKey: 51 },
-        { title: "Master Role",        url: "/master/role/list",        icon: <IconDatabase size={18} />, indexKey: 51 },
-        { title: "Master Leave Type",  url: "/master/leave/list",       icon: <IconDatabase size={18} />, indexKey: 51 },
+        {
+          title: "Master Departement",
+          url: "/master/departement/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 51,
+        },
+        {
+          title: "Master Project",
+          url: "/master/project/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 51,
+        },
+        {
+          title: "Master Company",
+          url: "/master/company/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 51,
+        },
+        {
+          title: "Master Position",
+          url: "/master/position/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 51,
+        },
+        {
+          title: "Master Role",
+          url: "/master/role/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 51,
+        },
+        {
+          title: "Master Leave Type",
+          url: "/master/leave/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 51,
+        },
       ],
     },
   ];
 
-  const filteredNavigation = navigation
-    .map((link) => {
-      if (link.child) {
-const filteredChildren = link.child.filter((c) => hasPermission(c.indexKey));
-        // console.log("ini filterchildren", filteredChildren)
-        if (filteredChildren.length === 0) return null;
-        return { ...link, child: filteredChildren };
-      }
-      if (!hasPermission(link.indexKey)) return null;
-      return link;
-    })
-    .filter(Boolean);
+  // ✅ FILTER PERMISSION
+ const isStaff = Number(user?.id_role) === 4;
 
+const filteredNavigation = navigation
+  .map((link) => {
+    // ❌ HIDE ESS UNTUK STAFF
+    if (isStaff && link.name === "ESS") return null;
+
+    if (link.child) {
+      const filteredChildren = link.child.filter((c) =>
+        hasPermission(c.indexKey)
+      );
+      if (filteredChildren.length === 0) return null;
+      return { ...link, child: filteredChildren };
+    }
+
+    if (!hasPermission(link.indexKey)) return null;
+    return link;
+  })
+  .filter(Boolean);
+
+  // ✅ DESKTOP
   const desktopItems = filteredNavigation.map((link, index) => {
     if (link.child) {
       return (
@@ -109,15 +193,14 @@ const filteredChildren = link.child.filter((c) => hasPermission(c.indexKey));
           <Menu.Dropdown>
             {link.child.map((item, idx) => (
               <Link href={item.url} key={idx}>
-                <Menu.Item icon={item.icon}>
-                  {item.title}
-                </Menu.Item>
+                <Menu.Item icon={item.icon}>{item.title}</Menu.Item>
               </Link>
             ))}
           </Menu.Dropdown>
         </Menu>
       );
     }
+
     return (
       <Link
         key={index}
@@ -132,6 +215,7 @@ const filteredChildren = link.child.filter((c) => hasPermission(c.indexKey));
     );
   });
 
+  // ✅ MOBILE
   const mobileItems = filteredNavigation.map((link, index) => (
     <div key={index} className="text-white">
       {link.child ? (
@@ -165,25 +249,31 @@ const filteredChildren = link.child.filter((c) => hasPermission(c.indexKey));
 
   return (
     <>
-      <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-blue-900 px-4 py-2 hidden">
+      {/* DESKTOP */}
+      <nav className="w-full sticky top-0 z-50 md:flex items-center justify-between bg-sky-700 px-4 py-2 hidden">
         <div className="flex items-center gap-2">
-          <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
-            <IconMenu2 color="white" />
-          </ActionIcon>
+          {!isDashboard && (
+            <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
+              <IconMenu2 color="white" />
+            </ActionIcon>
+          )}
           <div className="flex gap-1 items-center">{desktopItems}</div>
         </div>
       </nav>
 
-      <nav className="md:hidden w-full flex items-center justify-between bg-blue-900 px-4 py-2 sticky top-0 z-50">
-        <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
-          <IconMenu2 color="white" />
-        </ActionIcon>
+      {/* MOBILE */}
+      <nav className="md:hidden w-full flex items-center justify-between bg-sky-700 px-4 py-2 sticky top-0 z-50">
+        {!isDashboard && (
+          <ActionIcon variant="subtle" size="xl" onClick={toggleCollapse}>
+            <IconMenu2 color="white" />
+          </ActionIcon>
+        )}
         <ActionIcon variant="subtle" size="xl" onClick={toggle}>
           <IconMenu2 color="white" />
         </ActionIcon>
       </nav>
 
-      <Collapse in={opened} className="md:hidden w-full bg-blue-900">
+      <Collapse in={opened} className="md:hidden w-full bg-sky-700">
         <nav className="flex flex-col px-4 py-2">{mobileItems}</nav>
       </Collapse>
     </>

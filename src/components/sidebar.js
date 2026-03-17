@@ -10,14 +10,14 @@ export default function Sidebar({ className, sidebarList }) {
   const router = useRouter();
 
   return (
-    <aside
-      className={cn(
-        `bg-slate-800 h-full left-0 md:h-auto top-0 z-40 border-r-2 border-r-muted transition-[width] md:bottom-0 md:right-auto ${
-          sidebarCollapsed ? "md:w-0 w-0" : "md:w-64 w-80"
-        }`,
-        className
-      )}
-    >
+   <aside
+  className={cn(
+    `bg-sky-900 h-full left-0 md:h-auto top-0 z-40 transition-[width] md:bottom-0 md:right-auto ${
+      sidebarCollapsed ? "md:w-0 w-0" : "md:w-64 w-80"
+    }`,
+    className
+  )}
+>
       {sidebarCollapsed
         ? null
         : sidebarList.map((item, index) => (
@@ -27,6 +27,7 @@ export default function Sidebar({ className, sidebarList }) {
               label={item.title}
               leftSection={item.icon}
               variant="filled"
+               color="cyan"    
               active={item.href === path}
               childrenOffset={28}
               style={{ color: "white" }}
@@ -42,6 +43,7 @@ export default function Sidebar({ className, sidebarList }) {
                     label={child.title}
                     leftSection={child.icon}
                     variant="filled"
+                     color="cyan"    
                     active={child.href === path}
                     childrenOffset={28}
                     bg="bg-slate-800"

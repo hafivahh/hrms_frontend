@@ -11,19 +11,19 @@ export const adminOnly = [
     href: "",
     icon: <IconListLetters size={14} />,
     child: [
+      // {
+      //   title: "Dashboard",
+      //   href: "/portal/dashboard",
+      //   icon: <IconCaretRightFilled size={14} />,
+      // },
       {
-        title: "Dashboard",
-        href: "/portal/dashboard",
+        title: "User List",
+        href: "/portal/user",
         icon: <IconCaretRightFilled size={14} />,
       },
       {
         title: "Control Permission",
         href: "/permission/application",
-        icon: <IconCaretRightFilled size={14} />,
-      },
-      {
-        title: "User List",
-        href: "/portal/user",
         icon: <IconCaretRightFilled size={14} />,
       },
       {
@@ -86,11 +86,11 @@ const leaveMenu = {
   href: "",
   icon: <IconListLetters size={14} />,
   child: [
-    {
-      title: "Dashboard",
-      href: "/leave_manage/dashboard",
-      icon: <IconCaretRightFilled size={14} />,
-    },
+    // {
+    //   title: "Dashboard",
+    //   href: "/leave_manage/dashboard",
+    //   icon: <IconCaretRightFilled size={14} />,
+    // },
     {
       title: "List",
       href: "/leave_manage/list/all",

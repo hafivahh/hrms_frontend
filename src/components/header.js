@@ -22,15 +22,15 @@ export default function Header() {
   const LINK_PORTAL = API.LINK_PORTAL;
 
   const handleLogout = () => {
-  Cookies.remove("portal_login_token");
-  Cookies.remove("portal_login_name");
-  Cookies.remove("portal_login_id");
-  Cookies.remove("portal_user");
+    Cookies.remove("portal_login_token");
+    Cookies.remove("portal_login_name");
+    Cookies.remove("portal_login_id");
+    Cookies.remove("portal_user");
 
-  logout();
+    logout();
 
-  router.replace("/login");
-};
+    router.replace("/login");
+  };
 
   return (
     <header className="flex flex-col md:flex-row items-center md:justify-between py-8 px-8">
@@ -46,8 +46,8 @@ export default function Header() {
         <Menu shadow="md" width={200} position="bottom-end">
           <Menu.Target>
             <Button
-               variant="filled"
-  style={{ backgroundColor: "#1e3a5f" }}
+              variant="filled"
+              style={{ backgroundColor: "#0369a1" }}
               rightSection={<IconChevronDown size={16} />}
               leftSection={<IconUser size={20} />}
             >
@@ -59,7 +59,7 @@ export default function Header() {
             <Menu.Item
               leftSection={<IconUserCircle size={16} />}
               onClick={() => {
-                router.push("/ess_profile"); 
+                router.push("/ess_profile");
               }}
             >
               Profile

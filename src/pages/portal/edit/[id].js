@@ -287,7 +287,7 @@ export default function EditPortalUser() {
       );
 
       await showAlert("Success", "success", res.data?.message || "User updated successfully", false, 1500);
-      router.push("/portal/user");
+      router.push("/portal/user=");
     } catch (error) {
       showAlert("Error", "error", error.response?.data?.message || "Failed to update user");
     } finally {
