@@ -80,8 +80,31 @@ export default function ApplicationList() {
         cell: ({ row }) => {
           const app = row.original;
           const encryptedId = encrypt(String(app.id_application)); // ← tambah
+          //   return (
+          //     <div className="flex gap-2 w-fit">
+          //       <Button
+          //         size="xs"
+          //         color="gray"
+          //         leftSection={<IconShield size={14} />}
+          //         onClick={
+          //           () => router.push(`/permission/detail/${encryptedId}`) // ← pakai encryptedId
+          //         }
+          //       >
+          //         Permission
+          //       </Button>
+          //      <Button
+          //   size="xs"
+          //   color="yellow"
+          //   leftSection={<IconPencil size={14} />}
+          //   onClick={() => handleEdit(app)}
+          // >
+          //   Edit
+          // </Button>
+          //     </div>
+
+          //   );
           return (
-            <div className="flex flex-col gap-2 w-fit">
+            <Button.Group>
               <Button
                 size="xs"
                 color="gray"
@@ -94,21 +117,13 @@ export default function ApplicationList() {
               </Button>
               <Button
                 size="xs"
-                color="gray"
-                leftSection={<IconBolt size={14} />}
-                onClick={() =>
-                  showAlert("Info", "info", "Quick Change feature coming soon")
-                }
-              >
-                Quick Change
-              </Button>
-              <Button
-                size="xs"
                 color="yellow"
                 leftSection={<IconPencil size={14} />}
                 onClick={() => handleEdit(app)}
-              />
-            </div>
+              >
+                Edit
+              </Button>
+            </Button.Group>
           );
         },
       },

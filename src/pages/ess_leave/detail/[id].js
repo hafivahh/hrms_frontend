@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Paper, Badge, Loader, Button } from "@mantine/core";
 import AuthLayout from "@/components/layout/authLayout";
-import { ess as sidebarData } from "@/data/sidebar/ess";
+
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
@@ -20,8 +20,6 @@ export default function LeaveDetailPage() {
 
   const [leave, setLeave] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const sidebarList = sidebarData;
 
   const statusMap = {
     0: { label: "Draft", color: "gray" },
@@ -123,13 +121,13 @@ export default function LeaveDetailPage() {
 
   if (!leave)
     return (
-      <AuthLayout sidebarList={sidebarList}>
+         <AuthLayout sidebarList={[]}>
         <div className="text-center mt-8">Leave data not found</div>
       </AuthLayout>
     );
 
   return (
-    <AuthLayout sidebarList={sidebarList}>
+       <AuthLayout sidebarList={[]}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

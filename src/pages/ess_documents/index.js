@@ -1,6 +1,5 @@
 import Datatables from "@/components/custom/Datatables";
 import AuthLayout from "@/components/layout/authLayout";
-import { ess } from "@/data/sidebar/ess";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { Paper, Button } from "@mantine/core";
@@ -189,7 +188,7 @@ export default function IssDocumentsList() {
   }, [fetchData]);
 
   return (
-    <AuthLayout sidebarList={ess}>
+      <AuthLayout sidebarList={[]}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

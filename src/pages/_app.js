@@ -90,43 +90,39 @@ export default function App({ Component, pageProps }) {
         return;
       }
 
-      // ===============================
       // FLOW 2 — Login biasa via token cookie
-      // ===============================
-      const loginToken = Cookies.get("portal_login_token");
-      if (loginToken) {
-        // Selalu fetch permissions terbaru dari backend
-        try {
-          const res = await axios.post(
-            `${API_URL}/api/auth/refresh-permissions`,
-            {},
-            {
-              headers: { Authorization: `Bearer ${loginToken}` },
-            },
-          );
-          // update store dengan data terbaru
-          setUser({
-            ...user,
-            token: loginToken,
-            name: Cookies.get("portal_login_name") || user?.name || "",
-            id: Cookies.get("portal_login_id") || user?.id || "",
-            id_user: Cookies.get("portal_login_id") || user?.id || "",
-            id_role: res.data?.id_role,
-            permissions: res.data?.permissions ?? [],
-          });
-        } catch {
-          // fallback ke store kalau fetch gagal
-          if (!user?.permissions?.length) {
-            setUser({
-              token: loginToken,
-              name: Cookies.get("portal_login_name") || "",
-              id: Cookies.get("portal_login_id") || "",
-            });
-          }
-        }
-        setIsAuthenticated(true);
-        return;
-      }
+const loginToken = Cookies.get("portal_login_token");
+if (loginToken) {
+  try {
+    const res = await axios.post(
+      `${API_URL}/api/auth/refresh-permissions`,
+      {},
+      { headers: { Authorization: `Bearer ${loginToken}` } },
+    );
+
+    // ← tidak pakai ...user spread, langsung assign fresh dari DB
+    setUser({
+      token:       loginToken,
+      name:        Cookies.get("portal_login_name") || "",
+      id:          Cookies.get("portal_login_id")   || "",
+      id_user:     Cookies.get("portal_login_id")   || "",
+      id_role:     res.data?.id_role  ?? null,
+      permissions: res.data?.permissions ?? [],  // ← fresh dari DB setiap load
+    });
+  } catch {
+    // fallback jika token expired atau backend down
+    setUser({
+      token:       loginToken,
+      name:        Cookies.get("portal_login_name") || "",
+      id:          Cookies.get("portal_login_id")   || "",
+      id_user:     Cookies.get("portal_login_id")   || "",
+      id_role:     Cookies.get("portal_login_role") || null,
+      permissions: [],
+    });
+  }
+  setIsAuthenticated(true);
+  return;
+}
 
       // ===============================
       // FLOW 3 — SSO via portal_user cookie

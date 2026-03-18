@@ -184,7 +184,7 @@ export default function List() {
             {/* Tombol di kanan */}
             <div className="px-4 py-2 text-right space-x-2">
               <Button
-                size="sx"
+                size="xs"
                  leftSection={<IconPlus size={16} />}
                 onClick={() => router.push("/master/leave/create")}
               >

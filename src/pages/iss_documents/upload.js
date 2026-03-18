@@ -137,7 +137,7 @@ attachmentFiles.forEach((file) => {
                         color="green"
                         leftSection={<IconDownload size={16} />}
                         onClick={handleDownloadTemplate}
-                        size="sm"
+                        size="xs"
                       >
                         Download Template File Attachment
                       </Button>
@@ -218,7 +218,7 @@ attachmentFiles.forEach((file) => {
                   </Group>
                 )}
                 <Button
-                  leftSection={<IconUpload size={16} />}
+                size="xs"
                   onClick={handleSubmit}
                   loading={loading}
                 >

@@ -106,7 +106,24 @@ export default function AddPortalUser() {
   };
 
   // copy from — hanya set state, tidak auto check
-  const handleCopyFrom = (userId) => setCopyFrom(userId);
+   const handleCopyFrom = (userId) => setCopyFrom(userId);
+
+  const handleApplyCopy = async () => {
+    if (!copyFrom) return;
+    try {
+      const { data } = await axios.get(
+        `${API_URL}/api/user/permissions/${copyFrom}`,
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
+      const newChecked = {};
+      (data || []).forEach((p) => {
+        if (p.id_permission) newChecked[String(p.id_permission)] = true;
+      });
+      setChecked(newChecked);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // toggle satu checkbox manual
   const handleCheckOne = (permId, val) => {
@@ -268,22 +285,29 @@ useEffect(() => {
                   </legend>
 
                   {/* Copy Permission From */}
-                  <div className="flex items-center gap-4 mt-2 mb-4">
-                    <span className="text-sm text-gray-600 whitespace-nowrap w-44">
-                      Copy Permission From
-                    </span>
-                    <Select
-                      placeholder="-- Select User Reference --"
-                      data={copyUsers}
-                      searchable
-                      clearable
-                      value={copyFrom}
-                      onChange={handleCopyFrom}
-                      className="flex-1"
-                      size="sm"
-                    />
-                    
-                  </div>
+                 <div className="flex items-center gap-4 mt-2 mb-4">
+                                     <span className="text-sm text-gray-600 whitespace-nowrap w-44">
+                                       Copy Permission From
+                                     </span>
+                                     <Select
+                                       placeholder="-- Select User Reference --"
+                                       data={copyUsers}
+                                       searchable
+                                       clearable
+                                       value={copyFrom}
+                                       onChange={handleCopyFrom}
+                                       className="flex-1"
+                                       size="sm"
+                                     />
+                                     <Button
+                                       size="xs"
+                                       variant="default"
+                                       disabled={!copyFrom}
+                                       onClick={handleApplyCopy}
+                                     >
+                                       Apply
+                                     </Button>
+                                   </div>
 
                   {/* App list */}
                   <div className="flex flex-col divide-y divide-gray-100">

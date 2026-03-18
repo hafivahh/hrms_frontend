@@ -117,6 +117,10 @@ export default function CheckEmployee() {
     }
   };
 
+  const hasActionPermission = user?.permissions?.some(
+    (p) => Number(p.index_key) === 6,
+  );
+
   return (
     <AuthLayout sidebarList={employeeOnly}>
       <div className="py-6">
@@ -183,7 +187,7 @@ export default function CheckEmployee() {
                         <Table.Th>Project</Table.Th>
                         <Table.Th>Company</Table.Th>
                         <Table.Th>Status</Table.Th>
-                        <Table.Th>Actions</Table.Th>
+                        {hasActionPermission && <Table.Th>Actions</Table.Th>}
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -207,29 +211,31 @@ export default function CheckEmployee() {
                               </Badge>
                             )}
                           </Table.Td>
-                          <Table.Td>
-                            {item.status_active === 1 ? (
-                              <Button
-                                size="xs"
-                                color="gray"
-                                disabled
-                                leftSection={<IconToggleRight size={14} />}
-                              >
-                                Enabled
-                              </Button>
-                            ) : (
-                              <Button
-                                size="xs"
-                                color="blue"
-                                leftSection={<IconToggleRight size={14} />}
-                                onClick={() =>
-                                  handleEnable(item.id, item.full_name)
-                                }
-                              >
-                                Enable
-                              </Button>
-                            )}
-                          </Table.Td>
+                          {hasActionPermission && (
+                            <Table.Td>
+                              {item.status_active === 1 ? (
+                                <Button
+                                  size="xs"
+                                  color="gray"
+                                  disabled
+                                  leftSection={<IconToggleRight size={14} />}
+                                >
+                                  Enabled
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="xs"
+                                  color="blue"
+                                  leftSection={<IconToggleRight size={14} />}
+                                  onClick={() =>
+                                    handleEnable(item.id, item.full_name)
+                                  }
+                                >
+                                  Enable
+                                </Button>
+                              )}
+                            </Table.Td>
+                          )}
                         </Table.Tr>
                       ))}
                     </Table.Tbody>

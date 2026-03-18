@@ -462,7 +462,7 @@ function HRDashboard() {
         sub: "not active",
         icon: <IconUserOff size={20} color="#dc2626" />,
         color: "#dc2626", bg: "#fee2e2",
-        link: "/employee/list",
+        link: "/employee/check",
         linkText: "View inactive employees",
       },
     ] : []),

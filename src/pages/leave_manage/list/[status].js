@@ -239,6 +239,7 @@ export default function ListLeaveByStatus({ status }) {
 
   // FETCH DATA
   const fetchData = useCallback(async () => {
+    if (!user?.token) return;
     const isAll = status === "all";
 
     const sort =
