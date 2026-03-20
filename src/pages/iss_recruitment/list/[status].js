@@ -27,6 +27,10 @@ export default function IssRecruitmentList() {
   const API = useApi();
   const API_URL = API.API_URL;
 
+  // PERMISSION
+  const permissions = user?.permissions || [];
+  const canUpdateRecruitment = permissions.some((p) => Number(p) === 25);
+
   const allowedStatus = ["all", "open", "fulfillment", "closed", "cancel"];
 
   /* ================= VALIDATE STATUS ================= */
@@ -199,7 +203,13 @@ export default function IssRecruitmentList() {
                 { headers: { Authorization: `Bearer ${user.token}` } },
               );
               await fetchData();
-              await showAlert("Success", "success", "Status updated", false, 1500);
+              await showAlert(
+                "Success",
+                "success",
+                "Status updated",
+                false,
+                1500,
+              );
             } catch (err) {
               await showAlert(
                 "Error",
@@ -211,6 +221,9 @@ export default function IssRecruitmentList() {
             }
           };
 
+          const editable =
+            row.original.mpr_status === 2 && canUpdateRecruitment;
+
           return (
             <div style={{ display: "flex", justifyContent: "center" }}>
               <Select
@@ -218,12 +231,13 @@ export default function IssRecruitmentList() {
                 value={currentStatus ? String(currentStatus) : ""}
                 onChange={handleStatusChange}
                 data={statusOptions}
-                disabled={row.original.mpr_status !== 2}
+                disabled={!editable}
                 styles={{
                   input: {
                     textAlign: "center",
                     textAlignLast: "center",
                     fontWeight: 600,
+
                     backgroundColor:
                       statusColor === "green"
                         ? "#d3f9d8"
@@ -231,7 +245,8 @@ export default function IssRecruitmentList() {
                           ? "#d0ebff"
                           : statusColor === "red"
                             ? "#ffc9c9"
-                            : "#e9ecef",
+                            : "#fff3bf",
+
                     color:
                       statusColor === "green"
                         ? "#2b8a3e"
@@ -239,8 +254,12 @@ export default function IssRecruitmentList() {
                           ? "#1864ab"
                           : statusColor === "red"
                             ? "#c92a2a"
-                            : "#495057",
+                            : "#e67700",
+
                     border: "1px solid transparent",
+
+                    cursor: editable ? "pointer" : "not-allowed",
+                    opacity: editable ? 1 : 0.8,
                   },
                 }}
               />

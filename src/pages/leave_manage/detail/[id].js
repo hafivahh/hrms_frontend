@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Paper, Badge, Button, Loader } from "@mantine/core";
 import AuthLayout from "@/components/layout/authLayout";
-import {leaveOnly} from "@/data/sidebar/employee";
+import { leaveOnly } from "@/data/sidebar/employee";
 import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import useSwal from "@/hooks/useSwal";
@@ -19,10 +19,13 @@ export default function LeaveDetailPage() {
   const API_URL = API.API_URL;
   const { showAlert } = useSwal();
 
+  // PERMISSION
+  const permissions = user?.permissions || [];
+  const canApprove = permissions.some((p) => Number(p) === 8);
+
   const [leave, setLeave] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-
 
   // Tambahkan status 4 ke dalam statusMap
   const statusMap = {
@@ -92,31 +95,31 @@ export default function LeaveDetailPage() {
     }
   };
 
-const handleAlert = async (itemId, payload) => {
-  const isApprove = payload.leave_status === 2;
+  const handleAlert = async (itemId, payload) => {
+    const isApprove = payload.leave_status === 2;
 
-  const { value: remarks, isConfirmed } = await Swal.fire({
-    title: payload.leave_status === 2 ? "Approve Leave" : "Reject Leave",
-    input: "textarea",
-    inputLabel: "Remarks",
-    inputPlaceholder: "Type your remarks here...",
-    inputAttributes: {
-      "aria-label": "Type your remarks here",
-    },
-    showCancelButton: true,
-    confirmButtonText: isApprove ? "Approve" : "Reject",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: isApprove ? "#2f9e44" : "#e03131", 
-    cancelButtonColor: "#868e96",  
-  });
+    const { value: remarks, isConfirmed } = await Swal.fire({
+      title: payload.leave_status === 2 ? "Approve Leave" : "Reject Leave",
+      input: "textarea",
+      inputLabel: "Remarks",
+      inputPlaceholder: "Type your remarks here...",
+      inputAttributes: {
+        "aria-label": "Type your remarks here",
+      },
+      showCancelButton: true,
+      confirmButtonText: isApprove ? "Approve" : "Reject",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: isApprove ? "#2f9e44" : "#e03131",
+      cancelButtonColor: "#868e96",
+    });
 
-  if (!isConfirmed) return;
+    if (!isConfirmed) return;
 
-  handleApproval(itemId, {
-    ...payload,
-    remarks: remarks || "",
-  });
-};
+    handleApproval(itemId, {
+      ...payload,
+      remarks: remarks || "",
+    });
+  };
 
   const handleDownloadAttachment = async () => {
     try {
@@ -252,7 +255,6 @@ const handleAlert = async (itemId, payload) => {
             </div>
 
             {/* TABLE DATE DETAIL */}
-            {/* TABLE DATE DETAIL */}
             <div className="px-6 pb-6">
               <div className="overflow-x-auto rounded-md border">
                 <table className="w-full border-collapse text-sm">
@@ -299,7 +301,9 @@ const handleAlert = async (itemId, payload) => {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex justify-center gap-2">
-                            {Number(item.leave_status) === 1 && isSupervisor ? (
+                            {Number(item.leave_status) === 1 &&
+                            isSupervisor &&
+                            canApprove ? (
                               <>
                                 <Button
                                   size="xs"
@@ -311,7 +315,6 @@ const handleAlert = async (itemId, payload) => {
                                 >
                                   Approve
                                 </Button>
-
                                 <Button
                                   size="xs"
                                   color="red"

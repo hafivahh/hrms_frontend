@@ -5,7 +5,12 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { Button, Paper } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconTrash, IconDatabase, IconPencil,IconPlus } from "@tabler/icons-react";
+import {
+  IconTrash,
+  IconDatabase,
+  IconPencil,
+  IconPlus,
+} from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -17,9 +22,16 @@ export default function List() {
   const router = useRouter();
   const { user } = useUser();
   const { encrypt } = useEncrypt();
- const { showAlert } = useSwal();
+  const { showAlert } = useSwal();
   const API = useApi();
   const API_URL = API.API_URL;
+
+  const permissions = user?.permissions || [];
+  const hasPermission = (key) =>
+    permissions.some((p) => Number(p) === Number(key));
+  const canCreate = hasPermission(38);
+  const canUpdate = hasPermission(39);
+  const canDelete = hasPermission(40);
 
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
@@ -29,6 +41,34 @@ export default function List() {
     pageSize: 10,
   });
   const [totalPages, setTotalPages] = useState(1);
+
+  const handleDelete = async (id) => {
+    const confirm = await showAlert(
+      "Are You Sure?",
+      "question",
+      "Do you want to delete this company?",
+      true,
+      null,
+      "Delete",
+      "Cancel",
+    );
+
+    if (!confirm?.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_URL}/api/master/company/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      showAlert("Success", "success", "Company deleted", false, 1200);
+
+      fetchData();
+    } catch (err) {
+      showAlert("Error", "error", "Failed to delete");
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -54,55 +94,30 @@ export default function List() {
         header: "Actions",
         cell: ({ row }) => {
           const encryptedId = encrypt(String(row.original.id));
-
-          const handleDelete = async (id) => {
-            const confirm = await showAlert(
-              "Are You Sure?",
-              "question",
-              "Do you want to delete this company?",
-              true,
-              null,
-              "Delete",
-              "Cancel",
-            );
-
-            if (!confirm?.isConfirmed) return;
-
-            try {
-              await axios.delete(`${API_URL}/api/master/company/${id}`, {
-                headers: {
-                  Authorization: `Bearer ${user.token}`,
-                },
-              });
-
-              showAlert("Success", "success", "Company deleted", false, 1200);
-
-              fetchData();
-            } catch (err) {
-              showAlert("Error", "error", "Failed to delete");
-            }
-          };
           return (
             <Button.Group>
-              <Button
-                size="xs"
-                color="yellow"
-                onClick={() =>
-                  router.push(`/master/company/edit/${encryptedId}`)
-                }
-                leftSection={<IconPencil size={16} />}
-              >
-                Edit
-              </Button>
-
-              <Button
-                size="xs"
-                color="red"
-                onClick={() => handleDelete(encryptedId)}
-                leftSection={<IconTrash size={16} />}
-              >
-                Delete
-              </Button>
+              {canUpdate && (
+                <Button
+                  size="xs"
+                  color="yellow"
+                  onClick={() =>
+                    router.push(`/master/company/edit/${encryptedId}`)
+                  }
+                  leftSection={<IconPencil size={16} />}
+                >
+                  Edit
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  size="xs"
+                  color="red"
+                  onClick={() => handleDelete(encryptedId)}
+                  leftSection={<IconTrash size={16} />}
+                >
+                  Delete
+                </Button>
+              )}
             </Button.Group>
           );
         },
@@ -180,13 +195,15 @@ export default function List() {
             </div>
 
             <div className="px-4 py-2 text-right space-x-2">
-              <Button
-                size="xs"
-                 leftSection={<IconPlus size={16} />}
-                onClick={() => router.push("/master/company/create")}
-              >
-                Add Company
-              </Button>
+              {canCreate && (
+                <Button
+                  size="xs"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={() => router.push("/master/company/create")}
+                >
+                  Add Company
+                </Button>
+              )}
             </div>
 
             <div className="p-4 overflow-x-auto">

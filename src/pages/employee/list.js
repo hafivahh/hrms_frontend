@@ -28,6 +28,15 @@ export default function List() {
   const API_URL = API.API_URL;
   const { showAlert } = useSwal();
 
+  // PERMISSION
+  const permissions = user?.permissions || [];
+  const hasPermission = (key) =>
+    permissions.some((p) => Number(p) === Number(key));
+  const canCreate = hasPermission(2);
+  const canUpdate = hasPermission(3);
+  const canDelete = hasPermission(4);
+  const canExport = hasPermission(5);
+
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
   const [columnFilters, setColumnFilters] = useDebouncedState([], 500);
@@ -166,22 +175,26 @@ export default function List() {
               >
                 Detail
               </Button>
-              <Button
-                size="xs"
-                color="yellow"
-                onClick={() => router.push(`/employee/edit/${encryptedId}`)}
-                leftSection={<IconPencil size={16} />}
-              >
-                Edit
-              </Button>
-              <Button
-                size="xs"
-                color="red"
-                onClick={() => handleDelete(encryptedId)}
-                leftSection={<IconTrash size={16} />}
-              >
-                Delete
-              </Button>
+              {canUpdate && (
+                <Button
+                  size="xs"
+                  color="yellow"
+                  onClick={() => router.push(`/employee/edit/${encryptedId}`)}
+                  leftSection={<IconPencil size={16} />}
+                >
+                  Edit
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  size="xs"
+                  color="red"
+                  onClick={() => handleDelete(encryptedId)}
+                  leftSection={<IconTrash size={16} />}
+                >
+                  Delete
+                </Button>
+              )}
             </Button.Group>
           );
         },
@@ -564,36 +577,39 @@ export default function List() {
                 <h2 className="text-lg font-semibold">List Employee</h2>
               </div>
               <div className="flex gap-2">
-                <Button
-                  size="xs"
-                  color="green"
-                  leftSection={<IconDownload size={16} />}
-                  onClick={async () => {
-                    if (!isFilterApplied) {
-                      const confirm = await showAlert(
-                        "Download All Data?",
-                        "question",
-                        "No filter applied. Are you sure you want to download all employee data?",
-                        true,
-                        null,
-                        "Yes, Download All",
-                        "Cancel",
-                      );
-                      if (!confirm?.isConfirmed) return;
-                    }
-
-                    handleDownloadExcel();
-                  }}
-                >
-                  Download
-                </Button>
-                <Button
-                  size="xs"
-                  leftSection={<IconPlus size={16} />}
-                  onClick={() => router.push("/employee/create")}
-                >
-                  Add Employee
-                </Button>
+                {canExport && (
+                  <Button
+                    size="xs"
+                    color="green"
+                    leftSection={<IconDownload size={16} />}
+                    onClick={async () => {
+                      if (!isFilterApplied) {
+                        const confirm = await showAlert(
+                          "Download All Data?",
+                          "question",
+                          "No filter applied. Are you sure you want to download all employee data?",
+                          true,
+                          null,
+                          "Yes, Download All",
+                          "Cancel",
+                        );
+                        if (!confirm?.isConfirmed) return;
+                      }
+                      handleDownloadExcel();
+                    }}
+                  >
+                    Download
+                  </Button>
+                )}
+                {canCreate && (
+                  <Button
+                    size="xs"
+                    leftSection={<IconPlus size={16} />}
+                    onClick={() => router.push("/employee/create")}
+                  >
+                    Add Employee
+                  </Button>
+                )}
               </div>
             </div>
             <div className="p-4 overflow-x-auto">

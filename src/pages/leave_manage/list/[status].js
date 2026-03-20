@@ -40,6 +40,13 @@ export default function ListLeaveByStatus({ status }) {
   const API_URL = API.API_URL;
   const { showAlert } = useSwal();
 
+  // PERMISSION
+  const permissions = user?.permissions || [];
+  const hasPermission = (key) =>
+    permissions.some((p) => Number(p) === Number(key));
+  const canDownload = hasPermission(7);
+  const canDelete = hasPermission(9);
+
   const statusStringMap = {
     pending_approval: 1,
     completed: 4,
@@ -206,7 +213,7 @@ export default function ListLeaveByStatus({ status }) {
                   Detail
                 </Button>
               )}
-              {actions.includes("delete") && (
+              {actions.includes("delete") && canDelete && (
                 <Button
                   size="xs"
                   color="red"
@@ -580,32 +587,31 @@ export default function ListLeaveByStatus({ status }) {
                     : `${status.replace(/_/g, " ")} Leave List`}
                 </h2>
               </div>
-
               <div className="flex gap-2">
-                <Button
-                  size="xs"
-                  color="green"
-                  leftSection={<IconDownload size={16} />}
-                  onClick={async () => {
-                    if (!isFilterApplied) {
-                      const confirm = await showAlert(
-                        "Download All Data?",
-                        "question",
-                        "No filter applied. Are you sure you want to download all leave data?",
-                        true,
-                        null,
-                        "Yes, Download All",
-                        "Cancel",
-                      );
-
-                      if (!confirm?.isConfirmed) return;
-                    }
-
-                    handleDownloadExcel();
-                  }}
-                >
-                  Download
-                </Button>
+                {canDownload && (
+                  <Button
+                    size="xs"
+                    color="green"
+                    leftSection={<IconDownload size={16} />}
+                    onClick={async () => {
+                      if (!isFilterApplied) {
+                        const confirm = await showAlert(
+                          "Download All Data?",
+                          "question",
+                          "No filter applied. Are you sure you want to download all leave data?",
+                          true,
+                          null,
+                          "Yes, Download All",
+                          "Cancel",
+                        );
+                        if (!confirm?.isConfirmed) return;
+                      }
+                      handleDownloadExcel();
+                    }}
+                  >
+                    Download
+                  </Button>
+                )}
               </div>
             </div>
 

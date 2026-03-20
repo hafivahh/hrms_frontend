@@ -24,7 +24,19 @@ import { employeeOnly } from "@/data/sidebar/employee";
 
 function CarouselCard({ title, icon, data, loading, subtitle = "Total" }) {
   const [current, setCurrent] = useState(0);
-  const visibleCount = 4;
+const [visibleCount, setVisibleCount] = useState(4);
+
+useEffect(() => {
+  const handleResize = () => {
+    if (window.innerWidth < 640) setVisibleCount(1);
+    else if (window.innerWidth < 1024) setVisibleCount(2);
+    else setVisibleCount(4);
+  };
+
+  handleResize();
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
   const total = data.length;
   const canPrev = current > 0;
   const canNext = current + visibleCount < total;
@@ -52,11 +64,11 @@ function CarouselCard({ title, icon, data, loading, subtitle = "Total" }) {
             <IconChevronLeft size={18} />
           </button>
 
-          <div className="flex flex-1 gap-3 overflow-hidden">
+         <div className="flex flex-1 gap-3 overflow-x-auto sm:overflow-hidden">
             {visible.map((d) => (
               <div
                 key={d.name}
-                className="flex-1 border rounded-xl p-4 text-center shadow-sm bg-white"
+               className="min-w-[140px] sm:min-w-[160px] flex-1 border rounded-xl p-3 sm:p-4 text-center shadow-sm bg-white"
               >
                 <p className="text-sm font-semibold text-cyan-600 mb-1 truncate" title={d.name}>
                   {d.name}
@@ -162,7 +174,7 @@ export default function EmployeeDashboard() {
         </div>
 
         {/* STAT CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
           {statCards.map((card) => (
             <Paper key={card.label} radius="md" withBorder p="md">
               <div className="flex items-center gap-3">
@@ -196,13 +208,13 @@ export default function EmployeeDashboard() {
               onChange={(val) => setSelectedYear(val)}
               data={availableYears}
               placeholder="Select year"
-              style={{ width: 110 }}
+           className="w-28 sm:w-32"
             />
           </div>
           {loading ? (
             <p className="text-sm text-gray-400">Loading...</p>
           ) : (
-            <div className="flex items-end gap-2 h-40">
+          <div className="flex items-end gap-1 sm:gap-2 h-32 sm:h-40 overflow-x-auto">
               {stats.monthlyJoined.map((m) => (
                 <div key={m.month} className="flex flex-col items-center flex-1 gap-1">
                   <span className="text-xs font-semibold text-gray-600">

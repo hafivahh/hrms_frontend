@@ -24,21 +24,21 @@ export default function EditPortalUser() {
   const { user } = useUser();
   const { API_URL } = useApi();
   const { showAlert } = useSwal();
-  const { decrypt } = useEncrypt();
+  const { decrypt, encrypt } = useEncrypt(); // ✅ tambah encrypt
   const { id } = router.query;
 
-  const [realId, setRealId]           = useState(null);
-  const [roles, setRoles]             = useState([]);
-  const [loading, setLoading]         = useState(false);
-  const [apps, setApps]               = useState([]);
-  const [permMap, setPermMap]         = useState({});
-  const [loadingPerm, setLoadingPerm] = useState({});
-  const [openApp, setOpenApp]         = useState({});
-  const [checked, setChecked]         = useState({});
-  const [copyUsers, setCopyUsers]     = useState([]);
-  const [copyFrom, setCopyFrom]       = useState(null);
-  const [initialLoaded, setInitialLoaded] = useState(false); // ← tambah
-  const prevRoleRef = useRef(null);                          // ← tambah
+  const [realId, setRealId]               = useState(null);
+  const [roles, setRoles]                 = useState([]);
+  const [loading, setLoading]             = useState(false);
+  const [apps, setApps]                   = useState([]);
+  const [permMap, setPermMap]             = useState({});
+  const [loadingPerm, setLoadingPerm]     = useState({});
+  const [openApp, setOpenApp]             = useState({});
+  const [checked, setChecked]             = useState({});
+  const [copyUsers, setCopyUsers]         = useState([]);
+  const [copyFrom, setCopyFrom]           = useState(null);
+  const [initialLoaded, setInitialLoaded] = useState(false);
+  const prevRoleRef                       = useRef(null);
 
   const form = useForm({
     initialValues: {
@@ -119,8 +119,10 @@ export default function EditPortalUser() {
           status_user:  u.status_user?.toString() || "1",
         });
 
+        // ✅ enkripsi realId sebelum fetch permissions
+        const encRealId = encrypt(String(realId));
         const { data: existingPerms } = await axios.get(
-          `${API_URL}/api/user/permissions/${realId}`,
+          `${API_URL}/api/user/permissions/${encRealId}`,
           { headers: { Authorization: `Bearer ${user.token}` } },
         );
 
@@ -129,7 +131,7 @@ export default function EditPortalUser() {
           if (p.id_permission) initChecked[String(p.id_permission)] = true;
         });
         setChecked(initChecked);
-        setInitialLoaded(true); // ← tandai initial load selesai
+        setInitialLoaded(true);
 
       } catch (err) {
         console.error(err);
@@ -143,15 +145,13 @@ export default function EditPortalUser() {
   // auto-load permission dari role — hanya jalan kalau user GANTI role
   useEffect(() => {
     if (!form.values.id_role || !user?.token || apps.length === 0) return;
-    if (!initialLoaded) return; // ← skip sebelum initial load selesai
+    if (!initialLoaded) return;
 
-    // skip pertama kali setelah initial load (role sudah di-set dari fetchUser)
     if (prevRoleRef.current === null) {
       prevRoleRef.current = form.values.id_role;
       return;
     }
 
-    // skip kalau role tidak berubah
     if (prevRoleRef.current === form.values.id_role) return;
     prevRoleRef.current = form.values.id_role;
 
@@ -178,7 +178,6 @@ export default function EditPortalUser() {
         }
         setPermMap(updatedPermMap);
 
-        // ganti role → reset checked ke permission role baru
         const newChecked = {};
         (rolePerms || []).forEach((p) => {
           if (p.id_permission) newChecked[String(p.id_permission)] = true;
@@ -217,11 +216,13 @@ export default function EditPortalUser() {
 
   const handleCopyFrom = (userId) => setCopyFrom(userId);
 
+  // ✅ enkripsi copyFrom sebelum fetch
   const handleApplyCopy = async () => {
     if (!copyFrom) return;
     try {
+      const encCopyFrom = encrypt(String(copyFrom));
       const { data } = await axios.get(
-        `${API_URL}/api/user/permissions/${copyFrom}`,
+        `${API_URL}/api/user/permissions/${encCopyFrom}`,
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
       const newChecked = {};
@@ -277,8 +278,10 @@ export default function EditPortalUser() {
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
+      // ✅ enkripsi realId sebelum save permissions
+      const encRealId = encrypt(String(realId));
       await axios.post(
-        `${API_URL}/api/user/permissions/${realId}`,
+        `${API_URL}/api/user/permissions/${encRealId}`,
         {
           permissions: selectedPermissions,
           create_by: user?.id_user ?? user?.id ?? 0,
@@ -287,7 +290,7 @@ export default function EditPortalUser() {
       );
 
       await showAlert("Success", "success", res.data?.message || "User updated successfully", false, 1500);
-      router.push("/portal/user");
+       router.replace;
     } catch (error) {
       showAlert("Error", "error", error.response?.data?.message || "Failed to update user");
     } finally {

@@ -118,8 +118,8 @@ export default function CheckEmployee() {
   };
 
   const hasActionPermission = user?.permissions?.some(
-    (p) => Number(p.index_key) === 6,
-  );
+  (p) => Number(p) === 6
+);
 
   return (
     <AuthLayout sidebarList={employeeOnly}>

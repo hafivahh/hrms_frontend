@@ -15,12 +15,14 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { adminOnly } from "@/data/sidebar/employee";
+import useEncrypt from "@/hooks/useEncrypt";
 
 AddPortalUser.title = "Add Portal User";
 
 export default function AddPortalUser() {
   const router = useRouter();
   const { user } = useUser();
+  const { encrypt } = useEncrypt();
   const { API_URL } = useApi();
   const { showAlert } = useSwal();
 
@@ -109,22 +111,22 @@ export default function AddPortalUser() {
    const handleCopyFrom = (userId) => setCopyFrom(userId);
 
   const handleApplyCopy = async () => {
-    if (!copyFrom) return;
-    try {
-      const { data } = await axios.get(
-        `${API_URL}/api/user/permissions/${copyFrom}`,
-        { headers: { Authorization: `Bearer ${user.token}` } },
-      );
-      const newChecked = {};
-      (data || []).forEach((p) => {
-        if (p.id_permission) newChecked[String(p.id_permission)] = true;
-      });
-      setChecked(newChecked);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  if (!copyFrom) return;
+  try {
+    const encId = encrypt(String(copyFrom)); 
+    const { data } = await axios.get(
+      `${API_URL}/api/user/permissions/${encId}`, 
+      { headers: { Authorization: `Bearer ${user.token}` } },
+    );
+    const newChecked = {};
+    (data || []).forEach((p) => {
+      if (p.id_permission) newChecked[String(p.id_permission)] = true;
+    });
+    setChecked(newChecked);
+  } catch (err) {
+    console.error(err);
+  }
+};
   // toggle satu checkbox manual
   const handleCheckOne = (permId, val) => {
     setChecked((prev) => ({ ...prev, [String(permId)]: val }));
@@ -220,11 +222,12 @@ useEffect(() => {
 
     // Step 2: save permissions jika ada
     if (newUserId && selectedPermissions.length > 0) {
+  const encNewUserId = encrypt(String(newUserId)); 
   await axios.post(
-    `${API_URL}/api/user/permissions/${newUserId}`,
-    { 
-      permissions: selectedPermissions, 
-      create_by: user?.id_user ?? user?.id ?? 0  // ← fallback
+    `${API_URL}/api/user/permissions/${encNewUserId}`, 
+    {
+      permissions: selectedPermissions,
+      create_by: user?.id_user ?? user?.id ?? 0,
     },
     { headers: { Authorization: `Bearer ${user.token}` } },
   );

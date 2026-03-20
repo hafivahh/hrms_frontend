@@ -5,7 +5,12 @@ import useApi from "@/hooks/useApi";
 import useUser from "@/store/useUser";
 import { Button, Paper } from "@mantine/core";
 import { useDebouncedState } from "@mantine/hooks";
-import { IconTrash, IconDatabase, IconPencil, IconPlus } from "@tabler/icons-react";
+import {
+  IconTrash,
+  IconDatabase,
+  IconPencil,
+  IconPlus,
+} from "@tabler/icons-react";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -20,6 +25,13 @@ export default function List() {
   const { showAlert } = useSwal();
   const API = useApi();
   const API_URL = API.API_URL;
+
+  const permissions = user?.permissions || [];
+  const hasPermission = (key) =>
+    permissions.some((p) => Number(p) === Number(key));
+  const canCreate = hasPermission(46);
+  const canUpdate = hasPermission(47);
+  const canDelete = hasPermission(48);
 
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([{ id: "id_role", desc: true }]);
@@ -77,37 +89,41 @@ export default function List() {
         enableSorting: true,
         cell: (info) => info.getValue(),
       },
-      {
+   {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
           const encryptedId = encrypt(String(row.original.id_role));
-
           return (
             <Button.Group>
-              <Button
-                size="xs"
-                color="yellow"
-                onClick={() => router.push(`/master/role/edit/${encryptedId}`)}
-                leftSection={<IconPencil size={16} />}
-              >
-                Edit
-              </Button>
-
-              <Button
-                size="xs"
-                color="red"
-                onClick={() => handleDelete(encryptedId)}
-                leftSection={<IconTrash size={16} />}
-              >
-                Delete
-              </Button>
+              {canUpdate && (
+                <Button
+                  size="xs"
+                  color="yellow"
+                  onClick={() =>
+                    router.push(`/master/role/edit/${encryptedId}`)
+                  }
+                  leftSection={<IconPencil size={16} />}
+                >
+                  Edit
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  size="xs"
+                  color="red"
+                  onClick={() => handleDelete(encryptedId)}
+                  leftSection={<IconTrash size={16} />}
+                >
+                  Delete
+                </Button>
+              )}
             </Button.Group>
           );
         },
       },
     ],
-    [encrypt],
+    [encrypt, canUpdate, canDelete],
   );
 
   const table = useReactTable({
@@ -183,13 +199,15 @@ export default function List() {
 
             {/* Tombol di kanan */}
             <div className="px-4 py-2 text-right space-x-2">
-              <Button
-                size="xs"
-                 leftSection={<IconPlus size={16} />}
-                onClick={() => router.push("/master/role/create")}
-              >
-                Add Role
-              </Button>
+              {canCreate && (
+                <Button
+                  size="xs"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={() => router.push("/master/role/create")}
+                >
+                  Add Role
+                </Button>
+              )}
             </div>
 
             {/* Tabel */}

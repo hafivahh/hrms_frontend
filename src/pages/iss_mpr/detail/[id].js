@@ -35,6 +35,11 @@ export default function IssMprDetail() {
   const { showAlert } = useSwal();
   const API = useApi();
   const API_URL = API.API_URL;
+
+  // PERMISSION
+  const permissions = user?.permissions || [];
+  const canApproveMpr = permissions.some((p) => Number(p) === 13);
+
   const [mprData, setMprData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState({});
@@ -236,7 +241,8 @@ export default function IssMprDetail() {
       isAuthorizedUser === true &&
       employeeData.status_sign !== 1 &&
       employeeData.status_sign !== 2;
-    // ⬅️ tambah log sementara
+    canApproveMpr;
+
     console.log("=== ASSIGNMENT BOX DEBUG ===", {
       title,
       mpr_status: mprData?.mpr_status,
@@ -348,27 +354,31 @@ export default function IssMprDetail() {
           </div>
         </div>
 
-        {canApprove && (
-          <div className="flex gap-2 mt-3 pt-3 border-t">
-            <Button
-              size="xs"
-              color="red"
-              variant="light"
-              onClick={() => handleActionWithRemarks("reject")}
-              fullWidth
-            >
-              Reject
-            </Button>
-            <Button
-              size="xs"
-              color="green"
-              onClick={() => handleActionWithRemarks("approve")}
-              fullWidth
-            >
-              Approve
-            </Button>
-          </div>
-        )}
+        {isCurrentStep &&
+          isAuthorizedUser &&
+          employeeData.status_sign !== 1 &&
+          employeeData.status_sign !== 2 &&
+          (canApproveMpr ? (
+            <div className="flex gap-2 mt-3 pt-3 border-t">
+              <Button
+                size="xs"
+                color="red"
+                variant="light"
+                onClick={() => handleActionWithRemarks("reject")}
+                fullWidth
+              >
+                Reject
+              </Button>
+              <Button
+                size="xs"
+                color="green"
+                onClick={() => handleActionWithRemarks("approve")}
+                fullWidth
+              >
+                Approve
+              </Button>
+            </div>
+          ) : null)}
       </Box>
     );
   };
@@ -777,6 +787,7 @@ export default function IssMprDetail() {
                   <AssignmentBox
                     title="Requested By (End User)"
                     employeeData={assignments.requested_by}
+                    canApproveMpr={canApproveMpr}
                   />
                 </Grid.Col>
 
@@ -785,6 +796,7 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Approved By Section Manager"
                       employeeData={assignments.approved_section_manager}
+                      canApproveMpr={canApproveMpr}
                     />
                   </Grid.Col>
                 )}
@@ -794,6 +806,7 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Approved By (CM)"
                       employeeData={assignments.approved_cm}
+                      canApproveMpr={canApproveMpr}
                     />
                   </Grid.Col>
                 )}
@@ -803,6 +816,7 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Concurred By (PMO)"
                       employeeData={assignments.concurred_pmo}
+                      canApproveMpr={canApproveMpr}
                     />
                   </Grid.Col>
                 )}
@@ -812,6 +826,7 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Concurred By Yard Manager"
                       employeeData={assignments.concurred_yard_manager}
+                      canApproveMpr={canApproveMpr}
                     />
                   </Grid.Col>
                 )}
@@ -821,6 +836,7 @@ export default function IssMprDetail() {
                     <AssignmentBox
                       title="Concurred By"
                       employeeData={assignments.concurred_by}
+                      canApproveMpr={canApproveMpr}
                     />
                   </Grid.Col>
                 )}
@@ -829,6 +845,7 @@ export default function IssMprDetail() {
                   <AssignmentBox
                     title="Acknowledged By HR"
                     employeeData={assignments.acknowledged_by}
+                    canApproveMpr={canApproveMpr}
                   />
                 </Grid.Col>
 
@@ -836,6 +853,7 @@ export default function IssMprDetail() {
                   <AssignmentBox
                     title="Approved By (President Director)"
                     employeeData={assignments.approved_by}
+                    canApproveMpr={canApproveMpr}
                   />
                 </Grid.Col>
               </Grid>

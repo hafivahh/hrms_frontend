@@ -23,10 +23,10 @@ import { recruitmentOnly } from "@/data/sidebar/employee";
 // ─── STATUS MAP ───────────────────────────────────────────────────────────────
 
 const recruitmentStatusMap = {
-  1: { label: "Open",                  color: "green"  },
+  1: { label: "Open", color: "green" },
   2: { label: "Fulfillment in Progress", color: "blue" },
-  3: { label: "Closed",                color: "gray"   },
-  4: { label: "Cancel",                color: "red"    },
+  3: { label: "Closed", color: "gray" },
+  4: { label: "Cancel", color: "red" },
 };
 
 // ─── DEPT CAROUSEL ────────────────────────────────────────────────────────────
@@ -44,7 +44,9 @@ function DeptCarousel({ title, icon, data, loading }) {
       <div className="flex items-center gap-2 mb-4">
         {icon}
         <h2 className="text-md font-semibold">{title}</h2>
-        <span className="ml-auto text-xs text-gray-400">{data.length} items</span>
+        <span className="ml-auto text-xs text-gray-400">
+          {data.length} items
+        </span>
       </div>
       {loading ? (
         <p className="text-sm text-gray-400 text-center py-4">Loading...</p>
@@ -65,7 +67,10 @@ function DeptCarousel({ title, icon, data, loading }) {
                 key={d.name}
                 className="flex-1 border rounded-xl p-4 text-center shadow-sm bg-white"
               >
-                <p className="text-sm font-semibold text-cyan-600 mb-1 truncate" title={d.name}>
+                <p
+                  className="text-sm font-semibold text-cyan-600 mb-1 truncate"
+                  title={d.name}
+                >
                   {d.name}
                 </p>
                 <p className="text-3xl font-bold text-gray-800">{d.count}</p>
@@ -74,7 +79,9 @@ function DeptCarousel({ title, icon, data, loading }) {
             ))}
           </div>
           <button
-            onClick={() => setCurrent((c) => Math.min(total - visibleCount, c + 1))}
+            onClick={() =>
+              setCurrent((c) => Math.min(total - visibleCount, c + 1))
+            }
             disabled={!canNext}
             className="p-1 rounded-full border text-gray-500 disabled:opacity-30 hover:bg-gray-50"
           >
@@ -119,21 +126,24 @@ export default function RecruitmentDashboard() {
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
       setStats({
-        totalMpr:        data.total_mpr        ?? 0,
+        totalMpr: data.total_mpr ?? 0,
         totalApplicants: data.total_applicants ?? 0,
-        open:            data.open             ?? 0,
-        fulfillment:     data.fulfillment      ?? 0,
-        closed:          data.closed           ?? 0,
-        cancel:          data.cancel           ?? 0,
-        byDepartment:    data.by_department    || [],
-        byProject:       data.by_project       || [],
+        open: data.open ?? 0,
+        fulfillment: data.fulfillment ?? 0,
+        closed: data.closed ?? 0,
+        cancel: data.cancel ?? 0,
+        byDepartment: data.by_department || [],
+        byProject: data.by_project || [],
         monthlyRequests: data.monthly_requests || [],
-        recent:          data.recent           || [],
+        recent: data.recent || [],
       });
       if (data.available_years?.length > 0) {
         setAvailableYears([
           { value: "all", label: "All Years" },
-          ...data.available_years.map((y) => ({ value: String(y), label: String(y) })),
+          ...data.available_years.map((y) => ({
+            value: String(y),
+            label: String(y),
+          })),
         ]);
       }
     } catch (err) {
@@ -148,12 +158,48 @@ export default function RecruitmentDashboard() {
   }, [fetchDashboard]);
 
   const statCards = [
-    { label: "Total MPR",          value: stats.totalMpr,        color: "#228be6", bg: "#e7f5ff", icon: <IconChartBar size={28} /> },
-    { label: "Total Applicants",   value: stats.totalApplicants, color: "#7048e8", bg: "#f3f0ff", icon: <IconUsers size={28} /> },
-    { label: "Open",               value: stats.open,            color: "#2f9e44", bg: "#ebfbee", icon: <IconCircleCheck size={28} /> },
-    { label: "Fulfillment",        value: stats.fulfillment,     color: "#1971c2", bg: "#d0ebff", icon: <IconUserCheck size={28} /> },
-    { label: "Closed",             value: stats.closed,          color: "#495057", bg: "#e9ecef", icon: <IconChecklist size={28} /> },
-    { label: "Cancel",             value: stats.cancel,          color: "#e03131", bg: "#ffe3e3", icon: <IconX size={28} /> },
+    {
+      label: "Total MPR",
+      value: stats.totalMpr,
+      color: "#228be6",
+      bg: "#e7f5ff",
+      icon: <IconChartBar size={28} />,
+    },
+    {
+      label: "Total Applicants",
+      value: stats.totalApplicants,
+      color: "#7048e8",
+      bg: "#f3f0ff",
+      icon: <IconUsers size={28} />,
+    },
+    {
+      label: "Open",
+      value: stats.open,
+      color: "#2f9e44",
+      bg: "#ebfbee",
+      icon: <IconCircleCheck size={28} />,
+    },
+    {
+      label: "Fulfillment",
+      value: stats.fulfillment,
+      color: "#1971c2",
+      bg: "#d0ebff",
+      icon: <IconUserCheck size={28} />,
+    },
+    {
+      label: "Closed",
+      value: stats.closed,
+      color: "#495057",
+      bg: "#e9ecef",
+      icon: <IconChecklist size={28} />,
+    },
+    {
+      label: "Cancel",
+      value: stats.cancel,
+      color: "#e03131",
+      bg: "#ffe3e3",
+      icon: <IconX size={28} />,
+    },
   ];
 
   const maxMonthly = Math.max(...stats.monthlyRequests.map((m) => m.count), 1);
@@ -165,12 +211,15 @@ export default function RecruitmentDashboard() {
       </Head>
 
       <div className="py-6 px-4 sm:px-6 lg:px-8">
-
         {/* HEADER + YEAR FILTER */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Recruitment Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">Overview of all recruitment activities</p>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Recruitment Dashboard
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Overview of all recruitment activities
+            </p>
           </div>
           <Select
             size="sm"
@@ -183,16 +232,22 @@ export default function RecruitmentDashboard() {
         </div>
 
         {/* STAT CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           {statCards.map((card) => (
             <Paper key={card.label} radius="md" withBorder p="md">
-              <div className="flex flex-col gap-2">
-                <div className="rounded-xl p-2 w-fit" style={{ backgroundColor: card.bg, color: card.color }}>
+              <div className="flex items-center gap-3">
+                <div
+                  className="rounded-xl p-2 flex-shrink-0"
+                  style={{ backgroundColor: card.bg, color: card.color }}
+                >
                   {card.icon}
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">{card.label}</p>
-                  <p className="text-2xl font-bold" style={{ color: card.color }}>
+                  <p
+                    className="text-2xl font-bold"
+                    style={{ color: card.color }}
+                  >
                     {loading ? "—" : card.value}
                   </p>
                 </div>
@@ -215,7 +270,10 @@ export default function RecruitmentDashboard() {
           ) : (
             <div className="flex items-end gap-2 h-40">
               {stats.monthlyRequests.map((m) => (
-                <div key={m.month} className="flex flex-col items-center flex-1 gap-1">
+                <div
+                  key={m.month}
+                  className="flex flex-col items-center flex-1 gap-1"
+                >
                   <span className="text-xs font-semibold text-gray-600">
                     {m.count > 0 ? m.count : ""}
                   </span>
@@ -268,13 +326,19 @@ export default function RecruitmentDashboard() {
                   className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0"
                 >
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{r.mpr_no}</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {r.mpr_no}
+                    </p>
                     <p className="text-xs text-gray-400">
-                      {r.department} · {r.project} · {r.position} · {r.created_date}
+                      {r.department} · {r.project} · {r.position} ·{" "}
+                      {r.created_date}
                     </p>
                   </div>
                   <Badge
-                    color={recruitmentStatusMap[r.recruitment_status]?.color ?? "gray"}
+                    color={
+                      recruitmentStatusMap[r.recruitment_status]?.color ??
+                      "gray"
+                    }
                     variant="filled"
                     size="sm"
                   >
@@ -285,7 +349,6 @@ export default function RecruitmentDashboard() {
             </div>
           )}
         </Paper>
-
       </div>
     </AuthLayout>
   );

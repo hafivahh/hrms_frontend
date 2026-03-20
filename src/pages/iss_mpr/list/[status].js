@@ -41,21 +41,14 @@ export default function IssMprList({ mpr_status }) {
   const API = useApi();
   const API_URL = API.API_URL;
 
-  const allowedStatus = [
-    "all",
-    "draft",
-    "pending",
-    "completed",
-    "rejected",
-    "pending_requestor_end_user",
-    "pending_acknowledge_sm",
-    "pending_requestor_cm",
-    "pending_concurred_pmo",
-    "pending_concurred",
-    "pending_concurred_ym",
-    "pending_acknowledge_hr",
-    "pending_approval_president",
-  ];
+  //  PERMISSION
+  const permissions = user?.permissions || [];
+  const hasPermission = (key) =>
+    permissions.some((p) => Number(p) === Number(key));
+  const canCreate = hasPermission(11);
+  const canUpdate = hasPermission(12);
+  const canExport = hasPermission(14);
+  const canUpdateRecruitment = hasPermission(32);
 
   useEffect(() => {
     if (!user?.token) return;
@@ -729,7 +722,7 @@ export default function IssMprList({ mpr_status }) {
               );
             }
           };
-          const editable = row.mpr_status === 2;
+          const editable = row.mpr_status === 2 && canUpdateRecruitment;
           return (
             <Select
               value={currentStatus ? String(currentStatus) : ""}
@@ -742,21 +735,19 @@ export default function IssMprList({ mpr_status }) {
                   textAlign: "center",
                   textAlignLast: "center",
                   fontWeight: 600,
-                  cursor: editable ? "pointer" : "not-allowed",
 
-                  backgroundColor: !editable
-                    ? "#343a40" // 🔒 abu gelap kalau tidak bisa edit
-                    : statusColor === "green"
+                  
+                  backgroundColor:
+                    statusColor === "green"
                       ? "#d3f9d8"
                       : statusColor === "blue"
                         ? "#d0ebff"
                         : statusColor === "red"
                           ? "#ffc9c9"
-                          : "#fff3bf", // 🟡 kuning kalau belum dipilih
+                          : "#fff3bf",
 
-                  color: !editable
-                    ? "#ffffff"
-                    : statusColor === "green"
+                  color:
+                    statusColor === "green"
                       ? "#2b8a3e"
                       : statusColor === "blue"
                         ? "#1864ab"
@@ -765,6 +756,10 @@ export default function IssMprList({ mpr_status }) {
                           : "#e67700",
 
                   border: "1px solid transparent",
+
+             
+                  cursor: editable ? "pointer" : "not-allowed",
+                  opacity: editable ? 1 : 0.8,
                 },
               }}
             />
@@ -791,7 +786,7 @@ export default function IssMprList({ mpr_status }) {
               >
                 Detail
               </Button>
-              {!isLocked && (
+              {!isLocked && canUpdate && (
                 <Button
                   size="xs"
                   color="yellow"
@@ -970,32 +965,35 @@ export default function IssMprList({ mpr_status }) {
                 </h2>
               </div>
               <div className="flex gap-2">
-                <Button
-                  size="xs"
-                  color="green"
-                  leftSection={<IconDownload size={16} />}
-                  onClick={async () => {
-                    if (!isFilterApplied) {
-                      await showAlert(
-                        "Information",
-                        "info",
-                        "Please use filter and click Search before downloading data.",
-                      );
-                      return;
-                    }
-
-                    handleDownloadMprExcel();
-                  }}
-                >
-                  Download
-                </Button>
-                <Button
-                  size="xs"
-                  leftSection={<IconPlus size={16} />}
-                  onClick={() => router.push("/iss_mpr/create")}
-                >
-                  Add Manpower Request
-                </Button>
+                {canExport && (
+                  <Button
+                    size="xs"
+                    color="green"
+                    leftSection={<IconDownload size={16} />}
+                    onClick={async () => {
+                      if (!isFilterApplied) {
+                        await showAlert(
+                          "Information",
+                          "info",
+                          "Please use filter and click Search before downloading data.",
+                        );
+                        return;
+                      }
+                      handleDownloadMprExcel();
+                    }}
+                  >
+                    Download
+                  </Button>
+                )}
+                {canCreate && (
+                  <Button
+                    size="xs"
+                    leftSection={<IconPlus size={16} />}
+                    onClick={() => router.push("/iss_mpr/create")}
+                  >
+                    Add Manpower Request
+                  </Button>
+                )}
               </div>
             </div>
 

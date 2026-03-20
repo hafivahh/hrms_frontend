@@ -1,5 +1,3 @@
-// Navigation.jsx — GANTI FULL FILE INI
-
 import useCollapseStore from "@/store/useLayout";
 import { ActionIcon, Collapse, Menu, NavLink } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -24,6 +22,8 @@ export default function Navigation() {
   const { toggleCollapse } = useCollapseStore();
   const path = usePathname();
   const { user } = useUser();
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false);
 
   const permissions = user?.permissions || [];
   const isHR = Number(user?.id_role) === 2;
@@ -35,7 +35,7 @@ export default function Navigation() {
     return permissions.some((p) => Number(p) === Number(indexKey));
   };
 
-  // ✅ NAVIGATION (SEMUA ROLE SAMA)
+  // NAVIGATION (SEMUA ROLE SAMA)
   const navigation = [
     {
       name: "Dashboard",
@@ -66,7 +66,7 @@ export default function Navigation() {
           title: "Document Work",
           url: "/iss_documents/list",
           icon: <IconUserCog size={18} />,
-          indexKey: 28,
+          indexKey: 29,
         },
         {
           title: "Leave",
@@ -84,12 +84,12 @@ export default function Navigation() {
           title: "Recruitment",
           url: "/iss_recruitment/list/all",
           icon: <IconList size={14} />,
-          indexKey: 15,
+          indexKey: 24,
         },
       ],
     },
 
-    // ✅ ESS jadi FLAT (tidak dropdown lagi)
+    //  ESS jadi FLAT (tidak dropdown lagi)
     {
       name: "Leave Request",
       url: "/ess_leave/list",
@@ -106,7 +106,7 @@ export default function Navigation() {
     {
       name: "Master Data",
       icon: <IconDatabase size={20} />,
-      indexKey: 16,
+      indexKey: null,
       child: [
         {
           title: "Master Departement",
@@ -118,42 +118,48 @@ export default function Navigation() {
           title: "Master Project",
           url: "/master/project/list",
           icon: <IconDatabase size={18} />,
-          indexKey: 16,
+          indexKey: 33,
         },
         {
           title: "Master Company",
           url: "/master/company/list",
           icon: <IconDatabase size={18} />,
-          indexKey: 16,
+          indexKey: 37,
         },
         {
           title: "Master Position",
           url: "/master/position/list",
           icon: <IconDatabase size={18} />,
-          indexKey: 16,
+          indexKey: 41,
         },
         {
           title: "Master Role",
           url: "/master/role/list",
           icon: <IconDatabase size={18} />,
-          indexKey: 16,
+          indexKey: 45,
         },
         {
           title: "Master Leave Type",
           url: "/master/leave/list",
           icon: <IconDatabase size={18} />,
-          indexKey: 16,
+          indexKey: 49,
+        },
+        {
+          title: "Master Partial Days",
+          url: "/master/partial_days/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 53,
         },
       ],
     },
   ];
 
-  // ✅ FILTER PERMISSION
+  //  FILTER PERMISSION
   const filteredNavigation = navigation
     .map((link) => {
       if (link.child) {
         const filteredChildren = link.child.filter((c) =>
-          hasPermission(c.indexKey)
+          hasPermission(c.indexKey),
         );
         if (filteredChildren.length === 0) return null;
         return { ...link, child: filteredChildren };
@@ -164,7 +170,7 @@ export default function Navigation() {
     })
     .filter(Boolean);
 
-  // ✅ DESKTOP
+  //  DESKTOP
   const desktopItems = filteredNavigation.map((link, index) => {
     if (link.child) {
       return (
@@ -207,7 +213,10 @@ export default function Navigation() {
           <IconMenu2 color="white" />
         </ActionIcon>
       )}
-      <div className="flex gap-1 items-center">{desktopItems}</div>
+
+      <div className="flex gap-1 items-center overflow-x-auto scrollbar-hide flex-1 min-w-0">
+        {desktopItems}
+      </div>
     </nav>
   );
 }
