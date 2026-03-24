@@ -170,7 +170,7 @@ export default function Login() {
                 />
 
                 <Button fullWidth mt="xl" loading={loading} onClick={handleLogin}>
-                  Login Now
+                  Login
                 </Button>
 
                 <Button
