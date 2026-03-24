@@ -108,7 +108,7 @@ export default function Login() {
       setMode("sent");
     } catch (err) {
       setError(
-        err.response?.data?.message || "Username or email does not match"
+        err.response?.data?.message || "Username or email does not match",
       );
     } finally {
       setLoading(false);
@@ -119,7 +119,6 @@ export default function Login() {
 
   return (
     <div className="h-screen flex overflow-hidden">
-      
       {/* ===== LEFT SIDE ===== */}
       <div className="hidden md:flex w-1/2 bg-sky-700 text-white items-center justify-center">
         <div className="text-center max-w-md animate-fade">
@@ -169,7 +168,12 @@ export default function Login() {
                   onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                 />
 
-                <Button fullWidth mt="xl" loading={loading} onClick={handleLogin}>
+                <Button
+                  fullWidth
+                  mt="xl"
+                  loading={loading}
+                  onClick={handleLogin}
+                >
                   Login
                 </Button>
 
