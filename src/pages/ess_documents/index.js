@@ -100,7 +100,7 @@ export default function IssDocumentsList() {
         enableSorting: true,
         cell: (info) => {
           const val = info.getValue();
-          if (!val) return "-";
+          if (!val) return "-";//
           return new Date(val).toISOString().split("T")[0];
         },
       },
