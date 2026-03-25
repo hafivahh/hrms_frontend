@@ -167,7 +167,7 @@ export default function Edit_Role() {
       );
 
       await showAlert("Success", "success", data.message || "Role updated successfully", false, 1500);
-      router.push("/master/role/list");
+      router.replace;
     } catch (error) {
       const err = error.response?.data || {};
       showAlert(err.message || "Error", "error", err.error || "Failed to update role");

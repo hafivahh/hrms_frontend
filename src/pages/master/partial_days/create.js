@@ -31,12 +31,12 @@ export default function Create_PartialDays() {
   const handleSubmit = async (values) => {
     const confirm = await showAlert(
       "Are you sure?",
-      "warning",
+      "question",
       "Do you want to submit this partial days?",
-      true
+      true,
     );
 
-    if (!confirm) return;
+    if (!confirm?.isConfirmed) return;
 
     try {
       const { data } = await axios.post(
@@ -46,7 +46,7 @@ export default function Create_PartialDays() {
           headers: {
             Authorization: "Bearer " + user.token,
           },
-        }
+        },
       );
 
       if (data.success) {
@@ -67,8 +67,17 @@ export default function Create_PartialDays() {
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
-            <div className="bg-gray-200 px-4 py-2">
-              <Text fw={500}>Add Partial Days</Text>
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconArrowLeft
+                  size={18}
+                  onClick={() => router.push("/master/partial_days/list")}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                  Add partial Days
+                </h2>
+              </div>
             </div>
 
             <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -82,17 +91,7 @@ export default function Create_PartialDays() {
               </div>
 
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button
-                  size="md"
-                  color="gray"
-                  variant="filled"
-                  leftSection={<IconArrowLeft size={16} />}
-                  onClick={() => router.push("/master/partial_days/list")}
-                >
-                  Back
-                </Button>
-
-                <Button size="md" type="submit">
+                <Button size="xs" type="submit">
                   Submit
                 </Button>
               </div>

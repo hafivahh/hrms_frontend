@@ -179,7 +179,7 @@ export default function ESSLeaveCreate() {
     const confirm = await showAlert(
       "Are you sure?",
       "question",
-      `Do you want to submit this leave request?\n\nTotal Days: ${details.length}`,
+      `Do you want to submit this leave request?\n\nTotal Days: ${totalLeaveDays}`,
       true,
     );
 
@@ -246,8 +246,16 @@ export default function ESSLeaveCreate() {
     !!file &&
     !loading;
 
+  // Computed total berdasarkan partial days
+  const totalLeaveDays = details.reduce((total, item) => {
+    if (item.id_partial_days === 2 || item.id_partial_days === 3) {
+      return total + 0.5; // Half Day AM atau PM
+    }
+    return total + 1; // Full Day atau null
+  }, 0);
+
   return (
-      <AuthLayout sidebarList={[]}>
+    <AuthLayout sidebarList={[]}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
@@ -292,8 +300,8 @@ export default function ESSLeaveCreate() {
                     fw={600}
                     className="flex items-center gap-2"
                   >
-                    Total Leave Days: {details.length}{" "}
-                    {details.length === 1 ? "day" : "days"}
+                    Total Leave Days: {totalLeaveDays}{" "}
+                    {totalLeaveDays === 1 ? "day" : "days"}
                   </Text>
                 </div>
               )}

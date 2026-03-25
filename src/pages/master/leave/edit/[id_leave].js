@@ -122,7 +122,7 @@ export default function Edit_Leave() {
                 />
               </div>
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button size="sx" type="submit">
+                <Button size="xs" type="submit">
                   Update
                 </Button>
               </div>

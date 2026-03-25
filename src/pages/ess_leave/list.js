@@ -225,7 +225,7 @@ export default function ESSLeaveList() {
                   variant="filled"
                   size="md"
                 >
-                  {leaveBalance} days
+              {Number(leaveBalance).toFixed(1)} days
                 </Badge>
               </div>
               <Button

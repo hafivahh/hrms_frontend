@@ -89,7 +89,7 @@ export default function Create_Company() {
                 />
               </div>
               <div className="px-4 py-2 flex justify-end space-x-2">
-                <Button size="md" type="submit">
+                <Button size="xs" type="submit">
                   Submit
                 </Button>
               </div>

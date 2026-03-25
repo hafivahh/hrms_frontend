@@ -297,27 +297,6 @@ export default function IssMprDetail() {
 
           <div className="flex">
             <Text size="sm" fw={400} style={{ minWidth: "90px" }}>
-              Date
-            </Text>
-            <Text size="sm" fw={400} mr={8}>
-              :
-            </Text>
-            <Text size="sm">
-              {employeeData.status_sign === 1 || employeeData.status_sign === 2
-                ? new Date(employeeData.approval_date).toLocaleDateString(
-                    "en-GB",
-                    {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    },
-                  )
-                : "-"}
-            </Text>
-          </div>
-
-          <div className="flex">
-            <Text size="sm" fw={400} style={{ minWidth: "90px" }}>
               Signature
             </Text>
             <Text size="sm" fw={400} mr={8}>
@@ -327,10 +306,6 @@ export default function IssMprDetail() {
               {employeeData.status_sign === 1 ||
               employeeData.status_sign === 2 ? (
                 <>
-                  <Text size="sm" fw={400}>
-                    {employeeData.full_name}
-                  </Text>
-
                   <Text size="xs" c="dimmed">
                     {formatDateTime(employeeData.approval_date)}
                   </Text>
@@ -360,15 +335,7 @@ export default function IssMprDetail() {
           employeeData.status_sign !== 2 &&
           (canApproveMpr ? (
             <div className="flex gap-2 mt-3 pt-3 border-t">
-              <Button
-                size="xs"
-                color="red"
-                variant="light"
-                onClick={() => handleActionWithRemarks("reject")}
-                fullWidth
-              >
-                Reject
-              </Button>
+             
               <Button
                 size="xs"
                 color="green"
@@ -376,6 +343,15 @@ export default function IssMprDetail() {
                 fullWidth
               >
                 Approve
+              </Button>
+               <Button
+                size="xs"
+                color="red"
+                variant="light"
+                onClick={() => handleActionWithRemarks("reject")}
+                fullWidth
+              >
+                Reject
               </Button>
             </div>
           ) : null)}

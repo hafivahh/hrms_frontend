@@ -22,22 +22,35 @@ export default function IssDocumentsList() {
     pageSize: 10,
   });
   const [totalPages, setTotalPages] = useState(1);
+
   const handleDownload = async (doc) => {
     try {
       const response = await axios.get(
         `${API_URL}/api/ess_documents/download/${doc.id}`,
         {
           responseType: "blob",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
+          headers: { Authorization: `Bearer ${user.token}` },
         },
       );
+
+      // Ambil ekstensi dari file_name asli
+      const originalName = doc.file_name || "";
+      const ext = originalName.includes(".")
+        ? originalName.split(".").pop()
+        : doc.file_type?.includes("pdf")
+          ? "pdf"
+          : doc.file_type?.includes("spreadsheetml")
+            ? "xlsx"
+            : doc.file_type?.includes("ms-excel")
+              ? "xls"
+              : "file";
+
+      const downloadName = `work_document_${doc.badge_number}.${ext}`;
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", doc.file_name || "document");
+      link.setAttribute("download", downloadName);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -53,14 +66,6 @@ export default function IssDocumentsList() {
   const columns = useMemo(
     () => [
       {
-        accessorFn: (row) => row.file_name,
-        id: "file_name",
-        header: "File Name",
-        enableColumnFilter: true,
-        enableSorting: true,
-        cell: (info) => info.getValue() || "-",
-      },
-      {
         accessorFn: (row) => row.file_type,
         id: "file_type",
         header: "File Type",
@@ -73,6 +78,14 @@ export default function IssDocumentsList() {
           if (val.includes("ms-excel")) return "xls";
           return val;
         },
+      },
+      {
+        accessorFn: (row) => row.remarks,
+        id: "remarks",
+        header: "Remarks",
+        enableColumnFilter: true,
+        enableSorting: true,
+        cell: (info) => info.getValue() || "-",
       },
       {
         accessorFn: (row) => row.created_date,
@@ -188,7 +201,7 @@ export default function IssDocumentsList() {
   }, [fetchData]);
 
   return (
-      <AuthLayout sidebarList={[]}>
+    <AuthLayout sidebarList={[]}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
