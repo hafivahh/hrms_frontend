@@ -161,34 +161,55 @@ export default function List() {
         },
       },
       {
+        accessorFn: (row) => row.status_employee,
+        id: "status_employee",
+        header: "Employee Status",
+        enableColumnFilter: false,
+        enableSorting: true,
+        cell: (info) => {
+          const val = Number(info.getValue());
+          const statusMap = {
+            1: { label: "Direct", color: "green" },
+            0: { label: "Indirect", color: "red" },
+          };
+          const st = statusMap[val] ?? { label: "Unknown", color: "gray" };
+          return (
+            <Badge color={st.color} variant="filled" size="sm">
+              {st.label}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
           const encryptedId = encrypt(String(row.original.id));
           return (
             <Button.Group>
-              <Button
-                size="xs"
-                color="blue"
-                onClick={() => router.push(`/employee/detail/${encryptedId}`)}
-                leftSection={<IconList size={16} />}
-              >
-                Detail
-              </Button>
               {canUpdate && (
                 <Button
                   size="xs"
                   color="yellow"
+                  style={{ width: 100 }}
+                  styles={{
+                    inner: { justifyContent: "center" },
+                  }}
                   onClick={() => router.push(`/employee/edit/${encryptedId}`)}
                   leftSection={<IconPencil size={16} />}
                 >
                   Edit
                 </Button>
               )}
+
               {canDelete && (
                 <Button
                   size="xs"
                   color="red"
+                  style={{ width: 100 }}
+                  styles={{
+                    inner: { justifyContent: "center" },
+                  }}
                   onClick={() => handleDelete(encryptedId)}
                   leftSection={<IconTrash size={16} />}
                 >
@@ -395,7 +416,7 @@ export default function List() {
       worksheet["!merges"] = [
         {
           s: { r: 0, c: 0 }, // A1
-          e: { r: 1, c: 7 }, // H4
+          e: { r: 1, c: 9 }, // H4
         },
       ];
 
@@ -457,7 +478,12 @@ export default function List() {
       // ===============================
       const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-      const centerCols = ["Badge Number", "Join Date"];
+      const centerCols = [
+        "Badge Number",
+        "Join Date",
+        "Status Active",
+        "Status Employee",
+      ];
 
       for (let row = 2; row <= range.e.r; row++) {
         for (let col = 0; col <= range.e.c; col++) {
@@ -468,15 +494,42 @@ export default function List() {
           }
 
           const existingStyle = worksheet[cellAddress].s || {};
-          const isCenter = centerCols.includes(headers[col]);
+          const headerName = headers[col];
+          const cellValue = worksheet[cellAddress].v;
+
+          const isCenter = true;
+
+          // ===============================
+          //  WARNA STATUS
+          // ===============================
+          let fillColor = null;
+          let fontColor = null;
+
+          if (headerName === "Status Active") {
+            if (cellValue === "Active") {
+              fillColor = "C6EFCE"; // hijau
+              fontColor = "006100";
+            } else if (cellValue === "Inactive") {
+              fillColor = "FFC7CE"; // merah
+              fontColor = "9C0006";
+            }
+          }
+
+          if (headerName === "Status Employee") {
+            if (cellValue === "Direct") {
+              fillColor = "C6EFCE";
+              fontColor = "006100";
+            } else if (cellValue === "Indirect") {
+              fillColor = "FFC7CE";
+              fontColor = "9C0006";
+            }
+          }
 
           worksheet[cellAddress].s = {
             ...existingStyle,
             alignment: {
               ...(existingStyle.alignment || {}),
-              horizontal: isCenter
-                ? "center"
-                : existingStyle.alignment?.horizontal,
+              horizontal: isCenter ? "center" : "left",
               vertical: "center",
             },
             border: {
@@ -485,6 +538,18 @@ export default function List() {
               left: { style: "thin" },
               right: { style: "thin" },
             },
+            ...(fillColor && {
+              fill: {
+                fgColor: { rgb: fillColor },
+              },
+            }),
+            ...(fontColor && {
+              font: {
+                ...(existingStyle.font || {}),
+                color: { rgb: fontColor },
+                bold: true,
+              },
+            }),
           };
         }
       }

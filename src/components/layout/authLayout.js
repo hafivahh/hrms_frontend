@@ -36,7 +36,7 @@ export default function AuthLayout({ children, sidebarList = [], hideSidebar = f
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <Navigation />
+    <Navigation showToggle={!hideSidebar} />
 
       <div className="relative flex flex-grow">
        {!hideSidebar && (

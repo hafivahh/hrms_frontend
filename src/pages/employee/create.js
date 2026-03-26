@@ -36,6 +36,7 @@ export default function Add_employee() {
       id_company: "",
       id_position: "",
       join_date: "",
+      status_employee: "",
     },
     validate: {
       full_name: (value) =>
@@ -48,6 +49,8 @@ export default function Add_employee() {
       id_company: (value) => (value ? null : "Company is required"),
       id_position: (value) => (value ? null : "Position is required"),
       join_date: (value) => (value ? null : "Join Date is required"),
+      status_employee: (value) =>
+        value !== "" ? null : "Employee Status is required",
     },
   });
 
@@ -121,6 +124,7 @@ export default function Add_employee() {
       id_position: Number(values.id_position),
       gender: values.gender === "male" ? 1 : 2,
       join_date: values.join_date ? values.join_date.toISOString() : null,
+      status_employee: Number(values.status_employee),
     };
 
     try {
@@ -269,6 +273,17 @@ export default function Add_employee() {
                   placeholder="Select join date"
                   withAsterisk
                   {...form.getInputProps("join_date")}
+                />
+
+                <Select
+                  label="Employee Status"
+                  placeholder="Select employee status"
+                  data={[
+                    { value: "1", label: "Direct" },
+                    { value: "0", label: "Indirect" },
+                  ]}
+                  withAsterisk
+                  {...form.getInputProps("status_employee")}
                 />
               </div>
 
