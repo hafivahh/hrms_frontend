@@ -78,7 +78,6 @@ export default function ChangeOwnPassword() {
       );
 
       form.reset();
- 
     } catch (error) {
       const msg =
         error.response?.data?.message ||
@@ -91,7 +90,7 @@ export default function ChangeOwnPassword() {
   };
 
   return (
-    <AuthLayout sidebarList={[]}>
+    <AuthLayout sidebarList={[]} hideSidebar={true}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

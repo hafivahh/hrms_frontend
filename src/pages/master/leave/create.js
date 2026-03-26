@@ -33,7 +33,7 @@ export default function Create_Leave_Type() {
       "Are you sure?",
       "question",
       "Do you want to submit this leave type?",
-      true
+      true,
     );
 
     if (!confirm?.isConfirmed) return;
@@ -46,14 +46,13 @@ export default function Create_Leave_Type() {
           headers: {
             Authorization: "Bearer " + user.token,
           },
-        }
+        },
       );
 
       if (data.success) {
         await showAlert("Success", "success", data.message, false, 1500);
         router.push("/master/leave/list");
       }
-
     } catch (error) {
       const data_error = error.response?.data || {
         message: "Error",
@@ -64,22 +63,22 @@ export default function Create_Leave_Type() {
   };
 
   return (
-   <AuthLayout sidebarList={master_data}>
-       <div className="py-6">
+    <AuthLayout sidebarList={[]} hideSidebar={true}>
+      <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
-             <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
-               <div className="flex items-center gap-2">
-                 <IconArrowLeft
-                   size={18}
-                   onClick={() => router.push("/master/leave/list")}
-                   className="cursor-pointer hover:text-blue-600 transition-colors"
-                 />
-                 <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
-                   Add Leave Type
-                 </h2>
-               </div>
-             </div>
+            <div className="px-6 py-4 border-b bg-gray-50 rounded-t-md flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconArrowLeft
+                  size={18}
+                  onClick={() => router.push("/master/leave/list")}
+                  className="cursor-pointer hover:text-blue-600 transition-colors"
+                />
+                <h2 className="text-lg font-semibold uppercase tracking-wide text-gray-800">
+                  Add Leave Type
+                </h2>
+              </div>
+            </div>
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <div className="px-4 py-2">
                 <TextInput

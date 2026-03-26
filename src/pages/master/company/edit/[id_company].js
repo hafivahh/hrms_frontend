@@ -96,7 +96,7 @@ export default function Edit_Company() {
   if (loading) return <p className="p-4">Loading...</p>;
 
   return (
-    <AuthLayout sidebarList={master_data}>
+    <AuthLayout sidebarList={[]} hideSidebar={true}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

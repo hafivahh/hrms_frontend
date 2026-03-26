@@ -41,6 +41,7 @@ export default function IssMprCreate() {
   const API = useApi();
   const API_URL = API.API_URL;
   const { showAlert } = useSwal();
+  const [errors, setErrors] = useState({});
 
   const [departements, setDepartments] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -173,148 +174,59 @@ export default function IssMprCreate() {
   };
 
   const validateForm = () => {
-    if (!formData.id_departement) {
-      showAlert("Information", "info", "Please select Department", "Oke");
-      return false;
-    }
+    const newErrors = {};
 
-    if (!formData.id_project) {
-      showAlert("Information", "info", "Please select Project", "Oke");
-      return false;
-    }
+    if (!formData.id_departement)
+      newErrors.id_departement = "Department is required";
+    if (!formData.id_project) newErrors.id_project = "Project is required";
+    if (!formData.id_position) newErrors.id_position = "Position is required";
+    if (!formData.work_type)
+      newErrors.work_type = "Employee Status is required";
+    if (!formData.qty) newErrors.qty = "Qty is required";
+    if (!formData.vacant_type)
+      newErrors.vacant_type = "Vacant Type is required";
+    if (!formData.budgeted)
+      newErrors.budgeted = "Annual Budget option is required";
+    if (!formData.experience_years)
+      newErrors.experience_years = "Years of Experience is required";
+    if (formData.education_level.length === 0)
+      newErrors.education_level = "At least one Education is required";
+    if (!formData.contract_type)
+      newErrors.contract_type = "Contract Type is required";
+    if (formData.contract_type === "contract" && !formData.contract_duration)
+      newErrors.contract_duration = "Contract Duration is required";
+    if (formData.access.length === 0)
+      newErrors.access = "At least one IT Access is required";
+    if (formData.share_folder.length === 0)
+      newErrors.share_folder = "Share Folder is required";
+    if (!formData.purpose) newErrors.purpose = "Purpose is required";
+    if (!formData.required_date)
+      newErrors.required_date = "Required Date is required";
+    if (!formData.remarks) newErrors.remarks = "Remarks is required";
+    if (!formData.requested_by)
+      newErrors.requested_by = "Requested By is required";
+    if (!formData.acknowledged_by)
+      newErrors.acknowledged_by = "Acknowledged By is required";
+    if (!formData.approved_by)
+      newErrors.approved_by = "Approved By is required";
 
-    if (!formData.id_position) {
-      showAlert("Information", "info", "Please select Position", "Oke");
-      return false;
-    }
-
-    if (!formData.work_type) {
-      showAlert("Information", "info", "Please select Employee Status", "Oke");
-      return false;
-    }
-
-    if (!formData.qty) {
-      showAlert("Information", "info", "Please input Qty", "Oke");
-      return false;
-    }
-
-    if (!formData.vacant_type) {
-      showAlert("Information", "info", "Please choose Vacant Type", "Oke");
-      return false;
-    }
-
-    // Section 3: Budgeted
-    if (!formData.budgeted) {
-      showAlert(
-        "Information",
-        "info",
-        "Please choose Annual Budget option",
-        "Oke",
-      );
-      return false;
-    }
-
-    // Section 5: Years of Experience
-    if (!formData.experience_years) {
-      showAlert(
-        "Information",
-        "info",
-        "Please input Years of Relevant Experience",
-        "Oke",
-      );
-      return false;
-    }
-
-    // Section 6: Educational Background
-    if (formData.education_level.length === 0) {
-      showAlert(
-        "Information",
-        "info",
-        "Please select at least one Educational Background",
-        "Oke",
-      );
-      return false;
-    }
-
-    // Section 7: Contract Type
-    if (!formData.contract_type) {
-      showAlert("Information", "info", "Please choose Contract Type", "Oke");
-      return false;
-    }
-    if (formData.contract_type === "contract" && !formData.contract_duration) {
-      showAlert("Information", "info", "Please input Contract Duration", "Oke");
-      return false;
-    }
-
-    // Section 8–9: IT Facilities & Applications
-    if (formData.access.length === 0) {
-      showAlert(
-        "Information",
-        "info",
-        "Please select at least one IT Access",
-        "Oke",
-      );
-      return false;
-    }
-    if (formData.share_folder.length === 0) {
-      showAlert(
-        "Information",
-        "info",
-        "Please select at least one Share Folder option",
-        "Oke",
-      );
-      return false;
-    }
-
-    // Section 10: Purpose & Date & Remarks
-    if (!formData.purpose) {
-      showAlert(
-        "Information",
-        "info",
-        "Please input Purpose for Request",
-        "Oke",
-      );
-      return false;
-    }
-    if (!formData.required_date) {
-      showAlert("Information", "info", "Please select Required Date", "Oke");
-      return false;
-    }
-    if (!formData.remarks) {
-      showAlert("Information", "info", "Please input Remarks", "Oke");
-      return false;
-    }
-
-    // Section 11: Assignment
-    const requiredAssignments = [
-      "requested_by",
-      "acknowledged_by",
-      "approved_by",
-    ];
     if (formData.id_project !== "11") {
-      requiredAssignments.push(
-        "approved_section_manager",
-        "approved_cm",
-        "concurred_pmo",
-        "concurred_yard_manager",
-      );
+      if (!formData.approved_section_manager)
+        newErrors.approved_section_manager =
+          "Approved Section Manager is required";
+      if (!formData.approved_cm)
+        newErrors.approved_cm = "Approved CM is required";
+      if (!formData.concurred_pmo)
+        newErrors.concurred_pmo = "Concurred PMO is required";
+      if (!formData.concurred_yard_manager)
+        newErrors.concurred_yard_manager = "Concurred Yard Manager is required";
     } else {
-      requiredAssignments.push("concurred_by");
+      if (!formData.concurred_by)
+        newErrors.concurred_by = "Concurred By is required";
     }
 
-    for (const field of requiredAssignments) {
-      if (!formData[field]) {
-        showAlert(
-          "Information",
-          "info",
-          `Please assign ${field.replaceAll("_", " ")}`,
-          "Oke",
-        );
-        return false;
-      }
-    }
-
-    return true;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -422,149 +334,6 @@ export default function IssMprCreate() {
     }
   };
 
-  /**
-   * ✅ KOMPONEN: PortalUserSelect
-   * Menggunakan endpoint /api/user/list yang sudah ada
-   * dengan client-side filtering
-   */
-  const PortalUserSelect = ({ value, onChange }) => {
-    const [localQuery, setLocalQuery] = useState("");
-    const [allUsers, setAllUsers] = useState([]);
-    const [filteredOptions, setFilteredOptions] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
-
-    // ✅ Fetch all users saat component mount
-    useEffect(() => {
-      const fetchUsers = async () => {
-        try {
-          setIsLoading(true);
-          const res = await axios.get(`${API_URL}/api/user/list`, {
-            headers: { Authorization: "Bearer " + user.token },
-          });
-
-          // Asumsi response format: array of users
-          const users = res.data || [];
-          setAllUsers(users);
-        } catch (err) {
-          console.error("Failed to fetch users:", err);
-          showAlert("Error", "error", "Failed to load user list");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchUsers();
-    }, []);
-
-    // ✅ Load selected user saat value berubah
-    useEffect(() => {
-      if (value && allUsers.length > 0) {
-        const user = allUsers.find((u) => u.id_user === value);
-        if (user) {
-          setSelectedUser({
-            id_user: user.id_user,
-            badge_number: user.badge_number,
-            full_name: user.full_name,
-            label: `${user.badge_number} - ${user.full_name}`,
-          });
-        }
-      } else if (!value) {
-        setSelectedUser(null);
-      }
-    }, [value, allUsers]);
-
-    // ✅ Filter users berdasarkan query (client-side)
-    useEffect(() => {
-      if (!localQuery || localQuery.trim().length === 0) {
-        setFilteredOptions([]);
-        return;
-      }
-
-      const query = localQuery.toLowerCase();
-      const filtered = allUsers
-        .filter(
-          (u) =>
-            u.badge_number?.toLowerCase().includes(query) ||
-            u.full_name?.toLowerCase().includes(query),
-        )
-        .slice(0, 20) // Limit to 20 results
-        .map((u) => ({
-          id_user: u.id_user,
-          badge_number: u.badge_number,
-          full_name: u.full_name,
-          label: `${u.badge_number} - ${u.full_name}`,
-        }));
-
-      setFilteredOptions(filtered);
-    }, [localQuery, allUsers]);
-
-    const displayValue = selectedUser?.label || "";
-
-    return (
-      <div style={{ position: "relative" }}>
-        <Autocomplete
-          placeholder="Type badge number or full name"
-          value={localQuery || displayValue}
-          data={filteredOptions.map((o) => o.label)}
-          onChange={(val) => {
-            setLocalQuery(val);
-
-            const selected = filteredOptions.find((o) => o.label === val);
-
-            if (selected) {
-              // ✅ Simpan id_user (number) ke formData
-              onChange(selected.id_user);
-              setSelectedUser(selected);
-              setLocalQuery("");
-            }
-
-            // Kalau user hapus manual isi input
-            if (!val || val.trim() === "") {
-              onChange(null);
-              setSelectedUser(null);
-              setLocalQuery("");
-            }
-          }}
-          limit={20}
-          nothingFoundMessage={
-            isLoading
-              ? "Loading users..."
-              : localQuery.trim().length > 0
-                ? "No user found"
-                : "Start typing to search"
-          }
-          disabled={isLoading}
-        />
-
-        {/* Tombol hapus user */}
-        {selectedUser && (
-          <ActionIcon
-            size="sm"
-            color="red"
-            variant="light"
-            radius="xl"
-            onClick={() => {
-              setSelectedUser(null);
-              setLocalQuery("");
-              setFilteredOptions([]);
-              onChange(null);
-            }}
-            style={{
-              position: "absolute",
-              right: 8,
-              top: "50%",
-              transform: "translateY(-50%)",
-              zIndex: 2,
-            }}
-          >
-            <IconX size={14} />
-          </ActionIcon>
-        )}
-      </div>
-    );
-  };
-
   return (
     <AuthLayout sidebarList={mprOnly}>
       <div className="py-6">
@@ -589,7 +358,11 @@ export default function IssMprCreate() {
                     label="Department"
                     data={departements}
                     value={formData.id_departement}
-                    onChange={(val) => handleInputChange("id_departement", val)}
+                    onChange={(val) => {
+                      handleInputChange("id_departement", val);
+                      setErrors((prev) => ({ ...prev, id_departement: null }));
+                    }}
+                    error={errors.id_departement}
                     searchable
                     withAsterisk
                   />
@@ -600,6 +373,7 @@ export default function IssMprCreate() {
                     data={projects}
                     value={formData.id_project}
                     onChange={(val) => handleInputChange("id_project", val)}
+                    error={errors.id_project}
                     searchable
                     withAsterisk
                   />
@@ -617,6 +391,7 @@ export default function IssMprCreate() {
                     data={positions}
                     value={formData.id_position}
                     onChange={(val) => handleInputChange("id_position", val)}
+                    error={errors.id_position}
                     searchable
                     withAsterisk
                   />
@@ -628,6 +403,7 @@ export default function IssMprCreate() {
                     data={employee_status}
                     value={formData.work_type}
                     onChange={(val) => handleInputChange("work_type", val)}
+                    error={errors.work_type}
                     withAsterisk
                   />
                 </Grid.Col>
@@ -644,6 +420,7 @@ export default function IssMprCreate() {
                     }
                     value={formData.qty}
                     onChange={(e) => handleInputChange("qty", e.target.value)}
+                    error={errors.qty}
                     withAsterisk
                   />
                 </Grid.Col>
@@ -661,6 +438,7 @@ export default function IssMprCreate() {
                     onChange={(e) =>
                       handleInputChange("transfer_qty", e.target.value)
                     }
+                     error={errors.transfer_qty}
                   />
                 </Grid.Col>
               </Grid>
@@ -692,6 +470,7 @@ export default function IssMprCreate() {
                     }
                   />
                 </div>
+                {errors.vacant_type && <p className="text-red-500 text-xs mt-1">{errors.vacant_type}</p>}
               </div>
 
               <Divider my="lg" />
@@ -752,6 +531,7 @@ export default function IssMprCreate() {
                   onChange={(e) =>
                     handleInputChange("experience_years", e.target.value)
                   }
+                  error={errors.experience_years}
                 />
               </div>
 
@@ -983,6 +763,7 @@ export default function IssMprCreate() {
                     onChange={(e) =>
                       handleInputChange("purpose", e.target.value)
                     }
+                     error={errors.required_date}
                     withAsterisk
                   />
                 </Grid.Col>
@@ -1008,6 +789,7 @@ export default function IssMprCreate() {
                     onChange={(e) =>
                       handleInputChange("remarks", e.target.value)
                     }
+                      error={errors.remarks}
                     withAsterisk
                   />
                 </Grid.Col>
@@ -1042,6 +824,7 @@ export default function IssMprCreate() {
                           )
                         }
                       />
+                       {errors.requested_by && <p className="text-red-500 text-xs mt-1">{errors.requested_by}</p>}
                     </Table.Td>
                   </Table.Tr>
 

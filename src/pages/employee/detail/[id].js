@@ -136,6 +136,19 @@ export default function EmployeeDetail() {
                   </Badge>
                 </div>
               </div>
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-gray-600 mb-1">
+                  Employee Status
+                </label>
+                <div>
+                  <Badge
+                    color={data.status_employee === 1 ? "green" : "red"}
+                    size="lg"
+                  >
+                    {data.status_employee === 1 ? "Direct" : "Indirect"}
+                  </Badge>
+                </div>
+              </div>
             </div>
           </Paper>
         </div>

@@ -121,13 +121,13 @@ export default function LeaveDetailPage() {
 
   if (!leave)
     return (
-         <AuthLayout sidebarList={[]}>
+        <AuthLayout sidebarList={[]} hideSidebar={true}>
         <div className="text-center mt-8">Leave data not found</div>
       </AuthLayout>
     );
 
   return (
-       <AuthLayout sidebarList={[]}>
+      <AuthLayout sidebarList={[]} hideSidebar={true}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>

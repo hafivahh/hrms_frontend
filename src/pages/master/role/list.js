@@ -89,7 +89,7 @@ export default function List() {
         enableSorting: true,
         cell: (info) => info.getValue(),
       },
-   {
+      {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => {
@@ -182,7 +182,7 @@ export default function List() {
   }, [fetchData]);
 
   return (
-    <AuthLayout sidebarList={master_data}>
+    <AuthLayout sidebarList={[]} hideSidebar={true}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper
