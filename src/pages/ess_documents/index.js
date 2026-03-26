@@ -102,7 +102,7 @@ export default function IssDocumentsList() {
           const val = info.getValue();
           if (!val) return "-";//
           return new Date(val).toISOString().split("T")[0];
-        }, //////////
+        }, //////
       },
       {
         id: "action",
