@@ -8,7 +8,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { master_data } from "@/data/sidebar/master_data";
+
 
 Edit_Departement.title = "Edit Departement";
 

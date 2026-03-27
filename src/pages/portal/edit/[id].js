@@ -142,55 +142,52 @@ export default function EditPortalUser() {
     fetchUser();
   }, [realId, user?.token]);
 
-  // auto-load permission dari role — hanya jalan kalau user GANTI role
-  useEffect(() => {
-    if (!form.values.id_role || !user?.token || apps.length === 0) return;
-    if (!initialLoaded) return;
+useEffect(() => {
+  if (!form.values.id_role || !user?.token || apps.length === 0) return;
+  if (!initialLoaded) return;
 
-    if (prevRoleRef.current === null) {
-      prevRoleRef.current = form.values.id_role;
-      return;
-    }
+  const loadRolePermissions = async () => {
+    try {
+      const { data: rolePerms } = await axios.get(
+        `${API_URL}/api/master/role/permissions/${form.values.id_role}`,
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
 
-    if (prevRoleRef.current === form.values.id_role) return;
-    prevRoleRef.current = form.values.id_role;
+      const updatedPermMap = { ...permMap };
 
-    const loadRolePermissions = async () => {
-      try {
-        const { data: rolePerms } = await axios.get(
-          `${API_URL}/api/master/role/permissions/${form.values.id_role}`,
-          { headers: { Authorization: `Bearer ${user.token}` } },
-        );
-
-        const updatedPermMap = { ...permMap };
-        for (const app of apps) {
-          if (!updatedPermMap[app.id_application]) {
-            try {
-              const { data } = await axios.get(
-                `${API_URL}/api/permission/detail/${app.id_application}?page=0&size=500`,
-                { headers: { Authorization: `Bearer ${user.token}` } },
-              );
-              updatedPermMap[app.id_application] = data.data || [];
-            } catch {
-              updatedPermMap[app.id_application] = [];
-            }
+      for (const app of apps) {
+        if (!updatedPermMap[app.id_application]) {
+          try {
+            const { data } = await axios.get(
+              `${API_URL}/api/permission/detail/${app.id_application}?page=0&size=500`,
+              { headers: { Authorization: `Bearer ${user.token}` } },
+            );
+            updatedPermMap[app.id_application] = data.data || [];
+          } catch {
+            updatedPermMap[app.id_application] = [];
           }
         }
-        setPermMap(updatedPermMap);
-
-        const newChecked = {};
-        (rolePerms || []).forEach((p) => {
-          if (p.id_permission) newChecked[String(p.id_permission)] = true;
-        });
-        setChecked(newChecked);
-
-      } catch (err) {
-        console.error("Load role permissions error:", err);
       }
-    };
 
-    loadRolePermissions();
-  }, [form.values.id_role, apps, initialLoaded]);
+      setPermMap(updatedPermMap);
+
+      const newChecked = {};
+      (rolePerms || []).forEach((p) => {
+        if (p.id_permission) {
+          newChecked[String(p.id_permission)] = true;
+        }
+      });
+
+      setChecked(newChecked);
+
+    } catch (err) {
+      console.error("Load role permissions error:", err);
+    }
+  };
+
+  loadRolePermissions();
+
+}, [form.values.id_role, apps, initialLoaded]);
 
   // toggle expand app + lazy load permissions
   const handleToggleApp = async (appId) => {
@@ -288,7 +285,22 @@ export default function EditPortalUser() {
         },
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
+// 🔥 reload permission biar langsung ke-update
+const { data: newPerms } = await axios.get(
+  `${API_URL}/api/user/permissions/${encRealId}`,
+  { headers: { Authorization: `Bearer ${user.token}` } }
+);
 
+// mapping ulang ke checkbox
+const updatedChecked = {};
+(newPerms || []).forEach((p) => {
+  if (p.id_permission) {
+    updatedChecked[String(p.id_permission)] = true;
+  }
+});
+
+// set ulang state
+setChecked(updatedChecked);
       await showAlert("Success", "success", res.data?.message || "User updated successfully", false, 1500);
        router.replace;
     } catch (error) {
