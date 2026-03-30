@@ -507,10 +507,10 @@ export default function List() {
 
           if (headerName === "Status Active") {
             if (cellValue === "Active") {
-              fillColor = "C6EFCE"; // hijau
+              fillColor = "C6EFCE"; 
               fontColor = "006100";
             } else if (cellValue === "Inactive") {
-              fillColor = "FFC7CE"; // merah
+              fillColor = "FFC7CE"; 
               fontColor = "9C0006";
             }
           }
