@@ -170,7 +170,7 @@ export default function List() {
           const val = Number(info.getValue());
           const statusMap = {
             1: { label: "Direct", color: "green" },
-            0: { label: "Indirect", color: "red" },
+            0: { label: "Indirect", color: "green" },
           };
           const st = statusMap[val] ?? { label: "Unknown", color: "gray" };
           return (
@@ -520,8 +520,8 @@ export default function List() {
               fillColor = "C6EFCE";
               fontColor = "006100";
             } else if (cellValue === "Indirect") {
-              fillColor = "FFC7CE";
-              fontColor = "9C0006";
+              fillColor = "C6EFCE";
+              fontColor = "006100";
             }
           }
 
