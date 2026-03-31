@@ -111,6 +111,13 @@ export default function LeaveDetailPage() {
       cancelButtonText: "Cancel",
       confirmButtonColor: isApprove ? "#2f9e44" : "#e03131",
       cancelButtonColor: "#868e96",
+      preConfirm: (value) => {
+        if (!isApprove && (!value || value.trim() === "")) {
+          Swal.showValidationMessage("Rejection reason is required!");
+          return false;
+        }
+        return value;
+      },
     });
 
     if (!isConfirmed) return;

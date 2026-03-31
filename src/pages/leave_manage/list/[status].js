@@ -494,8 +494,7 @@ export default function ListLeaveByStatus({ status }) {
       "Cancel",
     );
 
-    if (!confirm) return;
-
+    if (!confirm?.isConfirmed) return; 
     try {
       await axios.delete(`${API_URL}/api/leave/${encryptedId}`, {
         headers: { Authorization: `Bearer ${user.token}` },
