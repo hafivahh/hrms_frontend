@@ -24,7 +24,7 @@ export default function EditPortalUser() {
   const { user } = useUser();
   const { API_URL } = useApi();
   const { showAlert } = useSwal();
-  const { decrypt, encrypt } = useEncrypt(); // ✅ tambah encrypt
+  const { decrypt, encrypt } = useEncrypt();
   const { id } = router.query;
 
   const [realId, setRealId]               = useState(null);
@@ -39,6 +39,9 @@ export default function EditPortalUser() {
   const [copyFrom, setCopyFrom]           = useState(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const prevRoleRef                       = useRef(null);
+
+  // ✅ simpan permission asli user sebelum di-copy
+  const initialCheckedRef = useRef({});
 
   const form = useForm({
     initialValues: {
@@ -119,7 +122,6 @@ export default function EditPortalUser() {
           status_user:  u.status_user?.toString() || "1",
         });
 
-        // ✅ enkripsi realId sebelum fetch permissions
         const encRealId = encrypt(String(realId));
         const { data: existingPerms } = await axios.get(
           `${API_URL}/api/user/permissions/${encRealId}`,
@@ -130,7 +132,12 @@ export default function EditPortalUser() {
         (existingPerms || []).forEach((p) => {
           if (p.id_permission) initChecked[String(p.id_permission)] = true;
         });
+
         setChecked(initChecked);
+
+        // ✅ simpan permission asli user ke ref
+        initialCheckedRef.current = initChecked;
+
         setInitialLoaded(true);
 
       } catch (err) {
@@ -142,52 +149,52 @@ export default function EditPortalUser() {
     fetchUser();
   }, [realId, user?.token]);
 
-useEffect(() => {
-  if (!form.values.id_role || !user?.token || apps.length === 0) return;
-  if (!initialLoaded) return;
+  useEffect(() => {
+    if (!form.values.id_role || !user?.token || apps.length === 0) return;
+    if (!initialLoaded) return;
 
-  const loadRolePermissions = async () => {
-    try {
-      const { data: rolePerms } = await axios.get(
-        `${API_URL}/api/master/role/permissions/${form.values.id_role}`,
-        { headers: { Authorization: `Bearer ${user.token}` } },
-      );
+    const loadRolePermissions = async () => {
+      try {
+        const { data: rolePerms } = await axios.get(
+          `${API_URL}/api/master/role/permissions/${form.values.id_role}`,
+          { headers: { Authorization: `Bearer ${user.token}` } },
+        );
 
-      const updatedPermMap = { ...permMap };
+        const updatedPermMap = { ...permMap };
 
-      for (const app of apps) {
-        if (!updatedPermMap[app.id_application]) {
-          try {
-            const { data } = await axios.get(
-              `${API_URL}/api/permission/detail/${app.id_application}?page=0&size=500`,
-              { headers: { Authorization: `Bearer ${user.token}` } },
-            );
-            updatedPermMap[app.id_application] = data.data || [];
-          } catch {
-            updatedPermMap[app.id_application] = [];
+        for (const app of apps) {
+          if (!updatedPermMap[app.id_application]) {
+            try {
+              const { data } = await axios.get(
+                `${API_URL}/api/permission/detail/${app.id_application}?page=0&size=500`,
+                { headers: { Authorization: `Bearer ${user.token}` } },
+              );
+              updatedPermMap[app.id_application] = data.data || [];
+            } catch {
+              updatedPermMap[app.id_application] = [];
+            }
           }
         }
+
+        setPermMap(updatedPermMap);
+
+        const newChecked = {};
+        (rolePerms || []).forEach((p) => {
+          if (p.id_permission) {
+            newChecked[String(p.id_permission)] = true;
+          }
+        });
+
+        setChecked(newChecked);
+
+      } catch (err) {
+        console.error("Load role permissions error:", err);
       }
+    };
 
-      setPermMap(updatedPermMap);
+    loadRolePermissions();
 
-      const newChecked = {};
-      (rolePerms || []).forEach((p) => {
-        if (p.id_permission) {
-          newChecked[String(p.id_permission)] = true;
-        }
-      });
-
-      setChecked(newChecked);
-
-    } catch (err) {
-      console.error("Load role permissions error:", err);
-    }
-  };
-
-  loadRolePermissions();
-
-}, [form.values.id_role, apps, initialLoaded]);
+  }, [form.values.id_role, apps, initialLoaded]);
 
   // toggle expand app + lazy load permissions
   const handleToggleApp = async (appId) => {
@@ -211,9 +218,15 @@ useEffect(() => {
     }
   };
 
-  const handleCopyFrom = (userId) => setCopyFrom(userId);
+  // ✅ PERBAIKAN: kalau user klik silang/clear, kembalikan ke permission asli
+  const handleCopyFrom = (userId) => {
+    setCopyFrom(userId);
+    if (!userId) {
+      setChecked({ ...initialCheckedRef.current });
+    }
+  };
 
-  // ✅ enkripsi copyFrom sebelum fetch
+  // enkripsi copyFrom sebelum fetch
   const handleApplyCopy = async () => {
     if (!copyFrom) return;
     try {
@@ -275,7 +288,6 @@ useEffect(() => {
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
 
-      // ✅ enkripsi realId sebelum save permissions
       const encRealId = encrypt(String(realId));
       await axios.post(
         `${API_URL}/api/user/permissions/${encRealId}`,
@@ -285,24 +297,27 @@ useEffect(() => {
         },
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
-// 🔥 reload permission biar langsung ke-update
-const { data: newPerms } = await axios.get(
-  `${API_URL}/api/user/permissions/${encRealId}`,
-  { headers: { Authorization: `Bearer ${user.token}` } }
-);
 
-// mapping ulang ke checkbox
-const updatedChecked = {};
-(newPerms || []).forEach((p) => {
-  if (p.id_permission) {
-    updatedChecked[String(p.id_permission)] = true;
-  }
-});
+      // reload permission biar langsung ke-update
+      const { data: newPerms } = await axios.get(
+        `${API_URL}/api/user/permissions/${encRealId}`,
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
 
-// set ulang state
-setChecked(updatedChecked);
+      const updatedChecked = {};
+      (newPerms || []).forEach((p) => {
+        if (p.id_permission) {
+          updatedChecked[String(p.id_permission)] = true;
+        }
+      });
+
+      setChecked(updatedChecked);
+
+      // ✅ update juga initialCheckedRef supaya reflect data terbaru setelah save
+      initialCheckedRef.current = updatedChecked;
+
       await showAlert("Success", "success", res.data?.message || "User updated successfully", false, 1500);
-       router.replace;
+      router.replace;
     } catch (error) {
       showAlert("Error", "error", error.response?.data?.message || "Failed to update user");
     } finally {
