@@ -236,9 +236,25 @@ useEffect(() => {
     await showAlert("Success", "success", "User created successfully", false, 1500);
     router.push("/portal/user");
   } catch (error) {
-    await showAlert("Error", "error", error.response?.data?.message || "Failed to create user");
-    form.reset();
-  } finally {
+  const data_error = error.response?.data || null;
+  if (data_error) {
+    if (error.response?.status === 400) {
+      const msg = data_error.message || "";
+      if (msg.toLowerCase().includes("username")) {
+        form.setFieldError("username", msg);
+      } else if (msg.toLowerCase().includes("badge")) {
+        form.setFieldError("badge_number", msg);
+      }
+      showAlert("Duplicate Data", "error", msg);
+    } else {
+      showAlert(data_error.message || "Error", "error", data_error.error || "");
+    }
+  } else if (error.request) {
+    showAlert("Network Error", "error", "No response from server.");
+  } else {
+    showAlert("Error", "error", error.message || "Unknown error");
+  }
+}finally {
     setLoading(false);
   }
 };

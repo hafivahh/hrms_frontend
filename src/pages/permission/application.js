@@ -231,11 +231,19 @@ export default function ApplicationList() {
       );
       fetchData();
     } catch (err) {
-      showAlert(
-        "Error",
-        "error",
-        err.response?.data?.message || "Failed to save",
-      );
+      if (err.response?.status === 409) {
+        showAlert(
+          "Duplicate Application Name",
+          "error",
+          `Application name "${appName}" already exists`,
+        );
+      } else {
+        showAlert(
+          "Error",
+          "error",
+          err.response?.data?.message || "Failed to save",
+        );
+      }
     } finally {
       setSaving(false);
     }

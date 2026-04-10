@@ -158,11 +158,24 @@ export default function Add_employee() {
     } catch (error) {
       const data_error = error.response?.data || null;
       if (data_error) {
-        showAlert(
-          data_error.message || "Error",
-          "error",
-          data_error.error || "",
-        );
+        //  tangkap 409 dari backend
+        if (error.response?.status === 409) {
+          form.setFieldError(
+            "badge_number",
+            data_error.message || "Badge number already exists",
+          );
+          showAlert(
+            "Duplicate Badge Number",
+            "error",
+            data_error.message || "Badge number already exists",
+          );
+        } else {
+          showAlert(
+            data_error.message || "Error",
+            "error",
+            data_error.error || "",
+          );
+        }
       } else if (error.request) {
         showAlert(
           "Network Error",

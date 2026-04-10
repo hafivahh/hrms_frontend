@@ -130,51 +130,61 @@ export default function Edit_Role() {
       return acc;
     }, {});
 
-  const handleSubmit = async (values) => {
-    const confirm = await showAlert(
-      "Are you sure?", "question",
-      "Do you want to update this role?",
-      true, null, "Update", "Cancel",
+const handleSubmit = async (values) => {
+  const confirm = await showAlert(
+    "Are you sure?", "question",
+    "Do you want to update this role?",
+    true, null, "Update", "Cancel",
+  );
+  if (!confirm?.isConfirmed) return;
+  if (!realId) {
+    showAlert("Error", "error", "Role ID not ready");
+    return;
+  }
+
+  const selectedPermissions = Object.entries(checked)
+    .filter(([, v]) => v)
+    .map(([id]) => Number(id));
+
+  try {
+    setSavingPerm(true);
+
+    // Step 1: update role name
+    const { data } = await axios.put(
+      `${API_URL}/api/master/role/${id_role}`,
+      { role_name: values.role_name },
+      { headers: { Authorization: `Bearer ${user.token}` } },
     );
-    if (!confirm?.isConfirmed) return;
-    if (!realId) {
-      showAlert("Error", "error", "Role ID not ready");
+
+    // cek duplikat dari response
+    if (!data.success) {
+      const msg = data.message || "Failed to update role";
+      if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("role")) {
+        form.setFieldError("role_name", msg);
+      }
+      showAlert("Error", "error", msg);
       return;
     }
 
-    const selectedPermissions = Object.entries(checked)
-      .filter(([, v]) => v)
-      .map(([id]) => Number(id));
+    // Step 2: save permissions
+    await axios.post(
+      `${API_URL}/api/master/role/permissions/${realId}`,
+      {
+        permissions: selectedPermissions,
+        create_by: user?.id_user ?? user?.id ?? 0,
+      },
+      { headers: { Authorization: `Bearer ${user.token}` } },
+    );
 
-    try {
-      setSavingPerm(true);
-
-      // Step 1: update role name — pakai id_role encrypted
-      const { data } = await axios.put(
-        `${API_URL}/api/master/role/${id_role}`,
-        { role_name: values.role_name },
-        { headers: { Authorization: `Bearer ${user.token}` } },
-      );
-
-      // Step 2: save permissions — pakai realId plain integer
-      await axios.post(
-        `${API_URL}/api/master/role/permissions/${realId}`,
-        {
-          permissions: selectedPermissions,
-          create_by: user?.id_user ?? user?.id ?? 0,
-        },
-        { headers: { Authorization: `Bearer ${user.token}` } },
-      );
-
-      await showAlert("Success", "success", data.message || "Role updated successfully", false, 1500);
-      router.replace;
-    } catch (error) {
-      const err = error.response?.data || {};
-      showAlert(err.message || "Error", "error", err.error || "Failed to update role");
-    } finally {
-      setSavingPerm(false);
-    }
-  };
+    await showAlert("Success", "success", data.message || "Role updated successfully", false, 1500);
+    router.replace;
+  } catch (error) {
+    const err = error.response?.data || {};
+    showAlert(err.message || "Error", "error", err.error || "Failed to update role");
+  } finally {
+    setSavingPerm(false);
+  }
+};
 
   if (loading) return <p className="p-4">Loading...</p>;
 

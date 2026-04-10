@@ -85,8 +85,16 @@ export default function CreatePermission() {
       await showAlert("Success", "success", "Permission created successfully", false, 1500);
       router.back();
     } catch (err) {
-      showAlert("Error", "error", err.response?.data?.message || "Failed to save");
-    } finally {
+  if (err.response?.status === 409) {
+    showAlert(
+      "Duplicate Permission Name",
+      "error",
+      `Permission "${values.permission_name}" already exists in group "${values.permission_group}"`,
+    );
+  } else {
+    showAlert("Error", "error", err.response?.data?.message || "Failed to save");
+  }
+} finally {
       setSaving(false);
     }
   };

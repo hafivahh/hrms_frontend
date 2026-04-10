@@ -241,8 +241,12 @@ export default function PssRecruitmentDetail() {
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-2xl font-bold text-blue-700">
-              {data.position || "-"}
+              {data.position || "-"}{" "}
+              <span className="text-gray-500 font-normal">
+                | {data.departement || "-"}
+              </span>
             </h2>
+
             <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
               <IconUsers size={14} />
               Needed: {data.qty ?? 0} {data.qty > 1 ? "people" : "person"}

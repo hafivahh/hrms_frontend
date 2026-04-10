@@ -144,11 +144,30 @@ export default function Edit_Employee() {
         1500,
       );
     } catch (error) {
-      const data_error = error.response?.data || {
-        message: "Error",
-        error: "Unknown",
-      };
-      showAlert(data_error.message, "error", data_error.error);
+      const data_error = error.response?.data || null;
+      if (data_error) {
+        if (error.response?.status === 409) {
+          form.setFieldError(
+            "badge_number",
+            data_error.message || "Badge number already exists",
+          );
+          showAlert(
+            "Duplicate Badge Number",
+            "error",
+            data_error.message || "Badge number already exists",
+          );
+        } else {
+          showAlert(
+            data_error.message || "Error",
+            "error",
+            data_error.error || "",
+          );
+        }
+      } else if (error.request) {
+        showAlert("Network Error", "error", "No response from server.");
+      } else {
+        showAlert("Error", "error", error.message || "Unknown error");
+      }
     } finally {
       setLoading(false);
     }

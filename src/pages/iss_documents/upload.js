@@ -54,84 +54,98 @@ export default function IssDocumentsUpload() {
     setAttachmentFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
-    if (!templateFile) {
-      showAlert("Warning", "warning", "Please select a Template file");
-      return;
-    }
+const handleSubmit = async () => {
+  if (!templateFile) {
+    showAlert("Warning", "warning", "Please select a Template file");
+    return;
+  }
 
-    const allowedTypes = [
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.ms-excel",
-    ];
-    if (!allowedTypes.includes(templateFile.type)) {
-      showAlert(
-        "Invalid File",
-        "error",
-        "Template must be an Excel file (.xls / .xlsx)",
-      );
-      return;
-    }
-
-    const confirm = await showAlert(
-      "Are You Sure?",
-      "question",
-      "You are about to import documents. Continue?",
-      true,
-      null,
-      "Submit",
-      "Cancel",
+  const allowedTypes = [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+  ];
+  if (!allowedTypes.includes(templateFile.type)) {
+    showAlert(
+      "Invalid File",
+      "error",
+      "Template must be an Excel file (.xls / .xlsx)",
     );
-    if (!confirm?.isConfirmed) return;
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const formData = new FormData();
-      formData.append("template", templateFile);
+  const confirm = await showAlert(
+    "Are You Sure?",
+    "question",
+    "You are about to import documents. Continue?",
+    true,
+    null,
+    "Submit",
+    "Cancel",
+  );
+  if (!confirm?.isConfirmed) return;
 
-      // ⬅️ append semua attachment
-      attachmentFiles.forEach((file) => {
-        formData.append("attachments", file); // key "attachments" (plural)
-      });
+  try {
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("template", templateFile);
 
-      const { data } = await axios.post(
-        `${API_URL}/api/iss_documents/import`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            "Content-Type": "multipart/form-data",
-          },
+    attachmentFiles.forEach((file) => {
+      formData.append("attachments", file);
+    });
+
+    const { data } = await axios.post(
+      `${API_URL}/api/iss_documents/import`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          "Content-Type": "multipart/form-data",
         },
-      );
+      },
+    );
 
-      // ⬅️ tampilkan summary hasil import
-      const msg = `${data.message}${
-        data.errors.length > 0
-          ? `\n\nErrors:\n${data.errors.map((e) => `Row ${e.row}: ${e.error}`).join("\n")}`
-          : ""
-      }`;
+    const successCount = data.success?.length || 0;
+    const errorCount = data.errors?.length || 0;
 
+    if (errorCount > 0 && successCount === 0) {
+      // ✅ semua gagal — tampil error
       await showAlert(
-        data.errors.length > 0 ? "Partial Success" : "Success",
-        data.errors.length > 0 ? "warning" : "success",
-        msg,
-        false,
-        data.errors.length > 0 ? undefined : 1500,
+        "Import Failed",
+        "error",
+        `${data.errors.map((e) => `Row ${e.row}: ${e.error}`).join("\n")}`,
       );
-
-      setTemplateFile(null);
-      setAttachmentFiles([]);
-    } catch (error) {
-      const data_error = error.response?.data || {
-        message: "Import Failed",
-        error: "Something went wrong",
-      };
-      showAlert(data_error.message, "error", data_error.error);
-    } finally {
-      setLoading(false);
+    } else if (errorCount > 0 && successCount > 0) {
+      // ✅ sebagian sukses
+      await showAlert(
+        "Partial Success",
+        "warning",
+        `${successCount} row(s) imported successfully.\n\nFailed:\n${data.errors.map((e) => `Row ${e.row}: ${e.error}`).join("\n")}`,
+        false,
+        undefined,
+      );
+    } else {
+      // ✅ semua sukses
+      await showAlert(
+        "Success",
+        "success",
+        `${successCount} row(s) imported successfully`,
+        false,
+        1500,
+      );
     }
-  };
+
+    setTemplateFile(null);
+    setAttachmentFiles([]);
+  } catch (error) {
+    const data_error = error.response?.data || {
+      message: "Import Failed",
+      error: "Something went wrong",
+    };
+    showAlert(data_error.message, "error", data_error.error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <AuthLayout sidebarList={DocumentOnly}>

@@ -1,21 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
-import {
-  TextInput,
-  Button,
-  Badge,
-  Loader,
-  Select,
-  MultiSelect,
-} from "@mantine/core";
+import { TextInput, Button, Badge, Loader, MultiSelect } from "@mantine/core";
 import { IconSearch, IconUsers } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import useApi from "@/hooks/useApi";
-import useUser from "@/store/useUser";
 import { useRouter } from "next/router";
 import useEncrypt from "@/hooks/useEncrypt";
 
-// ── STATUS MAP ─────────────────────────────────────────────────
+// STATUS MAP
 const recruitmentStatusMap = {
   1: { label: "Open", color: "green" },
   2: { label: "Open", color: "green" },
@@ -26,8 +18,8 @@ export default function PssRecruitmentList() {
   const API = useApi();
   const API_URL = API.API_URL;
   const router = useRouter();
-  const [showAll, setShowAll] = useState(false);
 
+  const [showAll, setShowAll] = useState(false);
   const [data, setData] = useState([]);
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,7 +27,7 @@ export default function PssRecruitmentList() {
   const [keyword, setKeyword] = useState("");
   const [position, setPosition] = useState([]);
 
-  // ================= FETCH OPEN RECRUITMENT =================
+  // FETCH DATA
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -49,13 +41,13 @@ export default function PssRecruitmentList() {
     }
   };
 
-  // ================= FETCH POSITIONS (DROPDOWN) =================
+  // FETCH POSITION DROPDOWN
   const fetchPositions = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/career/dropdowns`, {});
+      const res = await axios.get(`${API_URL}/api/career/dropdowns`);
       setPositions(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error("Failed to fetch positions", err);
+      console.error(err);
       setPositions([]);
     }
   };
@@ -63,20 +55,18 @@ export default function PssRecruitmentList() {
   useEffect(() => {
     fetchData();
     fetchPositions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ================= CLIENT-SIDE FILTER =================
-  // keyword → cocok ke position name
-  // position → cocok ke id_position (dari dropdown)
-  // ================= CLIENT-SIDE FILTER =================
+  // FILTER
   const filteredData = data.filter((item) => {
-    // Sembunyikan yang closed (status 3)
     if (item.recruitment_status === 3) return false;
 
     const matchKeyword =
-      keyword === "" ||
-      item.position?.toLowerCase().includes(keyword.toLowerCase());
+      keyword.trim() === "" ||
+      [item.position, item.departement]
+        .join(" ") // gabung jadi satu string
+        .toLowerCase()
+        .includes(keyword.toLowerCase());
 
     const matchPosition =
       position.length === 0 ||
@@ -93,28 +83,25 @@ export default function PssRecruitmentList() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ================= HERO SECTION ================= */}
-      <div className="relative w-full h-[450px] overflow-hidden">
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      {/* HERO */}
+      <div className="relative w-full h-[300px] md:h-[450px] overflow-hidden">
         <video
           src="/images/career.mp4"
           autoPlay
           muted
           loop
           playsInline
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute bottom-16 left-10 text-white">
-          <h1 className="text-4xl font-bold leading-tight">
-            <br />
-          </h1>
-        </div>
       </div>
 
-      {/* ================= SEARCH SECTION ================= */}
-      <div className="bg-blue-900 py-12 px-10 text-white">
-        <h2 className="text-white text-xl font-semibold mb-6">Open Jobs</h2>
+      {/* SEARCH */}
+      <div className="bg-blue-900 py-8 md:py-12 px-4 md:px-10 text-white">
+        <h2 className="text-white text-lg md:text-xl font-semibold mb-6">
+          Open Jobs
+        </h2>
+
         <div className="flex flex-col md:flex-row gap-4">
           <TextInput
             placeholder="Search by Keyword"
@@ -125,6 +112,7 @@ export default function PssRecruitmentList() {
             radius="md"
             size="md"
           />
+
           <MultiSelect
             placeholder="Select Position"
             leftSection={<IconSearch size={16} />}
@@ -143,8 +131,8 @@ export default function PssRecruitmentList() {
         </div>
       </div>
 
-      {/* ================= LIST SECTION ================= */}
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-6">
+      {/* LIST */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-10 md:py-12 space-y-6">
         {loading && (
           <div className="flex justify-center">
             <Loader />
@@ -167,18 +155,22 @@ export default function PssRecruitmentList() {
             return (
               <div
                 key={item.id}
-                className="border rounded-xl p-6 flex justify-between items-center shadow-sm hover:shadow-md transition"
+                className="border rounded-xl p-4 md:p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4 shadow-sm hover:shadow-md hover:-translate-y-1 transition"
               >
-                {/* LEFT: Info */}
-                <div>
-                  {/* Position name */}
+                {/* LEFT */}
+                <div className="w-full">
+                  {/* Position | Departement */}
                   <div
-                    className="text-xl font-semibold text-blue-600 cursor-pointer hover:underline"
+                    className="text-lg md:text-xl font-semibold text-blue-600 cursor-pointer hover:underline flex flex-wrap items-center gap-1"
                     onClick={() =>
                       router.push(`/career/detail/${encrypt(String(item.id))}`)
                     }
                   >
-                    {item.position || "-"}
+                    <span>{item.position || "-"}</span>
+                    <span className="text-gray-400 hidden sm:inline">|</span>
+                    <span className="text-gray-500 font-normal">
+                      {item.departement || "-"}
+                    </span>
                   </div>
 
                   {/* Qty */}
@@ -187,16 +179,17 @@ export default function PssRecruitmentList() {
                     Needed: {item.qty ?? 0} {item.qty > 1 ? "people" : "person"}
                   </div>
 
-                  {/* Recruitment status badge */}
-                  <div className="mt-3">
+                  {/* Status */}
+                  <div className="mt-2 md:mt-3">
                     <Badge color={status.color} radius="sm">
                       {status.label}
                     </Badge>
                   </div>
                 </div>
 
-                {/* RIGHT: Apply button */}
+                {/* RIGHT BUTTON */}
                 <Button
+                  className="w-full md:w-auto md:min-w-[120px] md:px-6"
                   onClick={() =>
                     router.push(`/career/detail/${encrypt(String(item.id))}`)
                   }
@@ -206,6 +199,8 @@ export default function PssRecruitmentList() {
               </div>
             );
           })}
+
+        {/* SHOW MORE */}
         {!loading && filteredData.length > 3 && (
           <div className="flex justify-center mt-6">
             <Button variant="light" onClick={() => setShowAll(!showAll)}>

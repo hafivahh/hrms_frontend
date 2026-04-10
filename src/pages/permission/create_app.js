@@ -52,18 +52,26 @@ export default function CreateApp() {
       );
       router.back();
     } catch (err) {
-      const data_error = err.response?.data || {
-        message: "Error",
-        error: "Unknown",
-      };
-      showAlert(data_error.message, "error", data_error.error);
+      if (err.response?.status === 409) {
+        showAlert(
+          "Duplicate Application Name",
+          "error",
+          `Application name "${values.app_name}" already exists`,
+        );
+      } else {
+        showAlert(
+          "Error",
+          "error",
+          err.response?.data?.message || "Failed to save",
+        );
+      }
     } finally {
       setSaving(false);
     }
   };
 
   return (
-      <AuthLayout sidebarList={adminOnly}>
+    <AuthLayout sidebarList={adminOnly}>
       <Head>
         <title>Create Application — HRMS</title>
       </Head>
