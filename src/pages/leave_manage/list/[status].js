@@ -163,7 +163,7 @@ export default function ListLeaveByStatus({ status }) {
       {
         accessorFn: (row) => row.supervisor_name,
         id: "supervisor_name",
-        header: "Supervisor",
+        header: "Approved By",
       },
       {
         accessorFn: (row) => row.leave_in,

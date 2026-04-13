@@ -69,7 +69,7 @@ export default function Header() {
               leftSection={<IconKey size={16} />}
               onClick={() => {
                 const encryptedId = encrypt(String(user?.id));
-                router.push(`/portal/user_control/${encryptedId}`);
+                router.push(`/change_password/${encryptedId}`);
               }}
             >
               Change Password

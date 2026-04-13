@@ -104,16 +104,35 @@ export default function PortalUser() {
               </Button>
 
               {/* Change Password */}
-              <Button
-                size="xs"
-                color="grey"
-                leftSection={<IconLock size={14} />}
-                style={{ flex: 1 }}
-                // Di list page, ganti encryptedId → id_user biasa
-                onClick={() => router.push(`/portal/change/${encryptedId}`)}
-              >
-                Change Password
-              </Button>
+              {/* Delete User */}
+<Button
+  size="xs"
+  color="red"
+  leftSection={<IconTrash size={14} />}
+  style={{ flex: 1 }}
+  onClick={async () => {
+    const confirm = await showAlert(
+      "Are you sure?",
+      "question",
+      "This user will be deactivated.",
+      true, null, "Yes, Delete", "Cancel",
+    );
+    if (!confirm?.isConfirmed) return;
+    try {
+      await axios.patch(
+        `${API_URL}/api/user/delete/${encryptedId}`,
+        {},
+        { headers: { Authorization: `Bearer ${user.token}` } },
+      );
+      await showAlert("Success", "success", "User deactivated successfully", false, 1500);
+      fetchData();
+    } catch (err) {
+      showAlert("Error", "error", err.response?.data?.message || "Failed to delete user");
+    }
+  }}
+>
+  Delete
+</Button>
             </Button.Group>
           );
         },

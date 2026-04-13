@@ -125,7 +125,7 @@ export default function Login() {
           <h1 className="text-4xl font-bold leading-tight">
             Welcome <br />
             to the <br />
-            HRMS System 👋
+            Human Resources Management System 👋
           </h1>
 
           <p className="mt-4 text-sm opacity-80">

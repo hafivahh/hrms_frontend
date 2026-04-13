@@ -175,7 +175,7 @@ export default function ESSLeaveEdit() {
   const onUpdate = async () => {
     if (loading) return;
     if (!supervisorId)
-      return showAlert("Warning", "warning", "Please select supervisor");
+      return showAlert("Warning", "warning", "Please select approved by");
     const confirm = await showAlert(
       "Update & Submit?",
       "question",
@@ -338,7 +338,7 @@ export default function ESSLeaveEdit() {
               {/* Form Information Section */}
               <div className="grid grid-cols-1 gap-6 border-t pt-6">
                 <label className="text-sm font-medium text-gray-700 mb-1 block">
-                  Supervisor (Approver) <span className="text-red-500">*</span>
+                  Approved By <span className="text-red-500">*</span>
                 </label>
 
                 <ManagerSelect
@@ -352,7 +352,7 @@ export default function ESSLeaveEdit() {
                 {supervisorId && (
                   <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded flex flex-col">
                     <Text size="xs" c="green" fw={600}>
-                      ✓ Supervisor Selected
+                      ✓ Approved By Selected
                     </Text>
                     <Text size="xs" c="dimmed">
                       {supervisorName}

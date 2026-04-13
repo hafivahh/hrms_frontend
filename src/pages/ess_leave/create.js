@@ -125,27 +125,26 @@ export default function ESSLeaveCreate() {
     setDetails(temp);
   }, [startDate, endDate]);
 
-
   const [leaveBalance, setLeaveBalance] = useState(null);
 
-useEffect(() => {
-  axios
-    .get(API.API_URL + "/api/ess_leave/balance", {
-      headers: { Authorization: "Bearer " + user.token },
-    })
-    .then((res) => setLeaveBalance(res.data.balance ?? 0))
-    .catch(() => setLeaveBalance(0));
-}, []);
+  useEffect(() => {
+    axios
+      .get(API.API_URL + "/api/ess_leave/balance", {
+        headers: { Authorization: "Bearer " + user.token },
+      })
+      .then((res) => setLeaveBalance(res.data.balance ?? 0))
+      .catch(() => setLeaveBalance(0));
+  }, []);
 
-const leaveTypesWithDisabled = leaveTypes.map((type) => {
-  const isPaid    = type.value === "1";
-  const noBalance = leaveBalance !== null && leaveBalance <= 0;
-  return {
-    ...type,
-    disabled: isPaid && noBalance,
-    label: isPaid && noBalance ? `${type.label} (No Balance)` : type.label,
-  };
-});
+  const leaveTypesWithDisabled = leaveTypes.map((type) => {
+    const isPaid = type.value === "1";
+    const noBalance = leaveBalance !== null && leaveBalance <= 0;
+    return {
+      ...type,
+      disabled: isPaid && noBalance,
+      label: isPaid && noBalance ? `${type.label} (No Balance)` : type.label,
+    };
+  });
 
   // ======================
   // SUBMIT
@@ -277,7 +276,7 @@ const leaveTypesWithDisabled = leaveTypes.map((type) => {
   }, 0);
 
   return (
-   <AuthLayout sidebarList={[]} hideSidebar={true}>
+    <AuthLayout sidebarList={[]} hideSidebar={true}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
@@ -354,18 +353,18 @@ const leaveTypesWithDisabled = leaveTypes.map((type) => {
                           </Text>
                         </div>
 
-                     <Select
-  placeholder="Select leave type"
-  data={leaveTypesWithDisabled}   // ← ganti dari leaveTypes
-  value={item.id_leave_type?.toString()}
-  onChange={(val) => {
-    const copy = [...details];
-    copy[idx].id_leave_type = Number(val);
-    setDetails(copy);
-  }}
-  required
-  searchable
-/>
+                        <Select
+                          placeholder="Select leave type"
+                          data={leaveTypesWithDisabled} // ← ganti dari leaveTypes
+                          value={item.id_leave_type?.toString()}
+                          onChange={(val) => {
+                            const copy = [...details];
+                            copy[idx].id_leave_type = Number(val);
+                            setDetails(copy);
+                          }}
+                          required
+                          searchable
+                        />
 
                         <Select
                           placeholder="Partial days (Optional)"
@@ -392,8 +391,7 @@ const leaveTypesWithDisabled = leaveTypes.map((type) => {
               <div className="space-y-5 border-t pt-6">
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-1 block">
-                    Supervisor (Approver){" "}
-                    <span className="text-red-500">*</span>
+                    Approved By <span className="text-red-500">*</span>
                   </label>
                   <ManagerSelect
                     value={supervisorId}
@@ -416,7 +414,7 @@ const leaveTypesWithDisabled = leaveTypes.map((type) => {
                   {!supervisorId && (
                     <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
                       <Text size="xs" c="orange" fw={500}>
-                        ⚠ Please select a supervisor
+                        ⚠ Please select a approved by
                       </Text>
                     </div>
                   )}

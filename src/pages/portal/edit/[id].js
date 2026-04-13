@@ -46,9 +46,10 @@ export default function EditPortalUser() {
   const [copyUsers, setCopyUsers] = useState([]);
   const [copyFrom, setCopyFrom] = useState(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
-  const prevRoleRef = useRef(null);
 
-  // ✅ simpan permission asli user sebelum di-copy
+  // ✅ prevRoleRef untuk deteksi perubahan role manual (bukan saat initial load)
+  const prevRoleRef = useRef(null);
+  // ✅ simpan permission dari master role saat initial load (untuk reset saat copy di-clear)
   const initialCheckedRef = useRef({});
 
   const form = useForm({
@@ -89,9 +90,7 @@ export default function EditPortalUser() {
       .post(
         `${API_URL}/api/master/role/serverside`,
         {},
-        {
-          headers: { Authorization: `Bearer ${user.token}` },
-        },
+        { headers: { Authorization: `Bearer ${user.token}` } },
       )
       .then(({ data }) => {
         setRoles(
@@ -132,7 +131,7 @@ export default function EditPortalUser() {
       .catch(console.error);
   }, [user?.token, API_URL]);
 
-  // fetch user data + existing permissions
+  // ✅ fetch user data + permission langsung dari master role (selalu sinkron)
   useEffect(() => {
     if (!realId || !user?.token) return;
 
@@ -142,32 +141,37 @@ export default function EditPortalUser() {
           headers: { Authorization: `Bearer ${user.token}` },
         });
 
+        const idRole = u.id_role?.toString() || "";
+
         form.setValues({
           full_name: u.full_name || "",
           badge_number: u.badge_number || "",
           username: u.username || "",
           email: u.email || "",
-          id_role: u.id_role?.toString() || "",
+          id_role: idRole,
           status_user: u.status_user?.toString() || "1",
         });
 
-        const encRealId = encrypt(String(realId));
-        const { data: existingPerms } = await axios.get(
-          `${API_URL}/api/user/permissions/${encRealId}`,
-          { headers: { Authorization: `Bearer ${user.token}` } },
-        );
+        // ✅ Set prevRoleRef saat initial load agar efek role-change tidak ikut jalan
+        prevRoleRef.current = idRole;
 
-        const initChecked = {};
-        (existingPerms || []).forEach((p) => {
-          if (p.id_permission) initChecked[String(p.id_permission)] = true;
-        });
+        // ✅ Fetch permission dari master role — bukan dari user_permissions
+        // Sehingga selalu sinkron walau master role baru saja diubah
+        // Fetch merged permission (base dari role + extra dari user)
+const encUserId = encrypt(String(u.id_user));
+const { data: mergedPerms } = await axios.get(
+  `${API_URL}/api/user/permissions/${encUserId}`,
+  { headers: { Authorization: `Bearer ${user.token}` } },
+);
 
-        setChecked(initChecked);
+const initChecked = {};
+(mergedPerms || []).forEach((p) => {
+  if (p.id_permission) initChecked[String(p.id_permission)] = true;
+});
 
-        // ✅ simpan permission asli user ke ref
-        initialCheckedRef.current = initChecked;
-
-        setInitialLoaded(true);
+setChecked(initChecked);
+initialCheckedRef.current = initChecked;
+setInitialLoaded(true);
       } catch (err) {
         console.error(err);
         showAlert("Error", "error", "Failed to fetch user data");
@@ -177,9 +181,14 @@ export default function EditPortalUser() {
     fetchUser();
   }, [realId, user?.token]);
 
+  // ✅ Hanya jalan saat user MENGGANTI role secara manual (bukan saat initial load)
   useEffect(() => {
     if (!form.values.id_role || !user?.token || apps.length === 0) return;
     if (!initialLoaded) return;
+
+    // Skip jika role belum berubah dari sebelumnya (mencegah trigger saat initial load)
+    if (prevRoleRef.current === form.values.id_role) return;
+    prevRoleRef.current = form.values.id_role;
 
     const loadRolePermissions = async () => {
       try {
@@ -208,12 +217,12 @@ export default function EditPortalUser() {
 
         const newChecked = {};
         (rolePerms || []).forEach((p) => {
-          if (p.id_permission) {
-            newChecked[String(p.id_permission)] = true;
-          }
+          if (p.id_permission) newChecked[String(p.id_permission)] = true;
         });
 
         setChecked(newChecked);
+        // ✅ Update initialCheckedRef saat role diganti manual
+        initialCheckedRef.current = newChecked;
       } catch (err) {
         console.error("Load role permissions error:", err);
       }
@@ -244,7 +253,7 @@ export default function EditPortalUser() {
     }
   };
 
-  // ✅ PERBAIKAN: kalau user klik silang/clear, kembalikan ke permission asli
+  // ✅ kalau user klik silang/clear, kembalikan ke permission dari master role
   const handleCopyFrom = (userId) => {
     setCopyFrom(userId);
     if (!userId) {
@@ -325,24 +334,6 @@ export default function EditPortalUser() {
         },
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
-
-      // reload permission biar langsung ke-update
-      const { data: newPerms } = await axios.get(
-        `${API_URL}/api/user/permissions/${encRealId}`,
-        { headers: { Authorization: `Bearer ${user.token}` } },
-      );
-
-      const updatedChecked = {};
-      (newPerms || []).forEach((p) => {
-        if (p.id_permission) {
-          updatedChecked[String(p.id_permission)] = true;
-        }
-      });
-
-      setChecked(updatedChecked);
-
-      // ✅ update juga initialCheckedRef supaya reflect data terbaru setelah save
-      initialCheckedRef.current = updatedChecked;
 
       await showAlert(
         "Success",

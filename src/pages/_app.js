@@ -15,8 +15,26 @@ import { usePathname } from "next/navigation";
 
 const COOKIE_EXPIRE_TIME = 86400;
 
-// Halaman yang tidak perlu auth
 const PUBLIC_PAGES = ["/login", "/career", "/career/detail"];
+
+const ROUTE_PERMISSION_MAP = [
+  { path: "/portal", indexKey: 0 },
+  { path: "/employee", indexKey: 21 },
+  { path: "/iss_documents", indexKey: 29 },
+  { path: "/leave_manage", indexKey: 22 },
+  { path: "/iss_mpr", indexKey: 23 },
+  { path: "/iss_recruitment", indexKey: 24 },
+  { path: "/ess_leave", indexKey: 19 },
+  { path: "/ess_documents", indexKey: 18 },
+  { path: "/master/departement", indexKey: 16 },
+  { path: "/master/project", indexKey: 33 },
+  { path: "/master/company", indexKey: 37 },
+  { path: "/master/position", indexKey: 41 },
+  { path: "/master/role", indexKey: 45 },
+  { path: "/master/leave", indexKey: 49 },
+  { path: "/master/partial_days", indexKey: 53 },
+  { path: "/change_password", indexKey: null },
+];
 
 export default function App({ Component, pageProps }) {
   const cookieUser = useCookie("portal_user");
@@ -30,9 +48,6 @@ export default function App({ Component, pageProps }) {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // ===============================
-  // VALIDATE VIA SSO (encrypted id)
-  // ===============================
   const validateUser = async (userId) => {
     try {
       const { data } = await axios.post(`${API_URL}/api/auth/validate`, {
@@ -52,7 +67,6 @@ export default function App({ Component, pageProps }) {
     const initAuth = async () => {
       if (!router.isReady) return;
 
-      // ⬅️ Skip auth untuk halaman public (login, dll)
       const isPublicPage = PUBLIC_PAGES.some((page) =>
         router.pathname.startsWith(page),
       );
@@ -64,9 +78,7 @@ export default function App({ Component, pageProps }) {
 
       const { auth_user } = router.query;
 
-      // ===============================
-      // FLOW 1 — SSO via query param auth_user
-      // ===============================
+      // FLOW 1 — SSO via query param
       if (auth_user) {
         const isValidUser = await validateUser(auth_user);
 
@@ -91,45 +103,40 @@ export default function App({ Component, pageProps }) {
       }
 
       // FLOW 2 — Login biasa via token cookie
-const loginToken = Cookies.get("portal_login_token");
-if (loginToken) {
-  try {
-    const res = await axios.post(
-      `${API_URL}/api/auth/refresh-permissions`,
-      {},
-      { headers: { Authorization: `Bearer ${loginToken}` } },
-    );
+      const loginToken = Cookies.get("portal_login_token");
+      if (loginToken) {
+        try {
+          const res = await axios.post(
+            `${API_URL}/api/auth/refresh-permissions`,
+            {},
+            { headers: { Authorization: `Bearer ${loginToken}` } },
+          );
 
-    // ← tidak pakai ...user spread, langsung assign fresh dari DB
-    setUser({
-      token:       loginToken,
-      name:        Cookies.get("portal_login_name") || "",
-      id:          Cookies.get("portal_login_id")   || "",
-      id_user:     Cookies.get("portal_login_id")   || "",
-      id_role:     res.data?.id_role  ?? null,
-      permissions: res.data?.permissions ?? [],  // ← fresh dari DB setiap load
-    });
-  } catch {
-    // fallback jika token expired atau backend down
-    setUser({
-      token:       loginToken,
-      name:        Cookies.get("portal_login_name") || "",
-      id:          Cookies.get("portal_login_id")   || "",
-      id_user:     Cookies.get("portal_login_id")   || "",
-      id_role:     Cookies.get("portal_login_role") || null,
-      permissions: [],
-    });
-  }
-  setIsAuthenticated(true);
-  return;
-}
+          setUser({
+            token: loginToken,
+            name: Cookies.get("portal_login_name") || "",
+            id: Cookies.get("portal_login_id") || "",
+            id_user: Cookies.get("portal_login_id") || "",
+            id_role: res.data?.id_role ?? null,
+            permissions: res.data?.permissions ?? [],
+          });
+        } catch {
+          setUser({
+            token: loginToken,
+            name: Cookies.get("portal_login_name") || "",
+            id: Cookies.get("portal_login_id") || "",
+            id_user: Cookies.get("portal_login_id") || "",
+            id_role: Cookies.get("portal_login_role") || null,
+            permissions: [],
+          });
+        }
+        setIsAuthenticated(true);
+        return;
+      }
 
-      // ===============================
       // FLOW 3 — SSO via portal_user cookie
-      // ===============================
       const cookieValue = Cookies.get("portal_user");
       if (!cookieValue) {
-        // Tidak ada session apapun — ke halaman login
         router.push("/login");
         return;
       }
@@ -151,6 +158,36 @@ if (loginToken) {
 
     initAuth();
   }, [router.isReady, router.query, cookieUser]);
+
+  // ===============================
+  // PERMISSION GUARD
+  // ===============================
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    const isPublicPage = PUBLIC_PAGES.some((page) =>
+      router.pathname.startsWith(page),
+    );
+    if (isPublicPage) return;
+    if (router.pathname === "/") return;
+
+    const isHR = Number(user?.id_role) === 2;
+    const permissions = user?.permissions || [];
+
+    const hasPermission = (indexKey) => {
+      if (indexKey === null) return true;
+      if (isHR) return Number(indexKey) !== 0;
+      return permissions.some((p) => Number(p) === Number(indexKey));
+    };
+
+    const matched = ROUTE_PERMISSION_MAP.find((r) =>
+      router.pathname.startsWith(r.path),
+    );
+
+    if (matched && !hasPermission(matched.indexKey)) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, router.pathname, user]);
 
   // ===============================
   // RENDER
