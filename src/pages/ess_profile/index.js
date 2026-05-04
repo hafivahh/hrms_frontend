@@ -55,7 +55,7 @@ export default function EssProfile() {
   }, [user]);
 
   return (
-     <AuthLayout sidebarList={[]} hideSidebar={true}>
+    <AuthLayout sidebarList={[]} hideSidebar={true}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder p="lg">
@@ -99,22 +99,26 @@ export default function EssProfile() {
                     Personal Information
                   </Text>
 
-                  <Grid>
-                    <Grid.Col span={6}>
+                  <Grid gutter="md">
+                    {/* Gunakan span base 12 untuk mobile, sm 6 untuk desktop */}
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Badge Number
                       </Text>
                       <Text>{profile.badge_number || "-"}</Text>
                     </Grid.Col>
 
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Email
                       </Text>
-                      <Text>{profile.email || "-"}</Text>
+                      {/* Tambahkan style break-word supaya teks panjang tidak keluar layar */}
+                      <Text style={{ wordBreak: "break-word" }}>
+                        {profile.email || "-"}
+                      </Text>
                     </Grid.Col>
 
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Gender
                       </Text>
@@ -127,7 +131,7 @@ export default function EssProfile() {
                       </Text>
                     </Grid.Col>
 
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Join Date
                       </Text>
@@ -141,21 +145,22 @@ export default function EssProfile() {
                     </Grid.Col>
                   </Grid>
                 </Paper>
+
                 {/* ORGANIZATION INFORMATION */}
                 <Paper withBorder p="md">
                   <Text fw={600} mb="sm">
                     Organization Information
                   </Text>
 
-                  <Grid>
-                    <Grid.Col span={6}>
+                  <Grid gutter="md">
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Company
                       </Text>
                       <Text>{profile.company?.company_name || "-"}</Text>
                     </Grid.Col>
 
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Departement
                       </Text>
@@ -164,14 +169,14 @@ export default function EssProfile() {
                       </Text>
                     </Grid.Col>
 
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Project
                       </Text>
                       <Text>{profile.project?.project_name || "-"}</Text>
                     </Grid.Col>
 
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
                       <Text size="sm" c="dimmed">
                         Position
                       </Text>

@@ -28,11 +28,10 @@ export default function Navigation({ showToggle = true }) {
   const { user } = useUser();
 
   const permissions = user?.permissions || [];
-  const isHR = Number(user?.id_role) === 2;
 
+  // ← Hapus isHR, samakan dengan Sidebar
   const hasPermission = (indexKey) => {
-    if (indexKey === null) return true;
-    if (isHR) return Number(indexKey) !== 0;
+    if (indexKey === null || indexKey === undefined) return false;
     return permissions.some((p) => Number(p) === Number(indexKey));
   };
 
@@ -54,11 +53,36 @@ export default function Navigation({ showToggle = true }) {
       icon: <IconUserCog size={20} />,
       indexKey: null,
       child: [
-        { title: "Employee", url: "/employee/list", icon: <IconUsers size={18} />, indexKey: 21 },
-        { title: "Document Work", url: "/iss_documents/list", icon: <IconFolder size={18} />, indexKey: 29 },
-        { title: "Leave", url: "/leave_manage/list/all", icon: <IconDoorExit  size={18} />, indexKey: 22 },
-        { title: "MPR", url: "/iss_mpr/list/all", icon: <IconNewSection  size={18} />, indexKey: 23 },
-        { title: "Recruitment", url: "/iss_recruitment/list/all", icon: <IconUserSearch  size={18} />, indexKey: 24 },
+        {
+          title: "Employee",
+          url: "/employee/list",
+          icon: <IconUsers size={18} />,
+          indexKey: 21,
+        },
+        {
+          title: "Document Work",
+          url: "/iss_documents/list",
+          icon: <IconFolder size={18} />,
+          indexKey: 29,
+        },
+        {
+          title: "Leave",
+          url: "/leave_manage/list/all",
+          icon: <IconDoorExit size={18} />,
+          indexKey: 22,
+        },
+        {
+          title: "MPR",
+          url: "/iss_mpr/list/all",
+          icon: <IconNewSection size={18} />,
+          indexKey: 23,
+        },
+        {
+          title: "Recruitment",
+          url: "/iss_recruitment/list/all",
+          icon: <IconUserSearch size={18} />,
+          indexKey: 24,
+        },
       ],
     },
     {
@@ -78,13 +102,48 @@ export default function Navigation({ showToggle = true }) {
       icon: <IconDatabase size={20} />,
       indexKey: null,
       child: [
-        { title: "Master Departement", url: "/master/departement/list", icon: <IconDatabase size={18} />, indexKey: 16 },
-        { title: "Master Project", url: "/master/project/list", icon: <IconDatabase size={18} />, indexKey: 33 },
-        { title: "Master Company", url: "/master/company/list", icon: <IconDatabase size={18} />, indexKey: 37 },
-        { title: "Master Position", url: "/master/position/list", icon: <IconDatabase size={18} />, indexKey: 41 },
-        { title: "Master Role", url: "/master/role/list", icon: <IconDatabase size={18} />, indexKey: 45 },
-        { title: "Master Leave Type", url: "/master/leave/list", icon: <IconDatabase size={18} />, indexKey: 49 },
-        { title: "Master Partial Days", url: "/master/partial_days/list", icon: <IconDatabase size={18} />, indexKey: 53 },
+        {
+          title: "Master Departement",
+          url: "/master/departement/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 16,
+        },
+        {
+          title: "Master Project",
+          url: "/master/project/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 33,
+        },
+        {
+          title: "Master Company",
+          url: "/master/company/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 37,
+        },
+        {
+          title: "Master Position",
+          url: "/master/position/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 41,
+        },
+        {
+          title: "Master Role",
+          url: "/master/role/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 45,
+        },
+        {
+          title: "Master Leave Type",
+          url: "/master/leave/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 49,
+        },
+        {
+          title: "Master Partial Days",
+          url: "/master/partial_days/list",
+          icon: <IconDatabase size={18} />,
+          indexKey: 53,
+        },
       ],
     },
   ];
@@ -93,7 +152,9 @@ export default function Navigation({ showToggle = true }) {
   const filteredNavigation = navigation
     .map((link) => {
       if (link.child) {
-        const filteredChildren = link.child.filter((c) => hasPermission(c.indexKey));
+        const filteredChildren = link.child.filter((c) =>
+          hasPermission(c.indexKey),
+        );
         if (filteredChildren.length === 0) return null;
         return { ...link, child: filteredChildren };
       }
@@ -103,9 +164,7 @@ export default function Navigation({ showToggle = true }) {
     .filter(Boolean);
 
   const isActive = (url) =>
-    url === "/"
-      ? router.asPath === "/"
-      : router.asPath.startsWith(url);
+    url === "/" ? router.asPath === "/" : router.asPath.startsWith(url);
 
   // DESKTOP ITEMS
   const desktopItems = filteredNavigation.map((link, index) => {
@@ -121,9 +180,7 @@ export default function Navigation({ showToggle = true }) {
           <Menu.Dropdown>
             {link.child.map((item, idx) => (
               <Link href={item.url} key={idx}>
-                <Menu.Item leftSection={item.icon}>
-                  {item.title}
-                </Menu.Item>
+                <Menu.Item leftSection={item.icon}>{item.title}</Menu.Item>
               </Link>
             ))}
           </Menu.Dropdown>
@@ -150,11 +207,16 @@ export default function Navigation({ showToggle = true }) {
       <nav className="w-full sticky top-0 z-50 flex items-center justify-between bg-sky-700 px-4 py-1">
         {/* Kiri: hamburger + desktop menu */}
         <div className="flex items-center">
-         {showToggle && (
-  <ActionIcon variant="subtle" size="xl" className="mr-2" onClick={toggleCollapse}>
-    <IconMenu2 color="white" />
-  </ActionIcon>
-)}
+          {showToggle && (
+            <ActionIcon
+              variant="subtle"
+              size="xl"
+              className="mr-2"
+              onClick={toggleCollapse}
+            >
+              <IconMenu2 color="white" />
+            </ActionIcon>
+          )}
 
           {/* Desktop menu */}
           <div className="hidden md:flex gap-1 items-center">

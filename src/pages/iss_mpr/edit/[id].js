@@ -278,7 +278,7 @@ export default function IssMprEdit() {
         vacant_type:      formData.vacant_type,
         budgeted:         formData.is_budgeted,
         job_description:  formData.job_description,
-        experience_years: toIntOrNull(formData.experience_years),
+       experience_years: formData.experience_years || null,
         contract_type:    formData.contract_type,
         contract_duration: formData.contract_type === "contract" ? toIntOrNull(formData.contract_duration) : null,
         purpose:          formData.purpose,

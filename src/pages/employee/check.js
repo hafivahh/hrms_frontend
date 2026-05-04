@@ -21,15 +21,18 @@ export default function CheckEmployee() {
   const { encrypt } = useEncrypt();
 
   const [selectedEmployees, setSelectedEmployees] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]); // simpan label item terpilih
   const [dropdownData, setDropdownData] = useState([]);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [allOptions, setAllOptions] = useState([]);
-  // ⬅️ fetch dropdown saat user ketik
+
   const handleSearchInput = async (query) => {
-    if (!query || query.trim().length < 1) return;
+    if (!query || query.trim().length < 1) {
+      setDropdownData([]);
+      return;
+    }
     try {
       setLoading(true);
       const { data } = await axios.get(
@@ -39,16 +42,9 @@ export default function CheckEmployee() {
       const options = Array.isArray(data)
         ? data.map((item) => ({
             value: String(item.id),
-            label: `${item.badge_number} - ${item.full_name}`, // ⬅️ label lengkap
+            label: `${item.badge_number} - ${item.full_name}`,
           }))
         : [];
-
-      setAllOptions((prev) => {
-        const map = new Map(prev.map((o) => [o.value, o]));
-        options.forEach((o) => map.set(o.value, o)); // ⬅️ override dengan data terbaru
-        return Array.from(map.values());
-      });
-
       setDropdownData(options);
     } catch (err) {
       setDropdownData([]);
@@ -57,7 +53,15 @@ export default function CheckEmployee() {
     }
   };
 
-  // ⬅️ search by selected ids
+  const handleChange = (values) => {
+    setSelectedEmployees(values);
+    // simpan label dari item yang dipilih supaya tidak hilang saat dropdown berubah
+    const merged = [...dropdownData, ...selectedItems];
+    const unique = Array.from(new Map(merged.map((o) => [o.value, o])).values());
+    const selected = unique.filter((o) => values.includes(o.value));
+    setSelectedItems(selected);
+  };
+
   const handleSearch = async () => {
     if (selectedEmployees.length === 0) return;
     try {
@@ -93,33 +97,25 @@ export default function CheckEmployee() {
         {},
         { headers: { Authorization: `Bearer ${user.token}` } },
       );
-
-      // ⬅️ update status di results, tidak dihapus
       setResults((prev) =>
         prev.map((item) =>
           item.id === id ? { ...item, status_active: 1 } : item,
         ),
       );
-
-      await showAlert(
-        "Success",
-        "success",
-        "Employee re-activated successfully",
-        false,
-        1500,
-      );
+      await showAlert("Success", "success", "Employee re-activated successfully", false, 1500);
     } catch (err) {
-      showAlert(
-        "Error",
-        "error",
-        err?.response?.data?.message || "Failed to enable employee",
-      );
+      showAlert("Error", "error", err?.response?.data?.message || "Failed to enable employee");
     }
   };
 
-  const hasActionPermission = user?.permissions?.some(
-  (p) => Number(p) === 6
-);
+  const hasActionPermission = user?.permissions?.some((p) => Number(p) === 6);
+
+  // gabungkan dropdown + selected items supaya label tetap tampil
+  const multiSelectData = Array.from(
+    new Map(
+      [...dropdownData, ...selectedItems].map((o) => [o.value, o])
+    ).values()
+  );
 
   return (
     <AuthLayout sidebarList={employeeOnly}>
@@ -134,9 +130,9 @@ export default function CheckEmployee() {
               <MultiSelect
                 className="flex-1"
                 placeholder="Search employee by name or badge..."
-                data={allOptions}
+                data={multiSelectData}
                 value={selectedEmployees}
-                onChange={setSelectedEmployees}
+                onChange={handleChange}
                 onSearchChange={handleSearchInput}
                 searchable
                 clearable
@@ -171,12 +167,7 @@ export default function CheckEmployee() {
                     No inactive employee found
                   </div>
                 ) : (
-                  <Table
-                    withTableBorder
-                    withColumnBorders
-                    striped
-                    highlightOnHover
-                  >
+                  <Table withTableBorder withColumnBorders striped highlightOnHover>
                     <Table.Thead>
                       <Table.Tr>
                         <Table.Th>Badge Number</Table.Th>
@@ -202,35 +193,19 @@ export default function CheckEmployee() {
                           <Table.Td>{item.company_name}</Table.Td>
                           <Table.Td>
                             {item.status_active === 1 ? (
-                              <Badge color="green" variant="filled" size="sm">
-                                Active
-                              </Badge>
+                              <Badge color="green" variant="filled" size="sm">Active</Badge>
                             ) : (
-                              <Badge color="red" variant="filled" size="sm">
-                                Inactive
-                              </Badge>
+                              <Badge color="red" variant="filled" size="sm">Inactive</Badge>
                             )}
                           </Table.Td>
                           {hasActionPermission && (
                             <Table.Td>
                               {item.status_active === 1 ? (
-                                <Button
-                                  size="xs"
-                                  color="gray"
-                                  disabled
-                                  leftSection={<IconToggleRight size={14} />}
-                                >
+                                <Button size="xs" color="gray" disabled leftSection={<IconToggleRight size={14} />}>
                                   Enabled
                                 </Button>
                               ) : (
-                                <Button
-                                  size="xs"
-                                  color="blue"
-                                  leftSection={<IconToggleRight size={14} />}
-                                  onClick={() =>
-                                    handleEnable(item.id, item.full_name)
-                                  }
-                                >
+                                <Button size="xs" color="blue" leftSection={<IconToggleRight size={14} />} onClick={() => handleEnable(item.id, item.full_name)}>
                                   Enable
                                 </Button>
                               )}

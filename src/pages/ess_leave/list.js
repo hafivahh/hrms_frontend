@@ -41,7 +41,7 @@ export default function ESSLeaveList() {
   const statusMap = {
     0: { label: "Draft", color: "gray" },
     1: { label: "Pending Approval", color: "yellow" },
-    // 2: { label: "Approved", color: "blue" }, 
+    // 2: { label: "Approved", color: "blue" },
     // 3: { label: "Rejected", color: "red" },
     4: { label: "Completed", color: "green" }, // Status akhir (semua selesai)
   };
@@ -197,7 +197,7 @@ export default function ESSLeaveList() {
   }, [fetchData]);
 
   return (
-      <AuthLayout sidebarList={[]} hideSidebar={true}>
+    <AuthLayout sidebarList={[]} hideSidebar={true}>
       <div className="py-6">
         <div className="max-w-full mx-auto sm:px-6 lg:px-8">
           <Paper radius="sm" mt="md" withBorder>
@@ -225,7 +225,7 @@ export default function ESSLeaveList() {
                   variant="filled"
                   size="md"
                 >
-              {Number(leaveBalance).toFixed(1)} days
+                  {Number(leaveBalance).toFixed(1)} days
                 </Badge>
               </div>
               <Button

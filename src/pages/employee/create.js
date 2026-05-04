@@ -98,7 +98,7 @@ export default function Add_employee() {
   }, []);
 
   const handleSubmit = async (values) => {
-    if (loading) return; // ⬅️ prevent double submit
+    if (loading) return; //  prevent double submit
 
     const confirm = await showAlert(
       "Are you sure?",
@@ -110,11 +110,11 @@ export default function Add_employee() {
       "Cancel",
     );
 
-    // ⬅️ handle kedua kemungkinan return value dari showAlert
+    // ⬅ handle kedua kemungkinan return value dari showAlert
     if (!confirm) return;
     if (typeof confirm === "object" && confirm.isConfirmed === false) return;
 
-    setLoading(true); // ⬅️ aktifkan loading
+    setLoading(true); //  aktifkan loading
 
     const payload = {
       ...values,
