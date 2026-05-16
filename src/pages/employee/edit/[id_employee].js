@@ -216,8 +216,8 @@ export default function Edit_Employee() {
                   label="Gender"
                   placeholder="Select gender"
                   data={[
-                    { value: "1", label: "Laki-Laki" },
-                    { value: "2", label: "Perempuan" },
+                    { value: "1", label: "Male" },
+                    { value: "2", label: "Female" },
                   ]}
                   searchable
                   {...form.getInputProps("gender")}

@@ -27,6 +27,7 @@ import { useRouter } from "next/router";
 import useDecrypt from "@/hooks/useDecrypt";
 import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 const recruitmentStatusMap = {
@@ -35,6 +36,7 @@ const recruitmentStatusMap = {
 };
 
 export default function PssRecruitmentDetail() {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const { user } = useUser();
   const API = useApi();
   const API_URL = API.API_URL;
@@ -92,6 +94,13 @@ export default function PssRecruitmentDetail() {
     const decryptedId = decrypt(id);
     const file = values.file;
 
+    const token = await executeRecaptcha("apply_form");
+    console.log("reCAPTCHA token:", token);
+    if (!token) {
+      await showAlert("Error", "error", "reCAPTCHA failed, please try again.");
+      return;
+    }
+
     // cek magic bytes di frontend
     const checkMagicBytes = (file) => {
       return new Promise((resolve) => {
@@ -147,6 +156,7 @@ export default function PssRecruitmentDetail() {
       formData.append("email", values.email);
       formData.append("full_name", values.name);
       formData.append("phone_number", values.phone);
+      formData.append("recaptcha_token", token);
 
       await axios.post(`${API_URL}/api/career/upload`, formData, {
         headers: {

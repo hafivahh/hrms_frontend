@@ -101,7 +101,7 @@ export default function List() {
       },
       {
         accessorFn: (row) =>
-          row.gender === 1 ? "Laki-Laki" : row.gender === 2 ? "Perempuan" : "-",
+          row.gender === 1 ? "Male" : row.gender === 2 ? "Female" : "-",
         id: "gender",
         header: "Gender",
         enableColumnFilter: true,

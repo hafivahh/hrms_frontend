@@ -12,6 +12,8 @@ import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import useApi from "@/hooks/useApi";
 import { usePathname } from "next/navigation";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+
 
 const COOKIE_EXPIRE_TIME = 86400;
 
@@ -193,6 +195,7 @@ export default function App({ Component, pageProps }) {
   // RENDER
   // ===============================
   return (
+  <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}>
     <MantineProvider>
       {!isAuthenticated ? (
         <>
@@ -213,5 +216,6 @@ export default function App({ Component, pageProps }) {
         </>
       )}
     </MantineProvider>
-  );
+  </GoogleReCaptchaProvider>
+);
 }
